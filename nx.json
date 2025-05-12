@@ -19,6 +19,15 @@
           "watchDepsName": "watch-deps"
         }
       }
+    },
+    {
+      "plugin": "@nxlv/python",
+      "options": {
+        "packageManager": "uv"
+      }
     }
-  ]
+  ],
+  "tui": {
+    "enabled": false
+  }
 }

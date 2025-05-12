@@ -1,0 +1,132 @@
+{
+  "name": "ingestion-workflow",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "packages/workflows/ingestion/ingestion_workflow",
+  "targets": {
+    "docker-compose-up": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docker compose -f docker-compose.yml up -d",
+        "cwd": "{projectRoot}"
+      }
+    },
+    "serve": {
+      "executor": "@nxlv/python:run-commands",
+      "options": {
+        "command": "python ingestion_workflow/api.py",
+        "cwd": "{projectRoot}"
+      }
+    },
+    "serve-worker": {
+      "executor": "@nxlv/python:run-commands",
+      "continuous": true,
+      "options": {
+        "command": "python ingestion_workflow/worker.py",
+        "cwd": "{projectRoot}"
+      },
+      "configurations": {
+        "watch": {
+          "command": "watchmedo auto-restart --patterns=\"*.py\" --recursive -- python ingestion_workflow/worker.py"
+        }
+      }
+    },
+    "lock": {
+      "executor": "@nxlv/python:lock",
+      "options": {
+        "update": false
+      }
+    },
+    "sync": {
+      "executor": "@nxlv/python:sync",
+      "options": {}
+    },
+    "add": {
+      "executor": "@nxlv/python:add",
+      "options": {}
+    },
+    "update": {
+      "executor": "@nxlv/python:update",
+      "options": {}
+    },
+    "remove": {
+      "executor": "@nxlv/python:remove",
+      "options": {}
+    },
+    "build": {
+      "executor": "@nxlv/python:build",
+      "outputs": ["{projectRoot}/dist"],
+      "options": {
+        "outputPath": "{projectRoot}/dist",
+        "publish": false,
+        "lockedVersions": true,
+        "bundleLocalDependencies": true
+      },
+      "cache": true
+    },
+    "lint": {
+      "executor": "@nxlv/python:ruff-check",
+      "outputs": [],
+      "options": {
+        "lintFilePatterns": ["ingestion_workflow", "tests"]
+      },
+      "cache": true
+    },
+    "format": {
+      "executor": "@nxlv/python:ruff-format",
+      "outputs": [],
+      "options": {
+        "filePatterns": ["ingestion_workflow", "tests", "alembic"]
+      },
+      "cache": true
+    },
+    "test": {
+      "executor": "@nxlv/python:run-commands",
+      "outputs": [
+        "{workspaceRoot}/reports/{projectRoot}/unittests",
+        "{workspaceRoot}/coverage/{projectRoot}"
+      ],
+      "options": {
+        "command": "uv run pytest tests/",
+        "cwd": "{projectRoot}"
+      },
+      "cache": true
+    },
+    "install": {
+      "executor": "@nxlv/python:install",
+      "options": {
+        "silent": false,
+        "args": "",
+        "verbose": false,
+        "debug": false
+      }
+    },
+    "alembic-revision": {
+      "executor": "@nxlv/python:run-commands",
+      "options": {
+        "command": "alembic revision",
+        "cwd": "{projectRoot}"
+      }
+    },
+    "alembic-upgrade": {
+      "executor": "@nxlv/python:run-commands",
+      "options": {
+        "command": "alembic upgrade head",
+        "cwd": "{projectRoot}"
+      }
+    },
+    "alembic-downgrade": {
+      "executor": "@nxlv/python:run-commands",
+      "options": {
+        "command": "alembic downgrade",
+        "cwd": "{projectRoot}"
+      }
+    }
+  },
+  "tags": [],
+  "release": {
+    "version": {
+      "generator": "@nxlv/python:release-version"
+    }
+  }
+}
