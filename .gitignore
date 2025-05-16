@@ -44,3 +44,8 @@ Thumbs.db
 __pycache__
 .venv
 .env.local
+
+# Next.js
+.next
+out
+test-output

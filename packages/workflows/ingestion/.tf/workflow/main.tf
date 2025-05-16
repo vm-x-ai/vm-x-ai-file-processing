@@ -7,6 +7,37 @@ module "landing_s3_bucket" {
   versioning = {
     enabled = true
   }
+
+  cors_rule = [
+    {
+      allowed_headers = ["*"]
+      allowed_methods = ["GET", "PUT", "POST", "DELETE"]
+      allowed_origins = ["*"]
+      expose_headers  = ["ETag"]
+      max_age_seconds = 3000
+    }
+  ]
+}
+
+module "thumbnail_s3_bucket" {
+  source = "terraform-aws-modules/s3-bucket/aws"
+
+  bucket = "vm-x-ai-${var.service_name}-thumbnail-${data.aws_region.current.name}-${var.stage}"
+  acl    = "private"
+
+  versioning = {
+    enabled = true
+  }
+
+  cors_rule = [
+    {
+      allowed_headers = ["*"]
+      allowed_methods = ["GET", "PUT", "POST", "DELETE"]
+      allowed_origins = ["*"]
+      expose_headers  = ["ETag"]
+      max_age_seconds = 3000
+    }
+  ]
 }
 
 module "landing_sns_topic" {

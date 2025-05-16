@@ -1,0 +1,23 @@
+{
+  "name": "ui",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/apps/ui",
+  "projectType": "application",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project ui --web",
+  "targets": {
+    "dev": {
+      "continuous": true,
+      "command": "next dev --port 3002 --turbopack",
+      "options": {
+        "cwd": "{projectRoot}"
+      }
+    },
+    "openapi-gen": {
+      "command": "pnpm exec openapi typegen http://localhost:8000/openapi.json --client > src/file-classifier-api.d.ts",
+      "options": {
+        "cwd": "{projectRoot}"
+      }
+    }
+  }
+}

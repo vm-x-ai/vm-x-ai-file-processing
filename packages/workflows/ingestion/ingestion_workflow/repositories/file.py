@@ -2,7 +2,7 @@ from contextlib import AbstractAsyncContextManager
 from typing import Callable, cast
 from uuid import UUID
 
-from sqlalchemy import Column, ColumnExpressionArgument
+from sqlalchemy import Column, ColumnExpressionArgument, select
 from sqlmodel import col
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -32,3 +32,16 @@ class FileRepository(
 
     def _id_predicate(self, id: UUID) -> ColumnExpressionArgument[bool]:
         return col(models.File.id) == id
+
+    async def get_by_project_id(
+        self,
+        project_id: UUID,
+    ) -> list[models.FileRead]:
+        async with self._session_factory() as session:
+            query = (
+                select(models.File)
+                .where(models.File.project_id == project_id)
+                .order_by(col(models.File.created_at).desc())
+            )
+            result = await session.scalars(query)
+            return [models.FileRead.model_validate(file) for file in result.all()]

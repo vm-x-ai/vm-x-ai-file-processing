@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from contextlib import AbstractAsyncContextManager
-from typing import Any, Callable, Generic, TypeVar, Union
+from typing import Any, Callable, Generic, Literal, TypeVar, Union
 
 from sqlalchemy import Column, insert, tuple_
 from sqlalchemy.sql import ColumnExpressionArgument
@@ -70,6 +70,26 @@ class BaseRepository(ABC, Generic[TID, TModel, TReadModel, TCreateModel]):
             A SQLAlchemy expression for filtering by the given ID
         """
         ...
+
+    async def get_all(
+        self,
+        order_by: ColumnExpressionArgument | None = None,
+        order_type: Literal["asc", "desc"] = "asc",
+    ) -> list[TReadModel]:
+        """Retrieves all records.
+
+        Returns:
+            List of all records converted to read model
+        """
+        async with self._session_factory() as session:
+            query = select(self._model)
+            if order_by:
+                query = query.order_by(
+                    order_by.asc() if order_type == "asc" else order_by.desc()
+                )
+
+            result = await session.scalars(query)
+            return [self._read_model.model_validate(row) for row in result]
 
     async def get(self, id: TID) -> TReadModel | None:
         """Retrieves a single record by ID.

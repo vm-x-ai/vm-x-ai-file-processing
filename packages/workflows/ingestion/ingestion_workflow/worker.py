@@ -20,9 +20,11 @@ logger = logging.getLogger(__name__)
 
 async def main():
     container = Container()
+    container.wire(modules=["ingestion_workflow.activities"])
     await container.init_resources()
     client: Client = await container.temporal_client()
     logger.info(f"Starting worker for {client.namespace}")
+
     worker = Worker(
         client,
         task_queue="ingestion-workflow",

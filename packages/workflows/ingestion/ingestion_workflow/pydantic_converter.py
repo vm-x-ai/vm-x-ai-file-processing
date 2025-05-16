@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Optional
 
 import temporalio.api.common.v1
@@ -10,6 +11,8 @@ from temporalio.converter import (
     EncodingPayloadConverter,
     JSONPlainPayloadConverter,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class PydanticJSONPlainPayloadConverter(EncodingPayloadConverter):

@@ -4,7 +4,9 @@ from uuid import UUID
 
 from sqlalchemy import Column, Text, func
 from sqlalchemy.dialects import postgresql
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
+
+from ingestion_workflow.models.evaluation import Evaluation, EvaluationRead
 
 
 class FileStatus(str, Enum):
@@ -27,6 +29,7 @@ class FileBase(SQLModel):
     status: FileStatus = Field(default=FileStatus.PENDING)
     error: str | None = Field(default=None, sa_type=Text)
     project_id: UUID = Field(foreign_key="projects.id")
+    thumbnail_url: str | None = Field(default=None, sa_type=Text)
 
 
 class File(FileBase, table=True):
@@ -53,6 +56,8 @@ class File(FileBase, table=True):
         ),
     )
 
+    evaluations: list["FileEvaluation"] = Relationship(back_populates="file")
+
 
 class FileCreate(FileBase):
     id: UUID
@@ -64,24 +69,24 @@ class FileRead(FileBase):
     updated_at: datetime
 
 
-class FileQuestionStatus(Enum):
+class FileEvaluationStatus(Enum):
     PENDING = "pending"
     PROCESSING = "processing"
     COMPLETED = "completed"
     FAILED = "failed"
 
 
-class FileQuestionBase(SQLModel):
+class FileEvaluationBase(SQLModel):
     file_id: UUID = Field(foreign_key="files.id")
-    question_id: UUID = Field(foreign_key="questions.id")
-    answer: str = Field(sa_type=Text, nullable=False)
+    evaluation_id: UUID = Field(foreign_key="evaluations.id")
+    response: str = Field(sa_type=Text, nullable=False)
     context_metadata: dict = Field(sa_type=postgresql.JSONB, nullable=False)
-    status: FileQuestionStatus = Field(default=FileQuestionStatus.PENDING)
+    status: FileEvaluationStatus = Field(default=FileEvaluationStatus.PENDING)
     error: str | None = Field(default=None, sa_type=Text)
 
 
-class FileQuestion(FileQuestionBase, table=True):
-    __tablename__ = "file_questions"
+class FileEvaluation(FileEvaluationBase, table=True):
+    __tablename__ = "file_evaluations"
 
     id: UUID | None = Field(primary_key=True)
 
@@ -104,11 +109,19 @@ class FileQuestion(FileQuestionBase, table=True):
         ),
     )
 
+    file: File = Relationship(back_populates="evaluations")
+    evaluation: Evaluation = Relationship(back_populates="file_evaluations")
 
-class FileQuestionCreate(FileQuestionBase):
+
+class FileEvaluationCreate(FileEvaluationBase):
     id: UUID
 
 
-class FileQuestionRead(FileQuestionBase):
+class FileEvaluationRead(FileEvaluationBase):
     created_at: datetime
     updated_at: datetime
+
+
+class FileEvaluationReadWithFile(FileEvaluationRead):
+    file: FileRead
+    evaluation: EvaluationRead

@@ -1,0 +1,76 @@
+import json
+import logging
+import uuid
+from uuid import UUID
+
+from temporalio import activity
+from vmxai.types import (
+    CompletionBatchItemUpdateCallbackPayload,
+    CompletionBatchRequestStatus,
+)
+
+from ingestion_workflow import models
+from ingestion_workflow.containers import Container
+
+logger = logging.getLogger(__name__)
+
+
+@activity.defn
+async def store_evaluation(
+    file: models.FileRead,
+    evaluation: models.EvaluationRead,
+    result: CompletionBatchItemUpdateCallbackPayload,
+):
+    if not result.payload.response:
+        raise ValueError("No response from VMX")
+
+    response: str | None = None
+
+    match evaluation.evaluation_type:
+        case models.EvaluationType.BOOLEAN:
+            if not result.payload.response.tool_calls:
+                raise ValueError("No tool calls from VMX")
+
+            tool_call = result.payload.response.tool_calls[0]
+            if tool_call.function.name != "boolean_answer":
+                raise ValueError("Invalid tool call from VMX")
+
+            boolean_answer = tool_call.function.arguments
+            if not boolean_answer:
+                raise ValueError("No boolean answer from VMX")
+
+            boolean_answer = json.loads(boolean_answer)
+            response = str(boolean_answer["answer"]).lower()
+        case models.EvaluationType.ENUM_CHOICE:
+            if not result.payload.response.tool_calls:
+                raise ValueError("No tool calls from VMX")
+
+            tool_call = result.payload.response.tool_calls[0]
+            if tool_call.function.name != "enum_answer":
+                raise ValueError("Invalid tool call from VMX")
+
+            enum_answer = tool_call.function.arguments
+            if not enum_answer:
+                raise ValueError("No enum answer from VMX")
+
+            enum_answer = json.loads(enum_answer)
+            response = enum_answer["answer"]
+        case models.EvaluationType.TEXT:
+            response = result.payload.response.message
+
+    file_evaluation_repository = Container.file_evaluation_repository()
+    await file_evaluation_repository.add(
+        models.FileEvaluationCreate(
+            id=uuid.uuid4(),
+            file_id=file.id,
+            evaluation_id=UUID(result.payload.request.metadata["evaluation_id"]),
+            response=response,
+            context_metadata=result.payload.request.metadata["page_metadata"],
+            status=models.FileEvaluationStatus.COMPLETED
+            if result.payload.status == CompletionBatchRequestStatus.COMPLETED
+            else models.FileEvaluationStatus.FAILED,
+            error=result.payload.error,
+        )
+    )
+
+    return response

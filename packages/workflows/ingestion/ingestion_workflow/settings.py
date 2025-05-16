@@ -31,6 +31,28 @@ class VMX(BaseSettings):
     environment_id: str
 
 
+class Thumbnail(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=env_file,
+        env_file_encoding="utf-8",
+        extra="ignore",
+        env_prefix="THUMBNAIL_",
+    )
+
+    s3_bucket_name: str
+
+
+class Landing(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=env_file,
+        env_file_encoding="utf-8",
+        extra="ignore",
+        env_prefix="LANDING_",
+    )
+
+    s3_bucket_name: str
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=env_file, env_file_encoding="utf-8", extra="ignore"
@@ -45,3 +67,5 @@ class Settings(BaseSettings):
     temporal_host: str
     openai: OpenAI = OpenAI()
     vmx: VMX = VMX()
+    thumbnail: Thumbnail = Thumbnail()
+    landing: Landing = Landing()

@@ -1,8 +1,8 @@
 """initial tables
 
-Revision ID: 340d21064608
+Revision ID: 9663c7cd23d8
 Revises:
-Create Date: 2025-05-12 18:29:20.200157
+Create Date: 2025-05-16 10:47:41.434847
 
 """
 
@@ -16,7 +16,7 @@ from sqlalchemy.dialects import postgresql
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "340d21064608"
+revision: str = "9663c7cd23d8"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -47,6 +47,46 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
+        "evaluations",
+        sa.Column("title", sa.Text(), nullable=False),
+        sa.Column("description", sa.Text(), nullable=False),
+        sa.Column("system_prompt", sa.Text(), nullable=True),
+        sa.Column("prompt", sa.Text(), nullable=False),
+        sa.Column("project_id", sa.Uuid(), nullable=False),
+        sa.Column(
+            "evaluation_type",
+            sa.Enum("ENUM_CHOICE", "TEXT", "BOOLEAN", name="evaluationtype"),
+            nullable=False,
+        ),
+        sa.Column(
+            "evaluation_options", postgresql.JSONB(astext_type=sa.Text()), nullable=True
+        ),
+        sa.Column("parent_evaluation_id", sa.Uuid(), nullable=True),
+        sa.Column("parent_evaluation_option", sa.Text(), nullable=True),
+        sa.Column("id", sa.Uuid(), nullable=False),
+        sa.Column(
+            "created_at",
+            postgresql.TIMESTAMP(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            postgresql.TIMESTAMP(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.ForeignKeyConstraint(
+            ["parent_evaluation_id"],
+            ["evaluations.id"],
+        ),
+        sa.ForeignKeyConstraint(
+            ["project_id"],
+            ["projects.id"],
+        ),
+        sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_table(
         "files",
         sa.Column("name", sa.Text(), nullable=False),
         sa.Column("type", sa.Text(), nullable=False),
@@ -70,32 +110,7 @@ def upgrade() -> None:
         ),
         sa.Column("error", sa.Text(), nullable=True),
         sa.Column("project_id", sa.Uuid(), nullable=False),
-        sa.Column("id", sa.Uuid(), nullable=False),
-        sa.Column(
-            "created_at",
-            postgresql.TIMESTAMP(timezone=True),
-            server_default=sa.text("now()"),
-            nullable=False,
-        ),
-        sa.Column(
-            "updated_at",
-            postgresql.TIMESTAMP(timezone=True),
-            server_default=sa.text("now()"),
-            nullable=False,
-        ),
-        sa.ForeignKeyConstraint(
-            ["project_id"],
-            ["projects.id"],
-        ),
-        sa.PrimaryKeyConstraint("id"),
-    )
-    op.create_table(
-        "questions",
-        sa.Column("title", sa.Text(), nullable=False),
-        sa.Column("description", sa.Text(), nullable=False),
-        sa.Column("system_prompt", sa.Text(), nullable=True),
-        sa.Column("question", sa.Text(), nullable=False),
-        sa.Column("project_id", sa.Uuid(), nullable=False),
+        sa.Column("thumbnail_url", sa.Text(), nullable=True),
         sa.Column("id", sa.Uuid(), nullable=False),
         sa.Column(
             "created_at",
@@ -154,10 +169,10 @@ def upgrade() -> None:
         postgresql_ops={"embedding": "vector_cosine_ops"},
     )
     op.create_table(
-        "file_questions",
+        "file_evaluations",
         sa.Column("file_id", sa.Uuid(), nullable=False),
-        sa.Column("question_id", sa.Uuid(), nullable=False),
-        sa.Column("answer", sa.Text(), nullable=False),
+        sa.Column("evaluation_id", sa.Uuid(), nullable=False),
+        sa.Column("response", sa.Text(), nullable=False),
         sa.Column(
             "context_metadata", postgresql.JSONB(astext_type=sa.Text()), nullable=False
         ),
@@ -168,7 +183,7 @@ def upgrade() -> None:
                 "PROCESSING",
                 "COMPLETED",
                 "FAILED",
-                name="filequestionstatus",
+                name="fileevaluationstatus",
             ),
             nullable=False,
         ),
@@ -187,18 +202,18 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ["file_id"],
-            ["files.id"],
+            ["evaluation_id"],
+            ["evaluations.id"],
         ),
         sa.ForeignKeyConstraint(
-            ["question_id"],
-            ["questions.id"],
+            ["file_id"],
+            ["files.id"],
         ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
-        "project_questions",
-        sa.Column("question_id", sa.Uuid(), nullable=False),
+        "project_evaluations",
+        sa.Column("evaluation_id", sa.Uuid(), nullable=False),
         sa.Column("project_id", sa.Uuid(), nullable=False),
         sa.Column(
             "created_at",
@@ -213,14 +228,14 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
+            ["evaluation_id"],
+            ["evaluations.id"],
+        ),
+        sa.ForeignKeyConstraint(
             ["project_id"],
             ["projects.id"],
         ),
-        sa.ForeignKeyConstraint(
-            ["question_id"],
-            ["questions.id"],
-        ),
-        sa.PrimaryKeyConstraint("question_id", "project_id"),
+        sa.PrimaryKeyConstraint("evaluation_id", "project_id"),
     )
     # ### end Alembic commands ###
 
@@ -228,8 +243,8 @@ def upgrade() -> None:
 def downgrade() -> None:
     """Downgrade schema."""
     # ### commands auto generated by Alembic - please adjust! ###
-    op.drop_table("project_questions")
-    op.drop_table("file_questions")
+    op.drop_table("project_evaluations")
+    op.drop_table("file_evaluations")
     op.drop_index(
         "ix_file_embeddings_vector",
         table_name="file_embeddings",
@@ -237,10 +252,11 @@ def downgrade() -> None:
         postgresql_ops={"embedding": "vector_cosine_ops"},
     )
     op.drop_table("file_embeddings")
-    op.drop_table("questions")
     op.drop_table("files")
+    op.drop_table("evaluations")
     op.drop_table("projects")
     # ### end Alembic commands ###
 
+    op.execute("DROP TYPE IF EXISTS evaluationtype;")
+    op.execute("DROP TYPE IF EXISTS fileevaluationstatus;")
     op.execute("DROP TYPE IF EXISTS filestatus;")
-    op.execute("DROP TYPE IF EXISTS filequestionstatus;")

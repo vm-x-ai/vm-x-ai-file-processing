@@ -46,13 +46,13 @@ class ProjectRead(ProjectBase):
     updated_at: datetime
 
 
-class ProjectQuestionBase(SQLModel):
-    question_id: UUID = Field(foreign_key="questions.id", primary_key=True)
+class ProjectEvaluationBase(SQLModel):
+    evaluation_id: UUID = Field(foreign_key="evaluations.id", primary_key=True)
     project_id: UUID = Field(foreign_key="projects.id", primary_key=True)
 
 
-class ProjectQuestion(ProjectQuestionBase, table=True):
-    __tablename__ = "project_questions"
+class ProjectEvaluation(ProjectEvaluationBase, table=True):
+    __tablename__ = "project_evaluations"
 
     created_at: datetime | None = Field(
         default=None,
@@ -74,9 +74,9 @@ class ProjectQuestion(ProjectQuestionBase, table=True):
     )
 
 
-class ProjectQuestionCreate(ProjectQuestionBase): ...
+class ProjectEvaluationCreate(ProjectEvaluationBase): ...
 
 
-class ProjectQuestionRead(ProjectQuestionBase):
+class ProjectEvaluationRead(ProjectEvaluationBase):
     created_at: datetime
     updated_at: datetime

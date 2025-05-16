@@ -1,3 +1,4 @@
+import aioboto3
 from dependency_injector import containers, providers
 from temporalio.client import Client
 
@@ -28,6 +29,10 @@ class Container(containers.DeclarativeContainer):
         host=settings.provided.temporal_host,
     )
 
+    aioboto3_session = providers.Singleton(
+        aioboto3.Session,
+    )
+
     file_repository = providers.Factory(
         repositories.FileRepository,
         session_factory=db.provided.session,
@@ -40,8 +45,8 @@ class Container(containers.DeclarativeContainer):
         write_session_factory=db.provided.writer_session,
     )
 
-    file_question_repository = providers.Factory(
-        repositories.FileQuestionRepository,
+    file_evaluation_repository = providers.Factory(
+        repositories.FileEvaluationRepository,
         session_factory=db.provided.session,
         write_session_factory=db.provided.writer_session,
     )
@@ -52,8 +57,8 @@ class Container(containers.DeclarativeContainer):
         write_session_factory=db.provided.writer_session,
     )
 
-    question_repository = providers.Factory(
-        repositories.QuestionRepository,
+    evaluation_repository = providers.Factory(
+        repositories.EvaluationRepository,
         session_factory=db.provided.session,
         write_session_factory=db.provided.writer_session,
     )
