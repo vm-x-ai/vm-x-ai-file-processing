@@ -28,7 +28,7 @@ class EvaluationBase(SQLModel):
         sa_type=postgresql.JSONB, nullable=True
     )
     parent_evaluation_id: Optional[UUID] = Field(
-        foreign_key="evaluations.id", nullable=True
+        foreign_key="evaluations.id", nullable=True, ondelete="CASCADE"
     )
     parent_evaluation_option: Optional[str] = Field(sa_type=Text, nullable=True)
 
@@ -68,3 +68,7 @@ class EvaluationRead(EvaluationBase):
     id: UUID
     created_at: datetime
     updated_at: datetime
+
+
+class EvaluationTree(EvaluationRead):
+    children: list["EvaluationTree"] = Field(default=[])

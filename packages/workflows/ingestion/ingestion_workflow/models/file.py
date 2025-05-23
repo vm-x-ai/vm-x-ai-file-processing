@@ -7,6 +7,7 @@ from sqlalchemy.dialects import postgresql
 from sqlmodel import Field, Relationship, SQLModel
 
 from ingestion_workflow.models.evaluation import Evaluation, EvaluationRead
+from ingestion_workflow.models.file_content import FileContent, FileContentRead
 
 
 class FileStatus(str, Enum):
@@ -77,10 +78,10 @@ class FileEvaluationStatus(Enum):
 
 
 class FileEvaluationBase(SQLModel):
-    file_id: UUID = Field(foreign_key="files.id")
-    evaluation_id: UUID = Field(foreign_key="evaluations.id")
+    file_id: UUID = Field(foreign_key="files.id", ondelete="CASCADE")
+    evaluation_id: UUID = Field(foreign_key="evaluations.id", ondelete="CASCADE")
+    content_id: UUID = Field(foreign_key="file_contents.id", ondelete="CASCADE")
     response: str = Field(sa_type=Text, nullable=False)
-    context_metadata: dict = Field(sa_type=postgresql.JSONB, nullable=False)
     status: FileEvaluationStatus = Field(default=FileEvaluationStatus.PENDING)
     error: str | None = Field(default=None, sa_type=Text)
 
@@ -111,7 +112,7 @@ class FileEvaluation(FileEvaluationBase, table=True):
 
     file: File = Relationship(back_populates="evaluations")
     evaluation: Evaluation = Relationship(back_populates="file_evaluations")
-
+    content: FileContent = Relationship()
 
 class FileEvaluationCreate(FileEvaluationBase):
     id: UUID
@@ -125,3 +126,4 @@ class FileEvaluationRead(FileEvaluationBase):
 class FileEvaluationReadWithFile(FileEvaluationRead):
     file: FileRead
     evaluation: EvaluationRead
+    content: FileContentRead

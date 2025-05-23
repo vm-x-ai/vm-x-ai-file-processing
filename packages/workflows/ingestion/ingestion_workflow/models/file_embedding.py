@@ -9,9 +9,10 @@ from sqlmodel import Field, SQLModel
 
 
 class FileEmbeddingBase(SQLModel):
-    file_id: UUID = Field(foreign_key="files.id")
+    file_id: UUID = Field(foreign_key="files.id", ondelete="CASCADE")
     chunk_number: int = Field(nullable=False)
     chunk_metadata: dict = Field(sa_type=postgresql.JSONB, nullable=False)
+    content_id: UUID = Field(foreign_key="file_contents.id", ondelete="CASCADE")
     content: str = Field(sa_type=Text, nullable=False)
     embedding: Any = Field(sa_type=Vector(dim=1536), nullable=False)
 

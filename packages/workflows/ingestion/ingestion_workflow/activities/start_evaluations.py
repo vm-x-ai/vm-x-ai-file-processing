@@ -33,7 +33,7 @@ class StartEvaluationOutput(BaseModel):
 @activity.defn
 async def start_evaluations(
     file: models.FileRead,
-    docs: list[Document],
+    docs: list[tuple[models.FileContentRead, Document]],
     parent_evaluation_id: Optional[UUID] = None,
     parent_evaluation_option: Optional[str] = None,
 ) -> StartEvaluationOutput:
@@ -63,7 +63,7 @@ async def start_evaluations(
 
     requests: list[CompletionRequest] = []
 
-    for doc in docs:
+    for file_content, doc in docs:
         for evaluation in evaluations:
             messages: list[RequestMessage] = []
             if evaluation.system_prompt:
@@ -96,6 +96,7 @@ async def start_evaluations(
                 metadata={
                     "evaluation_id": str(evaluation.id),
                     "file_id": str(file.id),
+                    "file_content_id": str(file_content.id),
                     "page_metadata": doc.metadata,
                     "workflow_id": workflow_id,
                     "parent_evaluation_id": str(parent_evaluation_id)

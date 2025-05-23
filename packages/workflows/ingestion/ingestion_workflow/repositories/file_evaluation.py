@@ -39,6 +39,37 @@ class FileEvaluationRepository(
     def _id_predicate(self, id: UUID) -> ColumnExpressionArgument[bool]:
         return col(models.FileEvaluation.id) == id
 
+    
+    async def get_by_file_id(
+        self,
+        project_id: UUID,
+        file_id: UUID,
+    ) -> list[models.FileEvaluationReadWithFile]:
+        async with self._session_factory() as session:
+            query = (
+                select(models.FileEvaluation)
+                .options(selectinload(models.FileEvaluation.file))
+                .options(selectinload(models.FileEvaluation.content))
+                .options(selectinload(models.FileEvaluation.evaluation))
+                .join(models.FileContent)
+                .join(models.Evaluation)
+                .where(
+                    models.FileEvaluation.file_id == file_id,
+                    models.File.project_id == project_id,
+                )
+                .order_by(
+                    col(models.FileContent.content_number).asc(),
+                    col(models.Evaluation.title).asc(),
+                )
+            )
+
+            result = await session.scalars(query)
+            return [
+                models.FileEvaluationReadWithFile.model_validate(file_evaluation)
+                for file_evaluation in result.all()
+            ]
+
+    
     async def get_by_evaluation_id(
         self,
         project_id: UUID,
@@ -49,6 +80,7 @@ class FileEvaluationRepository(
             query = (
                 select(models.FileEvaluation)
                 .options(selectinload(models.FileEvaluation.file))
+                .options(selectinload(models.FileEvaluation.content))
                 .options(selectinload(models.FileEvaluation.evaluation))
                 .where(
                     models.FileEvaluation.evaluation_id == evaluation_id,

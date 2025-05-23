@@ -45,6 +45,12 @@ class Container(containers.DeclarativeContainer):
         write_session_factory=db.provided.writer_session,
     )
 
+    file_content_repository = providers.Factory(
+        repositories.FileContentRepository,
+        session_factory=db.provided.session,
+        write_session_factory=db.provided.writer_session,
+    )
+
     file_evaluation_repository = providers.Factory(
         repositories.FileEvaluationRepository,
         session_factory=db.provided.session,

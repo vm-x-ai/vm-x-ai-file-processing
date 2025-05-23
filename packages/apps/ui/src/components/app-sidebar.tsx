@@ -14,43 +14,41 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 import { ProjectRead } from '@/file-classifier-api';
-
-// This is sample data.
-const data = {
-  user: {
-    name: 'shadcn',
-    email: 'm@example.com',
-    avatar: '/avatars/shadcn.jpg',
-  },
-  navMain: [
-    {
-      title: 'Playground',
-      url: '#',
-      icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: 'History',
-          url: '#',
-        },
-        {
-          title: 'Starred',
-          url: '#',
-        },
-        {
-          title: 'Settings',
-          url: '#',
-        },
-      ],
-    },
-  ],
-};
+import { useStore } from '@/store/store';
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   projects: ProjectRead[];
 };
 
 export function AppSidebar({ projects, ...props }: AppSidebarProps) {
+  const { project } = useStore();
+
+  const data = {
+    user: {
+      name: 'shadcn',
+      email: 'm@example.com',
+      avatar: '/avatars/shadcn.jpg',
+    },
+    navMain: [
+      {
+        title: 'Evaluations',
+        url: '#',
+        icon: SquareTerminal,
+        isActive: true,
+        items: [
+          {
+            title: 'Files',
+            url: `/project/${project?.id}/files`,
+          },
+          {
+            title: 'Evaluations',
+            url: `/project/${project?.id}/evaluations`,
+          },
+        ],
+      },
+    ],
+  };
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>

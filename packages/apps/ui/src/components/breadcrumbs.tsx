@@ -8,7 +8,7 @@ import { Params } from 'next/dist/server/request/params';
 import { useStore } from '@/store/store';
 
 export default function Breadcrumbs() {
-  const { project } = useStore();
+  const { project, file } = useStore();
   const getDefaultTextGenerator = useCallback((subpath: string) => {
     return titleize(subpath);
   }, []);
@@ -23,10 +23,13 @@ export default function Breadcrumbs() {
         projectId: async () => {
           return project?.name ?? '';
         },
+        fileId: async () => {
+          return file?.name ?? '';
+        },
       };
       return resolverMap[param ?? '']?.() ?? null;
     },
-    [project]
+    [project, file]
   );
 
   return (

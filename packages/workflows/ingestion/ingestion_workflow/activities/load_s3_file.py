@@ -23,7 +23,7 @@ THUMBNAIL_SIZE = (1280, 1280)
 
 class LoadS3FileOutput(BaseModel):
     file: models.FileRead
-    docs: list[Document]
+    docs: list[tuple[models.FileContentRead, Document]]
 
 
 @activity.defn
@@ -32,7 +32,7 @@ async def load_s3_file(
 ) -> LoadS3FileOutput:
     file_repository = Container.file_repository()
     project_repository = Container.project_repository()
-    settings = Container.settings()
+    file_content_repository = Container.file_content_repository()
     aioboto3_session = Container.aioboto3_session()
 
     async with aioboto3_session.client("s3") as s3:
@@ -61,51 +61,101 @@ async def load_s3_file(
                     Filename=temp_file.name,
                 )
 
-                file_id = uuid.uuid4()
-
-                thumbnail_url = f"s3://{settings.thumbnail.s3_bucket_name}/{project.id}/{file_id}/thumbnail.png"
-                file = await file_repository.add(
-                    models.FileCreate(
-                        id=file_id,
-                        name=file_name,
-                        type=mimetypes.guess_type(file_name)[0],
-                        project_id=project.id,
-                        size=record.s3.object.size,
-                        status=models.FileStatus.CHUNKING,
-                        url=f"s3://{record.s3.bucket.name}/{record.s3.object.key}",
-                        thumbnail_url=thumbnail_url,
-                        error=None,
-                    )
+                head_object = await s3.head_object(
+                    Bucket=record.s3.bucket.name, Key=record.s3.object.key
                 )
+
+                object_metadata = head_object.get("Metadata", {})
+                file_id = object_metadata.get("file_id", None)
+                if not file_id:
+                    file_id = uuid.uuid4()
+                    file = await file_repository.add(
+                        models.FileCreate(
+                            id=file_id,
+                            name=file_name,
+                            type=mimetypes.guess_type(file_name)[0],
+                            project_id=project.id,
+                            size=record.s3.object.size,
+                            status=models.FileStatus.CHUNKING,
+                            url=f"s3://{record.s3.bucket.name}/{record.s3.object.key}",
+                            thumbnail_url=None,
+                            error=None,
+                        )
+                    )
+                else:
+                    file = await file_repository.get(UUID(file_id))
+                    if not file:
+                        raise ValueError(f"File {file_id} not found")
 
                 match file_ext:
                     case ".pdf":
-                        images = convert_from_path(
-                            temp_file.name,
-                            first_page=1,
-                            last_page=1,
-                        )
-                        img = images[0]
-                        img.thumbnail(THUMBNAIL_SIZE)
-                        thumbnail_bytes = BytesIO()
-                        img.save(thumbnail_bytes, format="PNG")
-                        thumbnail_bytes.seek(0)
-
-                        await s3.upload_fileobj(
-                            thumbnail_bytes,
-                            Bucket=settings.thumbnail.s3_bucket_name,
-                            Key=f"{project.id}/{file.id}/thumbnail.png",
-                            ExtraArgs={
-                                "ContentType": "image/png",
-                            },
+                        await _generate_pdf_thumbnail(
+                            project,
+                            temp_file,
+                            file,
                         )
 
                         loader = PyPDFLoader(temp_file.name)
                         docs = await loader.aload()
+                        contents = await file_content_repository.add_all(
+                            [
+                                models.FileContentCreate(
+                                    id=uuid.uuid4(),
+                                    file_id=file.id,
+                                    content_number=idx + 1,
+                                    content=doc.page_content,
+                                    content_metadata=doc.metadata,
+                                )
+                                for idx, doc in enumerate(docs)
+                            ],
+                            return_models=True,
+                        )
+
                         logger.info(f"Loaded {len(docs)} documents")
                         return LoadS3FileOutput(
                             file=file,
-                            docs=docs,
+                            docs=list(zip(contents, docs)),
                         )
                     case _:
                         raise ValueError(f"Unsupported file extension: {file_ext}")
+
+
+async def _generate_pdf_thumbnail(
+    project: models.ProjectRead,
+    temp_file: tempfile.NamedTemporaryFile,
+    file: models.FileRead,
+):
+    file_repository = Container.file_repository()
+    settings = Container.settings()
+    aioboto3_session = Container.aioboto3_session()
+
+    images = convert_from_path(
+        temp_file.name,
+        first_page=1,
+        last_page=1,
+    )
+    img = images[0]
+    img.thumbnail(THUMBNAIL_SIZE)
+    thumbnail_bytes = BytesIO()
+    img.save(thumbnail_bytes, format="PNG")
+    thumbnail_bytes.seek(0)
+
+    thumbnail_key = f"{project.id}/{file.id}/thumbnail.png"
+    thumbnail_url = f"s3://{settings.thumbnail.s3_bucket_name}/{thumbnail_key}"
+
+    async with aioboto3_session.client("s3") as s3:
+        await s3.upload_fileobj(
+            thumbnail_bytes,
+            Bucket=settings.thumbnail.s3_bucket_name,
+            Key=thumbnail_key,
+            ExtraArgs={
+                "ContentType": "image/png",
+            },
+        )
+
+    await file_repository.update(
+        file.id,
+        {
+            "thumbnail_url": thumbnail_url,
+        },
+    )

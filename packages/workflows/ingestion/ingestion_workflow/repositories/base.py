@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from contextlib import AbstractAsyncContextManager
-from typing import Any, Callable, Generic, Literal, TypeVar, Union
+from typing import Any, Callable, Generic, Literal, TypeVar, Union, overload
 
 from sqlalchemy import Column, insert, tuple_
 from sqlalchemy.sql import ColumnExpressionArgument
@@ -148,7 +148,31 @@ class BaseRepository(ABC, Generic[TID, TModel, TReadModel, TCreateModel]):
             await session.refresh(db_model)
             return self._read_model.model_validate(db_model)
 
-    async def add_all(self, models: list[TCreateModel]) -> None:
+    @overload
+    async def add_all(
+        self,
+        models: list[TCreateModel],
+        return_models: Literal[True],
+    ) -> list[TReadModel]: ...
+
+    @overload
+    async def add_all(
+        self,
+        models: list[TCreateModel],
+        return_models: Literal[False],
+    ) -> None: ...
+
+    @overload
+    async def add_all(
+        self,
+        models: list[TCreateModel],
+    ) -> None: ...
+
+    async def add_all(
+        self,
+        models: list[TCreateModel],
+        return_models: bool = False,
+    ) -> list[TReadModel] | None:
         """Adds multiple records to the database.
 
         Args:
@@ -159,14 +183,26 @@ class BaseRepository(ABC, Generic[TID, TModel, TReadModel, TCreateModel]):
         """
         async with self._write_session_factory() as session:
             db_models = [model.model_dump() for model in models]
+            inserted_models = []
 
             for items in chunk(
                 db_models, int(MAX_PG_PARAM_SIZE / len(self._model.model_fields.keys()))
             ):
                 query = insert(self._model).values(items)
-                await session.execute(query)
+                if return_models:
+                    query = query.returning(self._model)
+
+                result = await session.execute(query)
+                if return_models:
+                    inserted_models.extend(
+                        [
+                            self._read_model.model_validate(row)
+                            for row in result.scalars().all()
+                        ]
+                    )
 
             await session.commit()
+            return inserted_models if return_models else None
 
     async def update(self, id: TID, values: dict[str, Any]) -> None:
         """Updates an existing record with new values.

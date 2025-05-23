@@ -46,25 +46,20 @@ class IngestionWorkflow:
                 ]
             )
 
-            chunks = [chunk for doc in doc_chunks for chunk in doc]
+            chunks = [
+                (chunk, doc.file_content) for doc in doc_chunks for chunk in doc.chunks
+            ]
 
             await asyncio.gather(
                 *[
                     workflow.execute_activity(
                         activities.create_chunk_embeddings,
-                        args=[docs.file, chunk_number + 1, chunk],
+                        args=[docs.file, chunk_number + 1, chunk, file_content],
                         start_to_close_timeout=timedelta(seconds=60),
                         retry_policy=DEFAULT_RETRY_POLICY,
                     )
-                    for chunk_number, chunk in enumerate(chunks)
+                    for chunk_number, (chunk, file_content) in enumerate(chunks)
                 ]
-            )
-
-            await workflow.execute_activity(
-                activities.update_file_status,
-                args=[docs.file, models.FileStatus.COMPLETED],
-                start_to_close_timeout=timedelta(seconds=60),
-                retry_policy=DEFAULT_RETRY_POLICY,
             )
 
             self.evaluations_map = {}
@@ -81,6 +76,14 @@ class IngestionWorkflow:
         except Exception as e:
             error_msg = f"Error in ingestion workflow: {e}"
             workflow.logger.error(error_msg)
+            if docs.file:
+                await workflow.execute_activity(
+                    activities.update_file_status,
+                    args=[docs.file, models.FileStatus.FAILED],
+                    start_to_close_timeout=timedelta(seconds=60),
+                    retry_policy=DEFAULT_RETRY_POLICY,
+                )
+
             raise ApplicationError(error_msg) from e
 
     async def process_evaluations(
@@ -113,11 +116,12 @@ class IngestionWorkflow:
         @workflow.signal
         async def evaluate_item(result: CompletionBatchItemUpdateCallbackPayload):
             evaluation_id = UUID(result.payload.request.metadata["evaluation_id"])
+            file_content_id = UUID(result.payload.request.metadata["file_content_id"])
             evaluation_item = evaluation_output.evaluations[evaluation_id]
 
             response_value = await workflow.execute_activity(
                 activities.store_evaluation,
-                args=[load_output.file, evaluation_item, result],
+                args=[load_output.file, evaluation_item, result, file_content_id],
                 start_to_close_timeout=timedelta(seconds=60),
                 retry_policy=DEFAULT_RETRY_POLICY,
             )

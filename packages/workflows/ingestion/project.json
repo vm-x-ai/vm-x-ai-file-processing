@@ -14,7 +14,7 @@
     "serve": {
       "executor": "@nxlv/python:run-commands",
       "options": {
-        "command": "python ingestion_workflow/api.py",
+        "command": "python ingestion_workflow/api/__init__.py",
         "cwd": "{projectRoot}"
       }
     },

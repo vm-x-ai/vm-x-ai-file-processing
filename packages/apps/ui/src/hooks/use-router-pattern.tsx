@@ -2,7 +2,10 @@ import { usePathname } from 'next/navigation';
 
 export const useRoutePattern = () => {
   const pathname = usePathname();
-  const routePatterns = ['/project/[projectId]'];
+  const routePatterns = [
+    '/project/[projectId]/files/[fileId]',
+    '/project/[projectId]',
+  ];
 
   for (const pattern of routePatterns) {
     const regExp = new RegExp(

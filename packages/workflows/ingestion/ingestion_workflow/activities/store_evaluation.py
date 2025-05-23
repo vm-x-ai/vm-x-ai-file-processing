@@ -20,6 +20,7 @@ async def store_evaluation(
     file: models.FileRead,
     evaluation: models.EvaluationRead,
     result: CompletionBatchItemUpdateCallbackPayload,
+    file_content_id: UUID,
 ):
     if not result.payload.response:
         raise ValueError("No response from VMX")
@@ -65,7 +66,7 @@ async def store_evaluation(
             file_id=file.id,
             evaluation_id=UUID(result.payload.request.metadata["evaluation_id"]),
             response=response,
-            context_metadata=result.payload.request.metadata["page_metadata"],
+            content_id=file_content_id,
             status=models.FileEvaluationStatus.COMPLETED
             if result.payload.status == CompletionBatchRequestStatus.COMPLETED
             else models.FileEvaluationStatus.FAILED,

@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -120,4 +120,16 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@keyframes border-pulse {
+  0% {
+    border-color: rgb(59 130 246 / 0.5);
+  } /* blue-500 with 50% opacity */
+  50% {
+    border-color: rgb(59 130 246 / 1);
+  } /* blue-500 with 100% opacity */
+  100% {
+    border-color: rgb(59 130 246 / 0.5);
+  } /* blue-500 with 50% opacity */
 }

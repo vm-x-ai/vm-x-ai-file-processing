@@ -13,7 +13,10 @@ logger = logging.getLogger(__name__)
 
 @activity.defn
 async def create_chunk_embeddings(
-    file: models.FileRead, chunk_number: int, chunk: Document
+    file: models.FileRead,
+    chunk_number: int,
+    chunk: Document,
+    file_content: models.FileContentRead,
 ) -> None:
     file_embedding_repository = Container.file_embedding_repository()
     file_repository = Container.file_repository()
@@ -36,6 +39,7 @@ async def create_chunk_embeddings(
             file_id=file.id,
             chunk_number=chunk_number,
             chunk_metadata=chunk.metadata,
+            content_id=file_content.id,
             content=chunk.page_content,
             embedding=embedding[0],
         )

@@ -31,8 +31,11 @@ async def generate_upload_url(
     s3_path: str,
     file_size: int,
     session: aioboto3.Session,
-) -> str:
-    mime_type = mimetypes.guess_type(s3_path)[0]
+    metadata: dict[str, str] | None = None,
+) -> tuple[str, dict[str, str]]:
+    metadata = metadata or {}
+
+    content_type = mimetypes.guess_type(s3_path)[0] or "application/octet-stream"
 
     bucket_name, key = parse_s3_path(s3_path)
     config = AioConfig(signature_version="s3v4")
@@ -42,9 +45,16 @@ async def generate_upload_url(
             Params={
                 "Bucket": bucket_name,
                 "Key": key,
-                "ContentType": mime_type or "application/octet-stream",
+                "ContentType": content_type,
                 "ContentLength": file_size,
+                "Metadata": metadata,
             },
             ExpiresIn=3600,
         )
-        return url
+        return url, {
+            "Content-Type": content_type,
+            **{
+                f"x-amz-meta-{key}": value
+                for key, value in metadata.items()
+            },
+        }

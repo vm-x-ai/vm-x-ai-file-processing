@@ -2,6 +2,7 @@ from .evaluation import (
     Evaluation,
     EvaluationCreate,
     EvaluationRead,
+    EvaluationTree,
     EvaluationType,
 )
 from .file import (
@@ -14,6 +15,11 @@ from .file import (
     FileEvaluationStatus,
     FileRead,
     FileStatus,
+)
+from .file_content import (
+    FileContent,
+    FileContentCreate,
+    FileContentRead,
 )
 from .file_embedding import (
     FileEmbedding,
@@ -39,6 +45,9 @@ __all__ = [
     "FileEvaluationRead",
     "FileEvaluationStatus",
     "FileEvaluationReadWithFile",
+    "FileContent",
+    "FileContentCreate",
+    "FileContentRead",
     "FileEmbedding",
     "FileEmbeddingCreate",
     "FileEmbeddingRead",
@@ -52,4 +61,5 @@ __all__ = [
     "EvaluationCreate",
     "EvaluationRead",
     "EvaluationType",
+    "EvaluationTree",
 ]
