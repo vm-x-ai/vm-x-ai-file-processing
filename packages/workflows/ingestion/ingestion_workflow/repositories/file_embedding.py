@@ -166,7 +166,7 @@ class FileEmbeddingRepository(
                         )
                         .label("neighbor_ids"),
                     )
-                    .prefix_with(text("DISTINCT ON (file_chunks.id)"))
+                    .prefix_with(text("DISTINCT ON (file_embeddings.id)"))
                     .where(
                         col(models.FileEmbedding.file_id) == col(query_cte.c.file_id),
                     )
@@ -479,7 +479,9 @@ class FileEmbeddingRepository(
                 and root_file_content_map[content_id] not in content_result
             ):
                 content_result.append(root_file_content_map[content_id])
-            elif is_neighbor and neighbor_from:
+            elif (
+                is_neighbor and neighbor_from and neighbor_from in root_file_content_map
+            ):
                 parent_content = root_file_content_map[neighbor_from]
                 if parent_content.after_neighbors is None:
                     parent_content.after_neighbors = []

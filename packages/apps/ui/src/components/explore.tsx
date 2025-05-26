@@ -21,6 +21,9 @@ import { Trash2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { useCallback, useMemo } from 'react';
 import { Badge } from './ui/badge';
+import { Chat } from './ui/chat';
+import { useChat } from '@ai-sdk/react';
+import { Message } from './ui/chat-message';
 
 export type ExploreProps = {
   projectId: string;
@@ -29,6 +32,24 @@ export type ExploreProps = {
 };
 
 export function Explore({ projectId, evaluations, files }: ExploreProps) {
+  const {
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    append,
+    stop,
+    isLoading,
+    setMessages,
+  } = useChat({
+    api: '/api/chat',
+    maxSteps: 10,
+    body: {
+      projectId,
+      files: files.map(({ evaluations, ...file }) => file),
+    },
+  });
+
   const evaluationsMap = useMemo(
     () =>
       evaluations.reduce((acc, evaluation) => {
@@ -83,6 +104,7 @@ export function Explore({ projectId, evaluations, files }: ExploreProps) {
     },
     []
   );
+
   return (
     <>
       <div className="col-span-12 space-y-4">
@@ -222,7 +244,7 @@ export function Explore({ projectId, evaluations, files }: ExploreProps) {
                             onDoubleClick={(event) => {
                               event.preventDefault();
                               event.stopPropagation();
-                              
+
                               setEvaluationsFilters((prev) => ({
                                 ...prev,
                                 operation:
@@ -322,6 +344,24 @@ export function Explore({ projectId, evaluations, files }: ExploreProps) {
       <div className="col-span-6 space-y-4">
         <h2 className="text-xl font-bold">Chat with your files</h2>
         <Separator />
+        <div className="col-span-6">
+          <Card>
+            <CardContent>
+              <Chat
+                className="grow"
+                messages={messages as Message[]}
+                handleSubmit={handleSubmit}
+                input={input}
+                handleInputChange={handleInputChange}
+                isGenerating={isLoading}
+                stop={stop}
+                append={append}
+                setMessages={setMessages as (messages: Message[]) => void}
+                suggestions={[]}
+              />
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </>
   );
