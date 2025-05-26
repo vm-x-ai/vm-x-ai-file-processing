@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
     operation_id="getEvaluations",
     description="Get all evaluations for a project",
     response_model=list[models.EvaluationRead],
+    tags=["evaluations"],
 )
 @inject
 async def get_evaluations(
@@ -43,6 +44,7 @@ async def get_evaluations(
     operation_id="getEvaluationsTree",
     description="Get all evaluations for a project",
     response_model=list[models.EvaluationTree],
+    tags=["evaluations"],
 )
 @inject
 async def get_evaluations_tree(
@@ -71,77 +73,12 @@ async def get_evaluations_tree(
     return root_evaluations
 
 
-@router.post(
-    "/projects/{project_id}/evaluations",
-    operation_id="createEvaluation",
-    description="Create an evaluation for a project",
-    response_model=models.EvaluationRead,
-)
-@inject
-async def create_evaluation(
-    project_id: UUID,
-    payload: HttpEvaluationCreate,
-    evaluation_repository: EvaluationRepository = Depends(
-        Provide[Container.evaluation_repository]
-    ),
-) -> models.EvaluationRead:
-    return await evaluation_repository.add(
-        models.EvaluationCreate.model_validate(
-            {
-                **payload.model_dump(exclude={"project_id"}),
-                "project_id": project_id,
-                "id": uuid.uuid4(),
-            }
-        )
-    )
-
-
-@router.put(
-    "/projects/{project_id}/evaluations/{evaluation_id}",
-    operation_id="updateEvaluation",
-    description="Update an evaluation for a project",
-    response_model=models.EvaluationRead,
-)
-@inject
-async def update_evaluation(
-    project_id: UUID,
-    evaluation_id: UUID,
-    payload: HttpEvaluationUpdate,
-    evaluation_repository: EvaluationRepository = Depends(
-        Provide[Container.evaluation_repository]
-    ),
-) -> models.EvaluationRead:
-    await evaluation_repository.update(
-        evaluation_id,
-        {
-            **payload.model_dump(exclude={"project_id"}),
-        },
-    )
-
-    return await evaluation_repository.get(evaluation_id)
-
-
-@router.delete(
-    "/projects/{project_id}/evaluations/{evaluation_id}",
-    operation_id="deleteEvaluation",
-    description="Delete an evaluation by project and evaluation id",
-)
-@inject
-async def delete_evaluation(
-    project_id: UUID,
-    evaluation_id: UUID,
-    evaluation_repository: EvaluationRepository = Depends(
-        Provide[Container.evaluation_repository]
-    ),
-) -> None:
-    await evaluation_repository.delete(evaluation_id)
-
-
 @router.get(
     "/projects/{project_id}/evaluation/{evaluation_id}/files",
     operation_id="getFilesByEvaluation",
     description="Get all files for an evaluation",
     response_model=list[models.FileEvaluationReadWithFile],
+    tags=["evaluations"],
 )
 @inject
 async def get_files_by_evaluation(
@@ -171,3 +108,72 @@ async def get_files_by_evaluation(
     return await asyncio.gather(
         *[update_file_evaluation(file_evaluation) for file_evaluation in files]
     )
+
+
+@router.post(
+    "/projects/{project_id}/evaluations",
+    operation_id="createEvaluation",
+    description="Create an evaluation for a project",
+    response_model=models.EvaluationRead,
+    tags=["evaluations"],
+)
+@inject
+async def create_evaluation(
+    project_id: UUID,
+    payload: HttpEvaluationCreate,
+    evaluation_repository: EvaluationRepository = Depends(
+        Provide[Container.evaluation_repository]
+    ),
+) -> models.EvaluationRead:
+    return await evaluation_repository.add(
+        models.EvaluationCreate.model_validate(
+            {
+                **payload.model_dump(exclude={"project_id"}),
+                "project_id": project_id,
+                "id": uuid.uuid4(),
+            }
+        )
+    )
+
+
+@router.put(
+    "/projects/{project_id}/evaluations/{evaluation_id}",
+    operation_id="updateEvaluation",
+    description="Update an evaluation for a project",
+    response_model=models.EvaluationRead,
+    tags=["evaluations"],
+)
+@inject
+async def update_evaluation(
+    project_id: UUID,
+    evaluation_id: UUID,
+    payload: HttpEvaluationUpdate,
+    evaluation_repository: EvaluationRepository = Depends(
+        Provide[Container.evaluation_repository]
+    ),
+) -> models.EvaluationRead:
+    await evaluation_repository.update(
+        evaluation_id,
+        {
+            **payload.model_dump(exclude={"project_id"}),
+        },
+    )
+
+    return await evaluation_repository.get(evaluation_id)
+
+
+@router.delete(
+    "/projects/{project_id}/evaluations/{evaluation_id}",
+    operation_id="deleteEvaluation",
+    description="Delete an evaluation by project and evaluation id",
+    tags=["evaluations"],
+)
+@inject
+async def delete_evaluation(
+    project_id: UUID,
+    evaluation_id: UUID,
+    evaluation_repository: EvaluationRepository = Depends(
+        Provide[Container.evaluation_repository]
+    ),
+) -> None:
+    await evaluation_repository.delete(evaluation_id)

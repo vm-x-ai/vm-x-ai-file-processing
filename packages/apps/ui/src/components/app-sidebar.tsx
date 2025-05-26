@@ -37,6 +37,10 @@ export function AppSidebar({ projects, ...props }: AppSidebarProps) {
         isActive: true,
         items: [
           {
+            title: 'Explore',
+            url: `/project/${project?.id}/explore`,
+          },
+          {
             title: 'Files',
             url: `/project/${project?.id}/files`,
           },

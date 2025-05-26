@@ -10,6 +10,7 @@ from ingestion_workflow import models
 from ingestion_workflow.containers import Container
 from ingestion_workflow.repositories.file import FileRepository
 from ingestion_workflow.repositories.file_evaluation import FileEvaluationRepository
+from ingestion_workflow.schema.file import FileSearchRequest
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -29,6 +30,7 @@ async def update_thumbnail_url(file: models.FileRead) -> models.FileRead:
     operation_id="getFiles",
     description="Get all files for a project",
     response_model=list[models.FileRead],
+    tags=["files"],
 )
 @inject
 async def get_files(
@@ -42,11 +44,28 @@ async def get_files(
     return await asyncio.gather(*[update_thumbnail_url(file) for file in files])
 
 
+@router.post(
+    "/projects/{project_id}/files/search",
+    operation_id="searchFiles",
+    description="Search files for a project",
+    response_model=list[models.FileReadWithEvaluations],
+    tags=["files"],
+)
+@inject
+async def search_files(
+    project_id: UUID,
+    request: FileSearchRequest,
+    file_repository: FileRepository = Depends(Provide[Container.file_repository]),
+) -> list[models.FileReadWithEvaluations]:
+    return await file_repository.search_files(project_id, request)
+
+
 @router.get(
     "/projects/{project_id}/file/{file_id}",
     operation_id="getFile",
     description="Get a file by project and file id",
     response_model=models.FileRead,
+    tags=["files"],
 )
 @inject
 async def get_file(
@@ -68,6 +87,7 @@ async def get_file(
     operation_id="getFileEvaluations",
     description="Get all evaluations for a file",
     response_model=list[models.FileEvaluationReadWithFile],
+    tags=["files"],
 )
 @inject
 async def get_file_evaluations(
@@ -92,6 +112,7 @@ async def get_file_evaluations(
     "/projects/{project_id}/file/{file_id}",
     operation_id="deleteFile",
     description="Delete a file by project and file id",
+    tags=["files"],
 )
 @inject
 async def delete_file(

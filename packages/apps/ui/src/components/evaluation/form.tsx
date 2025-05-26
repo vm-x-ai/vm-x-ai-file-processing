@@ -20,7 +20,7 @@ import { useActionState, useEffect, useRef, useTransition } from 'react';
 import { Separator } from '../ui/separator';
 import { PlusIcon, SaveIcon, TrashIcon } from 'lucide-react';
 import { Textarea } from '../ui/textarea';
-import Combobox from '../combobox';
+import { ComboboxField } from '../combobox';
 import Editor from '@monaco-editor/react';
 
 export type EvaluationFormProps = {
@@ -100,7 +100,7 @@ export default function EvaluationForm({
                 <FormItem>
                   <FormLabel>Parent Evaluation Option</FormLabel>
                   <FormControl>
-                    <Combobox
+                    <ComboboxField
                       options={parent.evaluation_options || []}
                       field={field}
                     />
@@ -152,7 +152,7 @@ export default function EvaluationForm({
             render={({ field }) => (
               <FormItem className="flex flex-col">
                 <FormLabel>Evaluation Type</FormLabel>
-                <Combobox options={evaluationTypes} field={field} />
+                <ComboboxField options={evaluationTypes} field={field} />
                 <FormDescription>
                   Define the way the LLM should respond to your evaluation.
                 </FormDescription>

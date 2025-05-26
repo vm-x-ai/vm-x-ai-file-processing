@@ -12,6 +12,7 @@ class FileEmbeddingBase(SQLModel):
     file_id: UUID = Field(foreign_key="files.id", ondelete="CASCADE")
     chunk_number: int = Field(nullable=False)
     chunk_metadata: dict = Field(sa_type=postgresql.JSONB, nullable=False)
+    project_id: UUID = Field(foreign_key="projects.id", ondelete="CASCADE")
     content_id: UUID = Field(foreign_key="file_contents.id", ondelete="CASCADE")
     content: str = Field(sa_type=Text, nullable=False)
     embedding: Any = Field(sa_type=Vector(dim=1536), nullable=False)
@@ -56,5 +57,12 @@ class FileEmbeddingCreate(FileEmbeddingBase):
 
 class FileEmbeddingRead(FileEmbeddingBase):
     id: UUID
+    score: float | None = None
+    before_neighbors: list["FileEmbeddingRead"] | None = None
+    after_neighbors: list["FileEmbeddingRead"] | None = None
     created_at: datetime
     updated_at: datetime
+
+    def __init__(self, **data: Any):
+        super().__init__(**data)
+        delattr(self, "embedding")

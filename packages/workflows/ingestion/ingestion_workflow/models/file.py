@@ -70,6 +70,10 @@ class FileRead(FileBase):
     updated_at: datetime
 
 
+class FileReadWithEvaluations(FileRead):
+    evaluations: list["FileEvaluationReadWithEvaluation"]
+
+
 class FileEvaluationStatus(Enum):
     PENDING = "pending"
     PROCESSING = "processing"
@@ -114,16 +118,23 @@ class FileEvaluation(FileEvaluationBase, table=True):
     evaluation: Evaluation = Relationship(back_populates="file_evaluations")
     content: FileContent = Relationship()
 
+
 class FileEvaluationCreate(FileEvaluationBase):
     id: UUID
 
 
 class FileEvaluationRead(FileEvaluationBase):
+    id: UUID
     created_at: datetime
     updated_at: datetime
 
 
 class FileEvaluationReadWithFile(FileEvaluationRead):
     file: FileRead
+    evaluation: EvaluationRead
+    content: FileContentRead
+
+
+class FileEvaluationReadWithEvaluation(FileEvaluationRead):
     evaluation: EvaluationRead
     content: FileContentRead

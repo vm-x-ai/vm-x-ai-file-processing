@@ -1,11 +1,5 @@
-import {
-  ControllerRenderProps,
-  FieldPath,
-  FieldPathValue,
-  FieldValues,
-} from 'react-hook-form';
+import { ControllerRenderProps, FieldPath, FieldValues } from 'react-hook-form';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
-import { FormControl } from './ui/form';
 import { Button } from './ui/button';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import {
@@ -19,19 +13,123 @@ import {
 import { cn } from '@/lib/utils';
 import { useMemo } from 'react';
 
-export type ComboboxProps<T, S extends FieldValues, K extends FieldPath<S>> = {
+export type ComboboxProps<T, V extends string> = {
   options: T[];
-  field: ControllerRenderProps<S, K>;
+  value?: V | null;
   searchPlaceholder?: string;
   emptyMessage?: string;
   onChange?: (option: T) => void;
-  isOptionMatch?: (option: T, value: FieldPathValue<S, K>) => boolean;
-  getOptionLabel?: (option: T) => string;
+  isOptionMatch?: (option: T, value: V) => boolean;
+  getOptionLabel?: (option: T) => string | React.ReactNode;
   getOptionKey?: (option: T) => string;
-  getOptionValue?: (option: T) => string;
+  getOptionValue?: (option: T) => V;
+  filterOption?: (
+    option: T | undefined,
+    value: V,
+    search: string,
+    keywords?: string[]
+  ) => number;
+  buttonClassName?: string;
+  popoverClassName?: string;
 };
 
-export default function Combobox<
+export function Combobox<T, V extends string>({
+  options,
+  value,
+  searchPlaceholder,
+  emptyMessage,
+  isOptionMatch = (option, value) => (option as unknown as V) === value,
+  getOptionLabel = (option) => option as unknown as string,
+  getOptionKey = (option) => option as unknown as string,
+  getOptionValue = (option) => option as unknown as V,
+  filterOption = (option, value, search, keywords) => {
+    const extendValue = `${value}|${keywords?.join('|')}|`;
+    if (extendValue.includes(search)) return 1;
+    return 0;
+  },
+  onChange,
+  buttonClassName,
+  popoverClassName,
+}: ComboboxProps<T, V>) {
+  const optionsMap = useMemo(
+    () =>
+      options.reduce((acc, option) => {
+        acc[getOptionValue(option)] = option;
+        return acc;
+      }, {} as Record<V, T>),
+    [options, getOptionValue]
+  );
+  const optionMatch = useMemo(
+    () => options.find((option) => value && isOptionMatch(option, value)),
+    [options, value, isOptionMatch]
+  );
+  const optionLabel = useMemo(
+    () => (optionMatch ? getOptionLabel(optionMatch) : ''),
+    [optionMatch, getOptionLabel]
+  );
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          className={cn(
+            'w-[200px] justify-between',
+            !value && 'text-muted-foreground',
+            buttonClassName
+          )}
+        >
+          {value ? optionLabel : searchPlaceholder}
+          <ChevronsUpDown className="opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className={cn('w-[200px] p-0', popoverClassName)}>
+        <Command
+          filter={(value, search, keywords) => {
+            const option = optionsMap[value as V];
+            return filterOption(option, value as V, search, keywords);
+          }}
+        >
+          <CommandInput placeholder={searchPlaceholder} className="h-9" />
+          <CommandList>
+            <CommandEmpty>{emptyMessage}</CommandEmpty>
+            <CommandGroup>
+              {options.map((option) => (
+                <CommandItem
+                  value={getOptionValue(option)}
+                  key={getOptionKey(option)}
+                  onSelect={() => {
+                    onChange?.(option);
+                  }}
+                >
+                  {getOptionLabel(option)}
+                  <Check
+                    className={cn(
+                      'ml-auto',
+                      getOptionValue(option) === value
+                        ? 'opacity-100'
+                        : 'opacity-0'
+                    )}
+                  />
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+export type ComboboxFieldProps<
+  T,
+  S extends FieldValues,
+  K extends FieldPath<S>
+> = {
+  field: ControllerRenderProps<S, K>;
+} & Omit<ComboboxProps<T, string>, 'value'>;
+
+export function ComboboxField<
   T,
   S extends FieldValues,
   K extends FieldPath<S>
@@ -45,60 +143,21 @@ export default function Combobox<
   getOptionKey = (option) => option as unknown as string,
   getOptionValue = (option) => option as unknown as string,
   onChange,
-}: ComboboxProps<T, S, K>) {
-  const optionMatch = useMemo(
-    () => options.find((option) => isOptionMatch(option, field.value)),
-    [options, field.value, isOptionMatch]
-  );
-  const optionLabel = useMemo(
-    () => (optionMatch ? getOptionLabel(optionMatch) : ''),
-    [optionMatch, getOptionLabel]
-  );
+}: ComboboxFieldProps<T, S, K>) {
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <FormControl>
-          <Button
-            variant="outline"
-            role="combobox"
-            className={cn(
-              'w-[200px] justify-between',
-              !field.value && 'text-muted-foreground'
-            )}
-          >
-            {field.value ? optionLabel : 'Select option'}
-            <ChevronsUpDown className="opacity-50" />
-          </Button>
-        </FormControl>
-      </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
-        <Command>
-          <CommandInput placeholder={searchPlaceholder} className="h-9" />
-          <CommandList>
-            <CommandEmpty>{emptyMessage}</CommandEmpty>
-            <CommandGroup>
-              {options.map((option) => (
-                <CommandItem
-                  value={getOptionValue(option)}
-                  key={getOptionKey(option)}
-                  onSelect={() => {
-                    field.onChange(option);
-                    onChange?.(option);
-                  }}
-                >
-                  {getOptionLabel(option)}
-                  <Check
-                    className={cn(
-                      'ml-auto',
-                      option === field.value ? 'opacity-100' : 'opacity-0'
-                    )}
-                  />
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <Combobox
+      options={options}
+      value={field.value}
+      searchPlaceholder={searchPlaceholder}
+      emptyMessage={emptyMessage}
+      isOptionMatch={isOptionMatch}
+      getOptionLabel={getOptionLabel}
+      getOptionKey={getOptionKey}
+      getOptionValue={getOptionValue}
+      onChange={(option) => {
+        field.onChange(option);
+        onChange?.(option);
+      }}
+    />
   );
 }

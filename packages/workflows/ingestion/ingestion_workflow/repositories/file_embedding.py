@@ -1,13 +1,31 @@
+from collections.abc import Sequence
 from contextlib import AbstractAsyncContextManager
-from typing import Callable, cast
+from typing import Any, Callable, cast
 from uuid import UUID
 
-from sqlalchemy import Column, ColumnExpressionArgument, select
-from sqlmodel import col
+from sqlalchemy import (
+    Column,
+    ColumnExpressionArgument,
+    Subquery,
+    false,
+    func,
+    literal,
+    null,
+    text,
+    true,
+)
+from sqlalchemy.orm import aliased
+from sqlmodel import any_, case, col, select
 from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlmodel.sql.expression import Select, SelectOfScalar
 
 from ingestion_workflow import models
 from ingestion_workflow.repositories.base import BaseRepository
+from ingestion_workflow.schema.similarity_search import (
+    SimilaritySearchOrderBy,
+    SimilaritySearchRequest,
+    SimilaritySearchWhenMatchReturn,
+)
 
 
 class FileEmbeddingRepository(
@@ -47,3 +65,501 @@ class FileEmbeddingRepository(
                 models.FileEmbeddingRead.model_validate(embedding)
                 for embedding in result.all()
             ]
+
+    async def similarity_search(
+        self,
+        project_id: UUID,
+        query_embedding: list[float],
+        payload: SimilaritySearchRequest,
+    ) -> list[models.FileEmbeddingRead] | list[models.FileContentReadWithChunkScore]:
+        """Performs a similarity search for file chunks within a specific file.
+
+        Args:
+            query_embedding: Vector embedding to compare against stored chunks
+            payload: Payload containing search parameters
+
+        Returns:
+            List of chunks.
+        """
+        async with self._session_factory() as session:
+            query = self._create_base_similarity_search_query(
+                query_embedding,
+                payload,
+                lambda query, subquery: (
+                    query.where(subquery.c.project_id == project_id).where(
+                        col(subquery.c.file_id).in_(payload.file_ids)
+                    )
+                ),
+            )
+
+            result = await session.exec(query)
+            return self._parse_similarity_search_result(payload, result.all())
+
+    def _create_base_similarity_search_query(
+        self,
+        query_embedding: list[float],
+        payload: SimilaritySearchRequest,
+        filter_fn: Callable[
+            [
+                SelectOfScalar[tuple[models.FileEmbedding, float]],
+                Subquery,
+            ],
+            SelectOfScalar[tuple[models.FileEmbedding, float]],
+        ],
+    ) -> (
+        Select[tuple[models.FileEmbedding, float, bool, UUID]]
+        | Select[tuple[models.FileContent, float, bool, UUID, models.FileEmbedding]]
+    ):
+        """Creates a base similarity search query with common parameters.
+
+        Args:
+            query_embedding: Vector embedding to compare against stored chunks
+            payload: Payload containing search parameters
+
+        Returns:
+            SQLAlchemy Select query object configured for similarity search
+        """
+        similarity_score = 1 - models.FileEmbedding.embedding.cosine_distance(
+            query_embedding
+        )
+
+        score_query = select(models.FileEmbedding, similarity_score.label("score"))
+
+        if payload.limit is not None:
+            score_query = score_query.limit(payload.limit)
+
+        score_subquery = score_query.subquery("score")
+
+        query: SelectOfScalar[tuple[models.FileEmbedding, float]] = select(
+            score_subquery
+        )  # type: ignore
+        query = filter_fn(query, score_subquery)
+        if payload.score_threshold is not None:
+            query = query.where(score_subquery.c.score > payload.score_threshold)
+
+        match payload.order_by:
+            case SimilaritySearchOrderBy.SCORE:
+                query = query.order_by(score_subquery.c.score.desc())
+            case SimilaritySearchOrderBy.CHUNK:
+                query = query.order_by(col(score_subquery.c.chunk_number).asc())
+
+        query_cte = query.cte("score_cte")
+        query_cte_alias = aliased(models.FileEmbedding, query_cte)
+        neighbor_query: (
+            Select[tuple[models.FileEmbedding, Any]]
+            | Select[tuple[models.FileContent, Any]]
+        )
+
+        match payload.when_match_return:
+            case SimilaritySearchWhenMatchReturn.CHUNK:
+                neighbor_query = (
+                    select(
+                        models.FileEmbedding,
+                        func.array_agg(col(models.FileEmbedding.id))
+                        .over(
+                            partition_by=col(models.FileEmbedding.file_id),
+                            order_by=col(models.FileEmbedding.chunk_number),
+                            range_=(
+                                -payload.before_neighbor_count,
+                                payload.after_neighbor_count,
+                            ),
+                        )
+                        .label("neighbor_ids"),
+                    )
+                    .prefix_with(text("DISTINCT ON (file_chunks.id)"))
+                    .where(
+                        col(models.FileEmbedding.file_id) == col(query_cte.c.file_id),
+                    )
+                )
+            case SimilaritySearchWhenMatchReturn.CONTENT:
+                neighbor_query = (
+                    select(
+                        models.FileContent,
+                        func.array_agg(col(models.FileContent.id))
+                        .over(
+                            partition_by=col(models.FileContent.file_id),
+                            order_by=col(models.FileContent.content_number),
+                            range_=(
+                                -payload.before_neighbor_count,
+                                payload.after_neighbor_count,
+                            ),
+                        )
+                        .label("neighbor_ids"),
+                    )
+                    .prefix_with(text("DISTINCT ON (file_contents.id)"))
+                    .where(
+                        col(models.FileContent.file_id) == col(query_cte.c.file_id),
+                    )
+                )
+
+        neighbor_query_cte = neighbor_query.cte("neighbor_query_cte")
+        result_query: Select
+
+        match payload.when_match_return:
+            case SimilaritySearchWhenMatchReturn.CHUNK:
+                result_query = (
+                    (
+                        select(
+                            models.FileEmbedding,
+                            case(
+                                (
+                                    col(models.FileEmbedding.id)
+                                    != col(neighbor_query_cte.c.id),
+                                    literal(0),
+                                ),
+                                else_=query_cte.c.score,
+                            ).label("score"),
+                            case(
+                                (
+                                    col(models.FileEmbedding.id)
+                                    != col(neighbor_query_cte.c.id),
+                                    true(),
+                                ),
+                                else_=false(),
+                            ).label("is_neighbor"),
+                            case(
+                                (
+                                    col(models.FileEmbedding.id)
+                                    != col(neighbor_query_cte.c.id),
+                                    neighbor_query_cte.c.id,
+                                ),
+                                else_=null(),
+                            ).label("neighbor_from"),
+                        )
+                        .select_from(query_cte, neighbor_query_cte)
+                        .join(
+                            neighbor_query_cte,
+                            col(neighbor_query_cte.c.id) == col(query_cte.c.id),
+                        )
+                        .join(
+                            models.FileEmbedding,
+                            col(models.FileEmbedding.id)
+                            == any_(neighbor_query_cte.c.neighbor_ids),
+                        )
+                        .order_by(
+                            col(models.FileEmbedding.chunk_number).asc()
+                            if payload.order_by == SimilaritySearchOrderBy.CHUNK
+                            else text("score DESC")
+                        )
+                    )
+                    if payload.before_neighbor_count > 0
+                    or payload.after_neighbor_count > 0
+                    else (
+                        select(
+                            models.FileEmbedding,
+                            query_cte.c.score,
+                            false().label("is_neighbor"),
+                            null().label("neighbor_from"),
+                        )
+                        .select_from(query_cte)
+                        .join(
+                            models.FileEmbedding,
+                            col(models.FileEmbedding.id) == col(query_cte.c.id),
+                        )
+                    )
+                )
+
+            case SimilaritySearchWhenMatchReturn.CONTENT:
+                result_query = (
+                    (
+                        # SQLModel select does not have a overload for 4 expressions
+                        select(  # type: ignore
+                            models.FileContent,
+                            case(
+                                (
+                                    col(models.FileContent.id)
+                                    != col(neighbor_query_cte.c.id),
+                                    literal(0),
+                                ),
+                                else_=query_cte.c.score,
+                            ).label("score"),
+                            case(
+                                (
+                                    col(models.FileContent.id)
+                                    != col(neighbor_query_cte.c.id),
+                                    true(),
+                                ),
+                                else_=false(),
+                            ).label("is_neighbor"),
+                            case(
+                                (
+                                    col(models.FileContent.id)
+                                    != col(neighbor_query_cte.c.id),
+                                    neighbor_query_cte.c.id,
+                                ),
+                                else_=null(),
+                            ).label("neighbor_from"),
+                            query_cte_alias,
+                        )
+                        .select_from(query_cte, neighbor_query_cte)
+                        .join(
+                            neighbor_query_cte,
+                            col(neighbor_query_cte.c.id) == col(query_cte.c.content_id),
+                        )
+                        .join(
+                            models.FileContent,
+                            col(models.FileContent.id)
+                            == any_(neighbor_query_cte.c.neighbor_ids),
+                        )
+                        .order_by(
+                            col(models.FileContent.content_number).asc()
+                            if payload.order_by == SimilaritySearchOrderBy.CHUNK
+                            else text("score DESC")
+                        )
+                    )
+                    if payload.before_neighbor_count > 0
+                    or payload.after_neighbor_count > 0
+                    else (
+                        select(  # type: ignore
+                            models.FileContent,
+                            query_cte.c.score,
+                            false().label("is_neighbor"),
+                            null().label("neighbor_from"),
+                            query_cte_alias,
+                        )
+                        .select_from(query_cte)
+                        .join(
+                            models.FileContent,
+                            col(models.FileContent.id) == col(query_cte.c.content_id),
+                        )
+                    )
+                )
+
+        return cast(
+            Select[tuple[models.FileEmbedding, float, bool, UUID]]
+            | Select[
+                tuple[models.FileContent, float, bool, UUID, models.FileEmbedding]
+            ],
+            result_query,
+        )
+
+    def _parse_similarity_search_result(
+        self,
+        payload: SimilaritySearchRequest,
+        db_results: (
+            Sequence[tuple[models.FileEmbedding, float, bool, UUID]]
+            | Sequence[
+                tuple[models.FileContent, float, bool, UUID, models.FileEmbedding]
+            ]
+        ),
+    ) -> list[models.FileEmbeddingRead] | list[models.FileContentReadWithChunkScore]:
+        """Parses raw similarity search results into FileEmbeddingRead models.
+
+        Args:
+            results: Sequence of tuples containing FileEmbedding models and their scores
+
+        Returns:
+            List of FileEmbeddingRead models with similarity scores
+        """
+        match payload.when_match_return:
+            case SimilaritySearchWhenMatchReturn.CHUNK:
+                return self._parse_chunk_result(
+                    cast(
+                        Sequence[tuple[models.FileEmbedding, float, bool, UUID]],
+                        db_results,
+                    )
+                )
+            case SimilaritySearchWhenMatchReturn.CONTENT:
+                return self._parse_content_result(
+                    cast(
+                        Sequence[
+                            tuple[
+                                models.FileContent,
+                                float,
+                                bool,
+                                UUID,
+                                models.FileEmbedding,
+                            ]
+                        ],
+                        db_results,
+                    )
+                )
+
+    def _parse_chunk_result(
+        self,
+        db_results: Sequence[tuple[models.FileEmbedding, float, bool, UUID]],
+    ) -> list[models.FileEmbeddingRead]:
+        """
+        Parses the Similarity Search Query result into a list of FileEmbeddingRead 
+        models.
+
+        This function also parses the before and after neighbors of the chunks and
+        organizes them into the before_neighbors and after_neighbors fields of the
+        FileEmbeddingRead models.
+
+        Args:
+            db_results: Sequence of tuples containing FileEmbedding models \
+                and their scores
+
+        Returns:
+            List of FileEmbeddingRead models with similarity scores
+        """
+        file_chunk_map = {
+            chunk.id: models.FileEmbeddingRead(
+                **chunk.model_dump(),
+                score=score if not is_neighbor else None,
+                before_neighbors=[],
+                after_neighbors=[],
+            )
+            for chunk, score, is_neighbor, _ in db_results
+            if not is_neighbor
+        }
+
+        chunk_result: list[models.FileEmbeddingRead] = []
+
+        for chunk, _, is_neighbor, neighbor_from in db_results:
+            chunk_id = cast(UUID, chunk.id)
+
+            if (
+                chunk_id in file_chunk_map
+                and file_chunk_map[chunk_id] not in chunk_result
+            ):
+                chunk_result.append(file_chunk_map[chunk_id])
+            elif is_neighbor:
+                parent_chunk = file_chunk_map[neighbor_from]
+                if (
+                    parent_chunk.chunk_number is not None
+                    and chunk.chunk_number is not None
+                    and parent_chunk.chunk_number < chunk.chunk_number
+                ):
+                    if parent_chunk.after_neighbors is None:
+                        parent_chunk.after_neighbors = []
+
+                    parent_chunk.after_neighbors.append(
+                        models.FileEmbeddingRead(
+                            **chunk.model_dump(),
+                        )
+                    )
+                elif (
+                    parent_chunk.chunk_number is not None
+                    and chunk.chunk_number is not None
+                    and parent_chunk.chunk_number > chunk.chunk_number
+                ):
+                    if parent_chunk.before_neighbors is None:
+                        parent_chunk.before_neighbors = []
+
+                    parent_chunk.before_neighbors.append(
+                        models.FileEmbeddingRead(
+                            **chunk.model_dump(),
+                        )
+                    )
+
+        return chunk_result
+
+    def _parse_content_result(
+        self,
+        db_results: Sequence[
+            tuple[models.FileContent, float, bool, UUID, models.FileEmbedding]
+        ],
+    ) -> list[models.FileContentReadWithChunkScore]:
+        """
+        Parses the Similarity Search Query result into a list of \
+            FileContentReadWithChunkScore models.
+
+        This function also parses the before and after neighbors of the contents and
+        organizes them into the before_neighbors and after_neighbors fields of the
+        FileContentReadWithChunkScore models.
+
+        Args:
+            db_results: Sequence of tuples containing FileContent models and \
+                their scores
+
+        Returns:
+            List of FileContentReadWithChunkScore models with similarity scores
+        """
+        file_chunk_map: dict[UUID, models.FileEmbeddingRead] = {}
+        root_file_content_map, file_content_map = self._map_content_result(db_results)
+
+        content_result: list[models.FileContentReadWithChunkScore] = []
+        for content, score, is_neighbor, neighbor_from, chunk in db_results:
+            content_id: UUID = cast(UUID, content.id)
+            item_content = file_content_map[content_id]
+            if (
+                content_id in root_file_content_map
+                and root_file_content_map[content_id] not in content_result
+            ):
+                content_result.append(root_file_content_map[content_id])
+            elif is_neighbor and neighbor_from:
+                parent_content = root_file_content_map[neighbor_from]
+                if parent_content.after_neighbors is None:
+                    parent_content.after_neighbors = []
+
+                if parent_content.before_neighbors is None:
+                    parent_content.before_neighbors = []
+
+                if (
+                    parent_content.content_number is not None
+                    and item_content.content_number is not None
+                    and parent_content.content_number < item_content.content_number
+                    and item_content not in parent_content.after_neighbors
+                ):
+                    parent_content.after_neighbors.append(item_content)
+                elif (
+                    parent_content.content_number is not None
+                    and item_content.content_number is not None
+                    and parent_content.content_number > item_content.content_number
+                    and item_content not in parent_content.before_neighbors
+                ):
+                    parent_content.before_neighbors.append(item_content)
+
+            if item_content.match_chunks is None:
+                item_content.match_chunks = []
+
+            chunk_id = cast(UUID, chunk.id)
+            if chunk_id not in file_chunk_map and chunk.content_id == content_id:
+                file_chunk_map[chunk_id] = models.FileEmbeddingRead(
+                    **chunk.model_dump(),
+                    score=score,
+                )
+                item_content.match_chunks.append(file_chunk_map[chunk_id])
+
+        return content_result
+
+    def _map_content_result(
+        self,
+        db_results: Sequence[
+            tuple[models.FileContent, float, bool, UUID, models.FileEmbedding]
+        ],
+    ) -> tuple[
+        dict[UUID, models.FileContentReadWithChunkScore],
+        dict[UUID, models.FileContentReadWithChunkScore],
+    ]:
+        """
+        Maps the Similarity Search Query result into a dictionary of \
+            FileContentReadWithChunkScore models.
+
+        The root_file_content_map contains only the matching content \
+            (is_neighbor is False)
+        The file_content_map contains all the contents, matching or neighbors.
+
+        Those maps ensure they get distributed correctly into the before_neighbors \
+            and after_neighbors fields without creating new instances.
+
+        Args:
+            db_results: Sequence of tuples containing FileContent models and \
+                their scores
+
+        Returns:
+            A tuple of two dictionaries.
+        """
+        root_file_content_map: dict[UUID, models.FileContentReadWithChunkScore] = {}
+        file_content_map: dict[UUID, models.FileContentReadWithChunkScore] = {}
+
+        for content, _, is_neighbor, _, _ in db_results:
+            content_id: UUID = cast(UUID, content.id)
+            if content_id in file_content_map:
+                continue
+
+            item_content = models.FileContentReadWithChunkScore(
+                **content.model_dump(),
+                match_chunks=[],
+                before_neighbors=[],
+                after_neighbors=[],
+            )
+
+            if not is_neighbor:
+                root_file_content_map[content_id] = item_content
+
+            file_content_map[content_id] = item_content
+
+        return root_file_content_map, file_content_map

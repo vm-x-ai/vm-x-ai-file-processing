@@ -2,32 +2,45 @@ import uuid
 
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends
+from langchain_openai import OpenAIEmbeddings
 from pydantic import BaseModel
-from sqlmodel import col
 
 from ingestion_workflow import models
 from ingestion_workflow.containers import Container
+from ingestion_workflow.repositories.file_embedding import FileEmbeddingRepository
 from ingestion_workflow.repositories.project import ProjectRepository
+from ingestion_workflow.schema.similarity_search import SimilaritySearchRequest
+from ingestion_workflow.settings import Settings
 
 router = APIRouter()
 
 
-@router.get(
-    "/projects",
-    operation_id="getProjects",
-    description="Get all projects",
-    response_model=list[models.ProjectRead],
-    tags=["projects"],
+@router.post(
+    "/projects/{project_id}/similarity-search",
+    operation_id="similaritySearch",
+    description="Perform a similarity search",
+    response_model=list[models.FileEmbeddingRead]
+    | list[models.FileContentReadWithChunkScore],
+    tags=["similarity-search"],
 )
 @inject
-async def get_projects(
-    project_repository: ProjectRepository = Depends(
-        Provide[Container.project_repository]
+async def similarity_search(
+    project_id: uuid.UUID,
+    payload: SimilaritySearchRequest,
+    file_embedding_repository: FileEmbeddingRepository = Depends(
+        Provide[Container.file_embedding_repository]
     ),
-) -> list[models.ProjectRead]:
-    return await project_repository.get_all(
-        order_by=col(models.Project.created_at),
-        order_type="desc",
+    settings: Settings = Depends(Provide[Container.settings]),
+) -> list[models.FileEmbeddingRead] | list[models.FileContentReadWithChunkScore]:
+    embeddings = OpenAIEmbeddings(
+        model="text-embedding-3-small", api_key=settings.openai.api_key
+    )
+
+    query_embedding = await embeddings.aembed_query(payload.query)
+    return await file_embedding_repository.similarity_search(
+        project_id=project_id,
+        query_embedding=query_embedding,
+        payload=payload,
     )
 
 

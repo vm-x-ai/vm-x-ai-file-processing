@@ -4,7 +4,14 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from ingestion_workflow.api import evaluation, file, ingest, project, upload
+from ingestion_workflow.api import (
+    evaluation,
+    file,
+    ingest,
+    project,
+    similarity_search,
+    upload,
+)
 from ingestion_workflow.containers import Container
 
 
@@ -19,6 +26,7 @@ async def lifespan(app: FastAPI):
             upload.__name__,
             file.__name__,
             evaluation.__name__,
+            similarity_search.__name__,
         ]
     )
     app.container = container  # type: ignore
@@ -42,6 +50,7 @@ app.include_router(project.router)
 app.include_router(upload.router)
 app.include_router(file.router)
 app.include_router(evaluation.router)
+app.include_router(similarity_search.router)
 
 
 if __name__ == "__main__":

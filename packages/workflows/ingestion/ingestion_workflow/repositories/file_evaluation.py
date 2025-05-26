@@ -39,7 +39,6 @@ class FileEvaluationRepository(
     def _id_predicate(self, id: UUID) -> ColumnExpressionArgument[bool]:
         return col(models.FileEvaluation.id) == id
 
-    
     async def get_by_file_id(
         self,
         project_id: UUID,
@@ -69,7 +68,6 @@ class FileEvaluationRepository(
                 for file_evaluation in result.all()
             ]
 
-    
     async def get_by_evaluation_id(
         self,
         project_id: UUID,

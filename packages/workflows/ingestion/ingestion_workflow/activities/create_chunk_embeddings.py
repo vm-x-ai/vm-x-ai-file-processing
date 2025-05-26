@@ -41,6 +41,7 @@ async def create_chunk_embeddings(
             chunk_metadata=chunk.metadata,
             content_id=file_content.id,
             content=chunk.page_content,
+            project_id=file.project_id,
             embedding=embedding[0],
         )
     )

@@ -204,7 +204,7 @@ class BaseRepository(ABC, Generic[TID, TModel, TReadModel, TCreateModel]):
             await session.commit()
             return inserted_models if return_models else None
 
-    async def update(self, id: TID, values: dict[str, Any]) -> None:
+    async def update(self, id: TID, values: dict[str, Any]) -> TReadModel:
         """Updates an existing record with new values.
 
         Args:
@@ -218,6 +218,8 @@ class BaseRepository(ABC, Generic[TID, TModel, TReadModel, TCreateModel]):
             query = update(self._model).where(self._id_predicate(id)).values(**values)
             await session.execute(query)
             await session.commit()
+
+            return await self.get(id)
 
     async def delete(self, id: TID) -> None:
         """Deletes a record from the database.

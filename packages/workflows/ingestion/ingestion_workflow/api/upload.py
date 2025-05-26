@@ -34,6 +34,7 @@ class UploadIntentResponse(BaseModel):
     operation_id="uploadIntent",
     description="Upload an intent for a project",
     response_model=UploadIntentResponse,
+    tags=["upload"],
 )
 @inject
 async def upload_intent(

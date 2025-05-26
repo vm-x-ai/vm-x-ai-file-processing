@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
         "Created event and starts the ingestion workflow"
     ),
     include_in_schema=False,
+    tags=["ingest"],
 )
 @inject
 async def ingest(
@@ -66,6 +67,7 @@ async def ingest(
         "and updates the workflow"
     ),
     include_in_schema=False,
+    tags=["ingest"],
 )
 @inject
 async def ingestion_callback(

@@ -5,6 +5,8 @@ from sqlalchemy import Column, Text, func
 from sqlalchemy.dialects import postgresql
 from sqlmodel import Field, SQLModel
 
+from ingestion_workflow.models.file_embedding import FileEmbeddingRead
+
 
 class FileContentBase(SQLModel):
     file_id: UUID = Field(foreign_key="files.id", ondelete="CASCADE")
@@ -45,3 +47,9 @@ class FileContentRead(FileContentBase):
     id: UUID
     created_at: datetime
     updated_at: datetime
+
+
+class FileContentReadWithChunkScore(FileContentRead):
+    match_chunks: list[FileEmbeddingRead] | None = None
+    before_neighbors: list["FileContentRead"] | None = None
+    after_neighbors: list["FileContentRead"] | None = None
