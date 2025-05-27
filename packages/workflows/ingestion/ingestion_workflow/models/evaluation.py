@@ -9,6 +9,7 @@ from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
     from ingestion_workflow.models.file import FileEvaluation
+    from ingestion_workflow.models.evaluation_category import EvaluationCategory
 
 
 class EvaluationType(str, Enum):
@@ -31,6 +32,7 @@ class EvaluationBase(SQLModel):
         foreign_key="evaluations.id", nullable=True, ondelete="CASCADE"
     )
     parent_evaluation_option: Optional[str] = Field(sa_type=Text, nullable=True)
+    category_id: UUID = Field(foreign_key="evaluation_categories.id")
 
 
 class Evaluation(EvaluationBase, table=True):
@@ -58,6 +60,7 @@ class Evaluation(EvaluationBase, table=True):
     )
 
     file_evaluations: list["FileEvaluation"] = Relationship(back_populates="evaluation")
+    category: "EvaluationCategory" = Relationship()
 
 
 class EvaluationCreate(EvaluationBase):

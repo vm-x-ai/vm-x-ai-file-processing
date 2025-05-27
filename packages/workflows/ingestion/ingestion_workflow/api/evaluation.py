@@ -10,6 +10,7 @@ from utils.s3 import generate_download_url
 from ingestion_workflow import models
 from ingestion_workflow.containers import Container
 from ingestion_workflow.repositories.evaluation import EvaluationRepository
+from ingestion_workflow.repositories.evaluation_category import EvaluationCategoryRepository
 from ingestion_workflow.repositories.file_evaluation import FileEvaluationRepository
 from ingestion_workflow.schema.evaluation import (
     HttpEvaluationCreate,
@@ -124,12 +125,31 @@ async def create_evaluation(
     evaluation_repository: EvaluationRepository = Depends(
         Provide[Container.evaluation_repository]
     ),
+    evaluation_category_repository: EvaluationCategoryRepository = Depends(
+        Provide[Container.evaluation_category_repository]
+    ),
 ) -> models.EvaluationRead:
+    # Handle category creation/assignment
+    category_id = payload.category_id
+    if payload.category_name:
+        # Find or create category by name
+        category = await evaluation_category_repository.find_or_create_by_name(
+            name=payload.category_name,
+            project_id=project_id,
+            description=payload.category_description
+        )
+        category_id = category.id
+    elif not category_id:
+        # Ensure default category exists
+        default_category = await evaluation_category_repository.ensure_default_category_exists(project_id)
+        category_id = default_category.id
+
     return await evaluation_repository.add(
         models.EvaluationCreate.model_validate(
             {
-                **payload.model_dump(exclude={"project_id"}),
+                **payload.model_dump(exclude={"project_id", "category_name", "category_description"}),
                 "project_id": project_id,
+                "category_id": category_id,
                 "id": uuid.uuid4(),
             }
         )
@@ -177,3 +197,113 @@ async def delete_evaluation(
     ),
 ) -> None:
     await evaluation_repository.delete(evaluation_id)
+
+
+@router.get(
+    "/projects/{project_id}/evaluation-categories",
+    operation_id="getEvaluationCategories",
+    description="Get all evaluation categories for a project",
+    response_model=list[models.EvaluationCategoryRead],
+    tags=["evaluation-categories"],
+)
+@inject
+async def get_evaluation_categories(
+    project_id: UUID,
+    evaluation_category_repository: EvaluationCategoryRepository = Depends(
+        Provide[Container.evaluation_category_repository]
+    ),
+) -> list[models.EvaluationCategoryRead]:
+    return await evaluation_category_repository.get_by_project_id(
+        project_id=project_id,
+    )
+
+
+@router.post(
+    "/projects/{project_id}/evaluation-categories",
+    operation_id="createEvaluationCategory",
+    description="Create an evaluation category for a project",
+    response_model=models.EvaluationCategoryRead,
+    tags=["evaluation-categories"],
+)
+@inject
+async def create_evaluation_category(
+    project_id: UUID,
+    payload: dict,
+    evaluation_category_repository: EvaluationCategoryRepository = Depends(
+        Provide[Container.evaluation_category_repository]
+    ),
+) -> models.EvaluationCategoryRead:
+    return await evaluation_category_repository.add(
+        models.EvaluationCategoryCreate.model_validate(
+            {
+                "name": payload["name"],
+                "description": payload.get("description"),
+                "project_id": project_id,
+                "id": uuid.uuid4(),
+            }
+        )
+    )
+
+
+@router.put(
+    "/projects/{project_id}/evaluation-categories/{category_id}",
+    operation_id="updateEvaluationCategory",
+    description="Update an evaluation category for a project",
+    response_model=models.EvaluationCategoryRead,
+    tags=["evaluation-categories"],
+)
+@inject
+async def update_evaluation_category(
+    project_id: UUID,
+    category_id: UUID,
+    payload: dict,
+    evaluation_category_repository: EvaluationCategoryRepository = Depends(
+        Provide[Container.evaluation_category_repository]
+    ),
+) -> models.EvaluationCategoryRead:
+    await evaluation_category_repository.update(
+        category_id,
+        {
+            "name": payload["name"],
+            "description": payload.get("description"),
+        },
+    )
+    return await evaluation_category_repository.get(category_id)
+
+
+@router.delete(
+    "/projects/{project_id}/evaluation-categories/{category_id}",
+    operation_id="deleteEvaluationCategory",
+    description="Delete an evaluation category for a project",
+    tags=["evaluation-categories"],
+)
+@inject
+async def delete_evaluation_category(
+    project_id: UUID,
+    category_id: UUID,
+    evaluation_category_repository: EvaluationCategoryRepository = Depends(
+        Provide[Container.evaluation_category_repository]
+    ),
+) -> None:
+    await evaluation_category_repository.delete(category_id)
+
+
+@router.get(
+    "/projects/{project_id}/evaluation-categories/{category_id}/evaluations",
+    operation_id="getEvaluationsByCategory",
+    description="Get all evaluations for a specific category",
+    response_model=list[models.EvaluationRead],
+    tags=["evaluation-categories"],
+)
+@inject
+async def get_evaluations_by_category(
+    project_id: UUID,
+    category_id: UUID,
+    evaluation_repository: EvaluationRepository = Depends(
+        Provide[Container.evaluation_repository]
+    ),
+) -> list[models.EvaluationRead]:
+    return await evaluation_repository.get_by_category_id(
+        project_id=project_id,
+        category_id=category_id,
+    )

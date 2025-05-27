@@ -52,19 +52,18 @@ export function Evaluation({
     <AccordionItem
       key={data.id}
       value={data.id}
-      className="last:border-b-1 rounded-xl border px-4 mt-2"
+      className="last:border-b-1 rounded-xl border px-4 mt-2 bg-muted/50"
     >
       <div className="flex justify-between items-center w-full">
         <AccordionTrigger>
           <div>
-            <strong>{data.title}: </strong>
-            <span className="text-muted-foreground">{data.prompt}</span>
+            <strong>{data.title}</strong>
           </div>
         </AccordionTrigger>
         <div className="ml-auto">
           <Button
             size="sm"
-            variant="destructive"
+            variant="ghost"
             disabled={deleting}
             onClick={async (event: React.MouseEvent<HTMLButtonElement>) => {
               event.preventDefault();
@@ -93,8 +92,7 @@ export function Evaluation({
               });
             }}
           >
-            <TrashIcon />
-            {deleting ? 'Deleting...' : 'Delete'}
+            <TrashIcon className={deleting ? "animate-pulse" : ""} />
           </Button>
         </div>
       </div>
@@ -201,6 +199,7 @@ export function Evaluation({
                     project_id: projectId,
                     id: `new_evaluation_${newEvaluations.length}`,
                     evaluation_options: null,
+                    category_id: evaluation.category_id,
                     created_at: new Date().toISOString(),
                     updated_at: new Date().toISOString(),
                     children: [],

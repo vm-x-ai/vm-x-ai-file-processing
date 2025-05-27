@@ -48,7 +48,7 @@ module "landing_sns_topic" {
   subscriptions = {
     temporal = {
       protocol = "http"
-      endpoint = "http://172.17.0.1:8000/ingest"
+      endpoint = "http://host.docker.internal:8000/ingest"
     }
   }
 }

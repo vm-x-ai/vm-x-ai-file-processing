@@ -21,7 +21,16 @@ export const schema = z.object({
   evaluation_options: z.array(z.string()).nullable(),
   parent_evaluation_id: z.string().nullable(),
   parent_evaluation_option: z.string().nullable(),
-});
+  category_id: z.string().nullable(),
+  category_name: z.string().nullable(),
+  category_description: z.string().nullable(),
+}).refine(
+  (data) => data.category_id || data.category_name,
+  {
+    message: "Either category_id or category_name must be provided",
+    path: ["category_id"],
+  }
+);
 
 export type FormSchema = z.output<typeof schema>;
 

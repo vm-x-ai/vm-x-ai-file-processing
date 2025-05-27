@@ -9,6 +9,35 @@ import type {
 declare namespace Components {
     namespace Schemas {
         /**
+         * EvaluationCategoryRead
+         */
+        export interface EvaluationCategoryRead {
+            /**
+             * Name
+             */
+            name: string;
+            /**
+             * Description
+             */
+            description: /* Description */ string | null;
+            /**
+             * Project Id
+             */
+            project_id: string; // uuid
+            /**
+             * Id
+             */
+            id: string; // uuid
+            /**
+             * Created At
+             */
+            created_at: string; // date-time
+            /**
+             * Updated At
+             */
+            updated_at: string; // date-time
+        }
+        /**
          * EvaluationRead
          */
         export interface EvaluationRead {
@@ -45,6 +74,10 @@ declare namespace Components {
              * Parent Evaluation Option
              */
             parent_evaluation_option: /* Parent Evaluation Option */ string | null;
+            /**
+             * Category Id
+             */
+            category_id: string; // uuid
             /**
              * Id
              */
@@ -95,6 +128,10 @@ declare namespace Components {
              * Parent Evaluation Option
              */
             parent_evaluation_option: /* Parent Evaluation Option */ string | null;
+            /**
+             * Category Id
+             */
+            category_id: string; // uuid
             /**
              * Id
              */
@@ -503,37 +540,86 @@ declare namespace Components {
         export interface HttpEvaluationCreate {
             /**
              * Title
+             * Title of the evaluation
              */
             title: string;
             /**
              * Description
+             * Description of the evaluation
              */
             description: string;
             /**
              * System Prompt
+             * System prompt for the evaluation
              */
-            system_prompt: /* System Prompt */ string | null;
+            system_prompt?: /**
+             * System Prompt
+             * System prompt for the evaluation
+             */
+            string | null;
             /**
              * Prompt
+             * Prompt for the evaluation
              */
             prompt: string;
             /**
-             * Project Id
+             * Type of evaluation
              */
-            project_id: string; // uuid
             evaluation_type: /* EvaluationType */ EvaluationType;
             /**
              * Evaluation Options
+             * Options for enum_choice evaluations
              */
-            evaluation_options: /* Evaluation Options */ string[] | null;
+            evaluation_options?: /**
+             * Evaluation Options
+             * Options for enum_choice evaluations
+             */
+            string[] | null;
             /**
              * Parent Evaluation Id
+             * Parent evaluation ID
              */
-            parent_evaluation_id: /* Parent Evaluation Id */ string /* uuid */ | null;
+            parent_evaluation_id?: /**
+             * Parent Evaluation Id
+             * Parent evaluation ID
+             */
+            string /* uuid */ | null;
             /**
              * Parent Evaluation Option
+             * Parent evaluation option
              */
-            parent_evaluation_option: /* Parent Evaluation Option */ string | null;
+            parent_evaluation_option?: /**
+             * Parent Evaluation Option
+             * Parent evaluation option
+             */
+            string | null;
+            /**
+             * Category Id
+             * ID of existing category
+             */
+            category_id?: /**
+             * Category Id
+             * ID of existing category
+             */
+            string /* uuid */ | null;
+            /**
+             * Category Name
+             * Name of new category to create
+             */
+            category_name?: /**
+             * Category Name
+             * Name of new category to create
+             */
+            string | null;
+            /**
+             * Category Description
+             * Description for new category
+             */
+            category_description?: /**
+             * Category Description
+             * Description for new category
+             */
+            string | null;
         }
         /**
          * HttpEvaluationUpdate
@@ -572,6 +658,10 @@ declare namespace Components {
              * Parent Evaluation Option
              */
             parent_evaluation_option: /* Parent Evaluation Option */ string | null;
+            /**
+             * Category Id
+             */
+            category_id: string; // uuid
         }
         /**
          * ProjectCreateRequest
@@ -776,6 +866,27 @@ declare namespace Paths {
             export type $422 = /* HTTPValidationError */ Components.Schemas.HTTPValidationError;
         }
     }
+    namespace CreateEvaluationCategory {
+        namespace Parameters {
+            /**
+             * Project Id
+             */
+            export type ProjectId = string; // uuid
+        }
+        export interface PathParameters {
+            project_id: /* Project Id */ Parameters.ProjectId /* uuid */;
+        }
+        /**
+         * Payload
+         */
+        export interface RequestBody {
+            [name: string]: any;
+        }
+        namespace Responses {
+            export type $200 = /* EvaluationCategoryRead */ Components.Schemas.EvaluationCategoryRead;
+            export type $422 = /* HTTPValidationError */ Components.Schemas.HTTPValidationError;
+        }
+    }
     namespace CreateProject {
         export type RequestBody = /* ProjectCreateRequest */ Components.Schemas.ProjectCreateRequest;
         namespace Responses {
@@ -797,6 +908,26 @@ declare namespace Paths {
         export interface PathParameters {
             project_id: /* Project Id */ Parameters.ProjectId /* uuid */;
             evaluation_id: /* Evaluation Id */ Parameters.EvaluationId /* uuid */;
+        }
+        namespace Responses {
+            export type $200 = any;
+            export type $422 = /* HTTPValidationError */ Components.Schemas.HTTPValidationError;
+        }
+    }
+    namespace DeleteEvaluationCategory {
+        namespace Parameters {
+            /**
+             * Category Id
+             */
+            export type CategoryId = string; // uuid
+            /**
+             * Project Id
+             */
+            export type ProjectId = string; // uuid
+        }
+        export interface PathParameters {
+            project_id: /* Project Id */ Parameters.ProjectId /* uuid */;
+            category_id: /* Category Id */ Parameters.CategoryId /* uuid */;
         }
         namespace Responses {
             export type $200 = any;
@@ -838,6 +969,24 @@ declare namespace Paths {
             export type $422 = /* HTTPValidationError */ Components.Schemas.HTTPValidationError;
         }
     }
+    namespace GetEvaluationCategories {
+        namespace Parameters {
+            /**
+             * Project Id
+             */
+            export type ProjectId = string; // uuid
+        }
+        export interface PathParameters {
+            project_id: /* Project Id */ Parameters.ProjectId /* uuid */;
+        }
+        namespace Responses {
+            /**
+             * Response Getevaluationcategories
+             */
+            export type $200 = /* EvaluationCategoryRead */ Components.Schemas.EvaluationCategoryRead[];
+            export type $422 = /* HTTPValidationError */ Components.Schemas.HTTPValidationError;
+        }
+    }
     namespace GetEvaluations {
         namespace Parameters {
             /**
@@ -851,6 +1000,29 @@ declare namespace Paths {
         namespace Responses {
             /**
              * Response Getevaluations
+             */
+            export type $200 = /* EvaluationRead */ Components.Schemas.EvaluationRead[];
+            export type $422 = /* HTTPValidationError */ Components.Schemas.HTTPValidationError;
+        }
+    }
+    namespace GetEvaluationsByCategory {
+        namespace Parameters {
+            /**
+             * Category Id
+             */
+            export type CategoryId = string; // uuid
+            /**
+             * Project Id
+             */
+            export type ProjectId = string; // uuid
+        }
+        export interface PathParameters {
+            project_id: /* Project Id */ Parameters.ProjectId /* uuid */;
+            category_id: /* Category Id */ Parameters.CategoryId /* uuid */;
+        }
+        namespace Responses {
+            /**
+             * Response Getevaluationsbycategory
              */
             export type $200 = /* EvaluationRead */ Components.Schemas.EvaluationRead[];
             export type $422 = /* HTTPValidationError */ Components.Schemas.HTTPValidationError;
@@ -1066,6 +1238,32 @@ declare namespace Paths {
             export type $422 = /* HTTPValidationError */ Components.Schemas.HTTPValidationError;
         }
     }
+    namespace UpdateEvaluationCategory {
+        namespace Parameters {
+            /**
+             * Category Id
+             */
+            export type CategoryId = string; // uuid
+            /**
+             * Project Id
+             */
+            export type ProjectId = string; // uuid
+        }
+        export interface PathParameters {
+            project_id: /* Project Id */ Parameters.ProjectId /* uuid */;
+            category_id: /* Category Id */ Parameters.CategoryId /* uuid */;
+        }
+        /**
+         * Payload
+         */
+        export interface RequestBody {
+            [name: string]: any;
+        }
+        namespace Responses {
+            export type $200 = /* EvaluationCategoryRead */ Components.Schemas.EvaluationCategoryRead;
+            export type $422 = /* HTTPValidationError */ Components.Schemas.HTTPValidationError;
+        }
+    }
     namespace UpdateProject {
         namespace Parameters {
             /**
@@ -1273,6 +1471,56 @@ export interface OperationMethods {
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.DeleteEvaluation.Responses.$200>
   /**
+   * getEvaluationCategories - Get Evaluation Categories
+   * 
+   * Get all evaluation categories for a project
+   */
+  'getEvaluationCategories'(
+    parameters?: Parameters<Paths.GetEvaluationCategories.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetEvaluationCategories.Responses.$200>
+  /**
+   * createEvaluationCategory - Create Evaluation Category
+   * 
+   * Create an evaluation category for a project
+   */
+  'createEvaluationCategory'(
+    parameters?: Parameters<Paths.CreateEvaluationCategory.PathParameters> | null,
+    data?: Paths.CreateEvaluationCategory.RequestBody,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.CreateEvaluationCategory.Responses.$200>
+  /**
+   * updateEvaluationCategory - Update Evaluation Category
+   * 
+   * Update an evaluation category for a project
+   */
+  'updateEvaluationCategory'(
+    parameters?: Parameters<Paths.UpdateEvaluationCategory.PathParameters> | null,
+    data?: Paths.UpdateEvaluationCategory.RequestBody,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.UpdateEvaluationCategory.Responses.$200>
+  /**
+   * deleteEvaluationCategory - Delete Evaluation Category
+   * 
+   * Delete an evaluation category for a project
+   */
+  'deleteEvaluationCategory'(
+    parameters?: Parameters<Paths.DeleteEvaluationCategory.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.DeleteEvaluationCategory.Responses.$200>
+  /**
+   * getEvaluationsByCategory - Get Evaluations By Category
+   * 
+   * Get all evaluations for a specific category
+   */
+  'getEvaluationsByCategory'(
+    parameters?: Parameters<Paths.GetEvaluationsByCategory.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetEvaluationsByCategory.Responses.$200>
+  /**
    * similaritySearch - Similarity Search
    * 
    * Perform a similarity search
@@ -1477,6 +1725,62 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.DeleteEvaluation.Responses.$200>
   }
+  ['/projects/{project_id}/evaluation-categories']: {
+    /**
+     * getEvaluationCategories - Get Evaluation Categories
+     * 
+     * Get all evaluation categories for a project
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetEvaluationCategories.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetEvaluationCategories.Responses.$200>
+    /**
+     * createEvaluationCategory - Create Evaluation Category
+     * 
+     * Create an evaluation category for a project
+     */
+    'post'(
+      parameters?: Parameters<Paths.CreateEvaluationCategory.PathParameters> | null,
+      data?: Paths.CreateEvaluationCategory.RequestBody,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.CreateEvaluationCategory.Responses.$200>
+  }
+  ['/projects/{project_id}/evaluation-categories/{category_id}']: {
+    /**
+     * updateEvaluationCategory - Update Evaluation Category
+     * 
+     * Update an evaluation category for a project
+     */
+    'put'(
+      parameters?: Parameters<Paths.UpdateEvaluationCategory.PathParameters> | null,
+      data?: Paths.UpdateEvaluationCategory.RequestBody,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.UpdateEvaluationCategory.Responses.$200>
+    /**
+     * deleteEvaluationCategory - Delete Evaluation Category
+     * 
+     * Delete an evaluation category for a project
+     */
+    'delete'(
+      parameters?: Parameters<Paths.DeleteEvaluationCategory.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.DeleteEvaluationCategory.Responses.$200>
+  }
+  ['/projects/{project_id}/evaluation-categories/{category_id}/evaluations']: {
+    /**
+     * getEvaluationsByCategory - Get Evaluations By Category
+     * 
+     * Get all evaluations for a specific category
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetEvaluationsByCategory.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetEvaluationsByCategory.Responses.$200>
+  }
   ['/projects/{project_id}/similarity-search']: {
     /**
      * similaritySearch - Similarity Search
@@ -1494,6 +1798,7 @@ export interface PathsDictionary {
 export type Client = OpenAPIClient<OperationMethods, PathsDictionary>
 
 
+export type EvaluationCategoryRead = Components.Schemas.EvaluationCategoryRead;
 export type EvaluationRead = Components.Schemas.EvaluationRead;
 export type EvaluationTree = Components.Schemas.EvaluationTree;
 export type EvaluationType = Components.Schemas.EvaluationType;

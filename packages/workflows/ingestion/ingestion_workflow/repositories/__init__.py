@@ -1,5 +1,6 @@
 from .base import BaseRepository
 from .evaluation import EvaluationRepository
+from .evaluation_category import EvaluationCategoryRepository
 from .file import FileRepository
 from .file_content import FileContentRepository
 from .file_embedding import FileEmbeddingRepository
@@ -14,4 +15,5 @@ __all__ = [
     "FileEvaluationRepository",
     "ProjectRepository",
     "EvaluationRepository",
+    "EvaluationCategoryRepository",
 ]

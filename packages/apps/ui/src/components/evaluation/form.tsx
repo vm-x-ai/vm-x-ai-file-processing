@@ -21,6 +21,7 @@ import { Separator } from '../ui/separator';
 import { PlusIcon, SaveIcon, TrashIcon } from 'lucide-react';
 import { Textarea } from '../ui/textarea';
 import { ComboboxField } from '../combobox';
+import { CategorySelectorField } from './category-selector';
 import Editor from '@monaco-editor/react';
 
 export type EvaluationFormProps = {
@@ -46,20 +47,8 @@ export default function EvaluationForm({
   data,
   onChange,
 }: EvaluationFormProps) {
-  const [submitting, setSubmitting] = useTransition();
+  const [submitting, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
-  const [state, formAction] = useActionState(submitAction, {
-    message: '',
-    data: undefined,
-    success: undefined,
-  });
-
-  useEffect(() => {
-    if (state.data) {
-      onChange(data, state.data as EvaluationRead);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.data]);
 
   const form = useForm<FormSchema>({
     resolver: zodResolver(schema),
@@ -72,22 +61,29 @@ export default function EvaluationForm({
         parent?.parent_evaluation_option ||
         null,
       evaluation_type: data?.evaluation_type ?? 'text',
+      category_id: data?.category_id || null,
+      category_name: null,
+      category_description: null,
     },
+  });
+
+  const handleSubmit = form.handleSubmit(async (values) => {
+    console.log('values', values);
+    startTransition(async () => {
+      const result = await submitAction(
+        { message: '', data: undefined, success: undefined },
+        values
+      );
+      if (result.success && result.data) {
+        onChange(data, result.data as unknown as EvaluationRead);
+      }
+    });
   });
 
   return (
     <Form {...form}>
       <form
-        action={async () => {
-          await setSubmitting(async () => {
-            await form.handleSubmit(async (values) => {
-              console.log('values', values);
-              await formAction(values);
-            })({
-              target: formRef.current,
-            } as unknown as React.FormEvent<HTMLFormElement>);
-          });
-        }}
+        onSubmit={handleSubmit}
         noValidate
         className="space-y-4"
       >
@@ -141,6 +137,31 @@ export default function EvaluationForm({
                 </FormControl>
                 <FormDescription>
                   Longer description of your evaluation.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="category_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Category</FormLabel>
+                <FormControl>
+                  <CategorySelectorField
+                    field={field}
+                    projectId={projectId}
+                    hideEmptyDefault={data.id?.startsWith('new_evaluation')}
+                    onCreateCategory={(categoryName) => {
+                      // Set the category name for creation
+                      form.setValue('category_name', categoryName);
+                      form.setValue('category_id', null);
+                    }}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Select an existing category or create a new one.
                 </FormDescription>
                 <FormMessage />
               </FormItem>

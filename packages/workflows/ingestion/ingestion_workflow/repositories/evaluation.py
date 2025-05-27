@@ -89,3 +89,25 @@ class EvaluationRepository(
                 models.EvaluationRead.model_validate(evaluation)
                 for evaluation in result.all()
             ]
+
+    async def get_by_category_id(
+        self,
+        project_id: UUID,
+        category_id: UUID,
+    ) -> list[models.EvaluationRead]:
+        async with self._session_factory() as session:
+            query = (
+                select(models.Evaluation)
+                .where(
+                    models.Evaluation.project_id == project_id,
+                    models.Evaluation.category_id == category_id
+                )
+                .order_by(col(models.Evaluation.created_at).desc())
+            )
+
+            result = await session.scalars(query)
+
+            return [
+                models.EvaluationRead.model_validate(evaluation)
+                for evaluation in result.all()
+            ]

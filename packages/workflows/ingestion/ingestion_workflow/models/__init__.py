@@ -5,6 +5,12 @@ from .evaluation import (
     EvaluationTree,
     EvaluationType,
 )
+from .evaluation_category import (
+    EvaluationCategory,
+    EvaluationCategoryBase,
+    EvaluationCategoryCreate,
+    EvaluationCategoryRead,
+)
 from .file import (
     File,
     FileCreate,
@@ -68,4 +74,8 @@ __all__ = [
     "EvaluationRead",
     "EvaluationType",
     "EvaluationTree",
+    "EvaluationCategory",
+    "EvaluationCategoryBase",
+    "EvaluationCategoryCreate",
+    "EvaluationCategoryRead",
 ]
