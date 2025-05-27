@@ -210,7 +210,18 @@ export default function EvaluationForm({
                         render={({ field }) => (
                           <FormItem>
                             <div className="flex w-full max-w-sm items-center gap-2">
-                              <Input {...field} className="w-1/2" />
+                              <Input
+                                {...field}
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  mainField.onChange(
+                                    mainField.value?.map((option, i) =>
+                                      i === index ? e.target.value : option
+                                    )
+                                  );
+                                }}
+                                className="w-1/2"
+                              />
                               <Button
                                 type="button"
                                 variant="destructive"

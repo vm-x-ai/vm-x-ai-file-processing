@@ -95,3 +95,26 @@ class FileEvaluationRepository(
                 models.FileEvaluationReadWithFile.model_validate(file_evaluation)
                 for file_evaluation in result.all()
             ]
+
+    async def get_by_evaluation_id_and_content_id(
+        self,
+        project_id: UUID,
+        evaluation_id: UUID,
+        content_id: UUID,
+    ) -> models.FileEvaluationRead | None:
+        async with self._session_factory() as session:
+            query = (
+                select(models.FileEvaluation)
+                .join(models.File)
+                .where(
+                    models.FileEvaluation.evaluation_id == evaluation_id,
+                    models.FileEvaluation.content_id == content_id,
+                    models.File.project_id == project_id,
+                )
+            )
+
+            result = await session.scalar(query)
+            if not result:
+                return None
+
+            return models.FileEvaluationRead.model_validate(result)

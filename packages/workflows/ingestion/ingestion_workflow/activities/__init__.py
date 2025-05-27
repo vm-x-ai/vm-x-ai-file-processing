@@ -1,5 +1,6 @@
 from .chunk_document import chunk_document
 from .create_chunk_embeddings import create_chunk_embeddings
+from .get_files_to_evaluate import get_files_to_evaluate
 from .load_s3_file import LoadS3FileOutput, load_s3_file
 from .start_evaluations import start_evaluations
 from .store_evaluation import store_evaluation
@@ -13,4 +14,5 @@ __all__ = [
     "start_evaluations",
     "store_evaluation",
     "update_file_status",
+    "get_files_to_evaluate",
 ]

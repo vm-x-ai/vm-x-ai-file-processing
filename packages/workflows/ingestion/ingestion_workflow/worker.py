@@ -7,13 +7,14 @@ from temporalio.worker import Worker
 from ingestion_workflow.activities import (
     chunk_document,
     create_chunk_embeddings,
+    get_files_to_evaluate,
     load_s3_file,
     start_evaluations,
     store_evaluation,
     update_file_status,
 )
 from ingestion_workflow.containers import Container
-from ingestion_workflow.workflow import IngestionWorkflow
+from ingestion_workflow.workflow import IngestionWorkflow, UpdateEvaluationWorkflow
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ async def main():
     worker = Worker(
         client,
         task_queue="ingestion-workflow",
-        workflows=[IngestionWorkflow],
+        workflows=[IngestionWorkflow, UpdateEvaluationWorkflow],
         activities=[
             load_s3_file,
             chunk_document,
@@ -36,6 +37,7 @@ async def main():
             start_evaluations,
             store_evaluation,
             update_file_status,
+            get_files_to_evaluate,
         ],
     )
     await worker.run()

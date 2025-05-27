@@ -32,8 +32,7 @@ class StartEvaluationOutput(BaseModel):
 @activity.defn
 async def start_evaluations(
     file_id: UUID,
-    project_id: UUID,
-    file_content_ids: list[UUID],
+    evaluation_id: Optional[UUID] = None,
     parent_evaluation_id: Optional[UUID] = None,
     parent_evaluation_option: Optional[str] = None,
 ) -> StartEvaluationOutput:
@@ -50,15 +49,19 @@ async def start_evaluations(
     await file_repository.update(file_id, {"status": models.FileStatus.EVALUATING})
 
     logger.info(f"Starting evaluations for file {file_id}")
-    logger.info(f"Getting questions for project {project_id}")
-    evaluations = (
-        await evaluation_repository.get_by_project_id_and_parent_evaluation_id(
-            project_id=project_id,
-            parent_evaluation_id=parent_evaluation_id,
-            parent_evaluation_option=parent_evaluation_option,
+    logger.info(f"Getting questions for project {file.project_id}")
+    if evaluation_id and not parent_evaluation_id and not parent_evaluation_option:
+        evaluations = [await evaluation_repository.get(evaluation_id)]
+    else:
+        evaluations = (
+            await evaluation_repository.get_by_project_id_and_parent_evaluation_id(
+                project_id=file.project_id,
+                parent_evaluation_id=parent_evaluation_id,
+                parent_evaluation_option=parent_evaluation_option,
+            )
         )
-    )
-    logger.info(f"Found {len(evaluations)} evaluations for project {project_id}")
+
+    logger.info(f"Found {len(evaluations)} evaluations for project {file.project_id}")
 
     if not evaluations:
         return StartEvaluationOutput(
@@ -68,13 +71,9 @@ async def start_evaluations(
         )
 
     requests: list[CompletionRequest] = []
+    file_contents = await file_content_repository.get_by_file_id(file_id)
 
-    for file_content_id in file_content_ids:
-        file_content = await file_content_repository.get(file_content_id)
-        if not file_content:
-            logger.warning(f"File content {file_content_id} not found")
-            continue
-
+    for file_content in file_contents:
         for evaluation in evaluations:
             messages: list[RequestMessage] = []
             if evaluation.system_prompt:
@@ -108,7 +107,7 @@ async def start_evaluations(
                 metadata={
                     "evaluation_id": str(evaluation.id),
                     "file_id": str(file_id),
-                    "file_content_id": str(file_content_id),
+                    "file_content_id": str(file_content.id),
                     "page_metadata": file_content.content_metadata,
                     "workflow_id": workflow_id,
                     "parent_evaluation_id": str(parent_evaluation_id)

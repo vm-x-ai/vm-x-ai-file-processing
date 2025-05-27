@@ -5,6 +5,7 @@ from uuid import UUID
 
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, Query
+from temporalio.client import Client
 from utils.s3 import generate_download_url
 
 from ingestion_workflow import models
@@ -18,6 +19,7 @@ from ingestion_workflow.schema.evaluation import (
     HttpEvaluationCreate,
     HttpEvaluationUpdate,
 )
+from ingestion_workflow.workflow import UpdateEvaluationWorkflow
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -130,6 +132,7 @@ async def create_evaluation(
     evaluation_category_repository: EvaluationCategoryRepository = Depends(
         Provide[Container.evaluation_category_repository]
     ),
+    temporal_client: Client = Depends(Provide[Container.temporal_client]),
 ) -> models.EvaluationRead:
     # Handle category creation/assignment
     category_id = payload.category_id
@@ -150,7 +153,7 @@ async def create_evaluation(
         )
         category_id = default_category.id
 
-    return await evaluation_repository.add(
+    evaluation = await evaluation_repository.add(
         models.EvaluationCreate.model_validate(
             {
                 **payload.model_dump(
@@ -162,6 +165,20 @@ async def create_evaluation(
             }
         )
     )
+
+    asyncio.ensure_future(
+        temporal_client.start_workflow(
+            UpdateEvaluationWorkflow.run,
+            id=f"new-evaluation-workflow-{evaluation.id}",
+            task_queue="ingestion-workflow",
+            args=[
+                evaluation,
+                None,
+            ],
+        )
+    )
+
+    return evaluation
 
 
 @router.put(
@@ -179,16 +196,30 @@ async def update_evaluation(
     evaluation_repository: EvaluationRepository = Depends(
         Provide[Container.evaluation_repository]
     ),
+    temporal_client: Client = Depends(Provide[Container.temporal_client]),
 ) -> models.EvaluationRead:
+    old_evaluation = await evaluation_repository.get(evaluation_id)
     await evaluation_repository.update(
         evaluation_id,
         {
             **payload.model_dump(exclude={"project_id"}),
         },
     )
+    updated_evaluation = await evaluation_repository.get(evaluation_id)
 
-    return await evaluation_repository.get(evaluation_id)
+    asyncio.ensure_future(
+        temporal_client.start_workflow(
+            UpdateEvaluationWorkflow.run,
+            id=f"updated-evaluation-workflow-{updated_evaluation.id}",
+            task_queue="ingestion-workflow",
+            args=[
+                updated_evaluation,
+                old_evaluation,
+            ],
+        )
+    )
 
+    return updated_evaluation
 
 @router.delete(
     "/projects/{project_id}/evaluations/{evaluation_id}",

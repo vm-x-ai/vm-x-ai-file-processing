@@ -70,18 +70,45 @@ async def store_evaluation(
             response = result.payload.response.message
 
     file_evaluation_repository = Container.file_evaluation_repository()
-    await file_evaluation_repository.add(
-        models.FileEvaluationCreate(
-            id=uuid.uuid4(),
-            file_id=file.id,
+    existing_file_evaluation = (
+        await file_evaluation_repository.get_by_evaluation_id_and_content_id(
+            project_id=file.project_id,
             evaluation_id=evaluation_id,
-            response=response,
             content_id=file_content_id,
-            status=models.FileEvaluationStatus.COMPLETED
-            if result.payload.status == CompletionBatchRequestStatus.COMPLETED
-            else models.FileEvaluationStatus.FAILED,
-            error=result.payload.error,
         )
     )
+
+    status = (
+        models.FileEvaluationStatus.COMPLETED
+        if result.payload.status == CompletionBatchRequestStatus.COMPLETED
+        else models.FileEvaluationStatus.FAILED
+    )
+
+    if existing_file_evaluation:
+        logger.info(f"Updating file evaluation {existing_file_evaluation.id}")
+        await file_evaluation_repository.update(
+            existing_file_evaluation.id,
+            {
+                "response": response,
+                "status": status,
+                "error": result.payload.error,
+            },
+        )
+    else:
+        logger.info(
+            "Creating new file evaluation, "
+            f"evaluation_id: {evaluation_id}, content_id: {file_content_id}"
+        )
+        await file_evaluation_repository.add(
+            models.FileEvaluationCreate(
+                id=uuid.uuid4(),
+                file_id=file.id,
+                evaluation_id=evaluation_id,
+                response=response,
+                content_id=file_content_id,
+                status=status,
+                error=result.payload.error,
+            )
+        )
 
     return response

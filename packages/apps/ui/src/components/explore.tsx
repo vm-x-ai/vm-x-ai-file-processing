@@ -311,7 +311,16 @@ export function Explore({ projectId, evaluations, files }: ExploreProps) {
                 <Collapsible className="w-full space-y-2">
                   <div className="flex items-center justify-between space-x-4">
                     <h4 className="text-sm font-semibold">
-                      <strong>{file.evaluations.length}</strong> Evaluations across all pages
+                      <strong>{file.evaluations.length}</strong> Evaluations
+                      across{' '}
+                      <strong>
+                        {Math.max(
+                          ...file.evaluations.map(
+                            (evaluation) => evaluation.content.content_number
+                          )
+                        )}{' '}
+                      </strong>
+                      pages
                     </h4>
                     <CollapsibleTrigger asChild>
                       <Button variant="ghost" size="sm">
