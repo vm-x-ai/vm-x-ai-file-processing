@@ -55,7 +55,7 @@ def upgrade() -> None:
     connection = op.get_bind()
     projects_result = connection.execute(sa.text("SELECT id FROM projects"))
     projects = projects_result.fetchall()
-    
+
     # Insert default category for each project
     for project in projects:
         project_id = project[0]
@@ -64,14 +64,15 @@ def upgrade() -> None:
                 INSERT INTO evaluation_categories (id, name, description, project_id, created_at, updated_at)
                 VALUES (gen_random_uuid(), 'default', 'Default evaluation category', :project_id, now(), now())
             """),
-            {"project_id": project_id}
+            {"project_id": project_id},
         )
 
     # Add category_id column to evaluations table (nullable first)
     op.add_column("evaluations", sa.Column("category_id", sa.Uuid(), nullable=True))
 
     # Update existing evaluations to use the default category
-    connection.execute(sa.text("""
+    connection.execute(
+        sa.text("""
         UPDATE evaluations 
         SET category_id = (
             SELECT ec.id 
@@ -79,7 +80,8 @@ def upgrade() -> None:
             WHERE ec.project_id = evaluations.project_id 
             AND ec.name = 'default'
         )
-    """))
+    """)
+    )
 
     # Make category_id non-nullable and add foreign key constraint
     op.alter_column("evaluations", "category_id", nullable=False)
@@ -97,6 +99,6 @@ def downgrade() -> None:
     # Remove foreign key constraint and category_id column from evaluations
     op.drop_constraint("fk_evaluations_category_id", "evaluations", type_="foreignkey")
     op.drop_column("evaluations", "category_id")
-    
+
     # Drop evaluation_categories table
-    op.drop_table("evaluation_categories") 
+    op.drop_table("evaluation_categories")

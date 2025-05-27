@@ -16,7 +16,7 @@ import { useForm } from 'react-hook-form';
 import { schema } from './schema';
 import type { FormSchema, FormAction } from './schema';
 import { EvaluationRead, EvaluationType } from '@/file-classifier-api';
-import { useActionState, useEffect, useRef, useTransition } from 'react';
+import { useTransition } from 'react';
 import { Separator } from '../ui/separator';
 import { PlusIcon, SaveIcon, TrashIcon } from 'lucide-react';
 import { Textarea } from '../ui/textarea';
@@ -48,7 +48,6 @@ export default function EvaluationForm({
   onChange,
 }: EvaluationFormProps) {
   const [submitting, startTransition] = useTransition();
-  const formRef = useRef<HTMLFormElement>(null);
 
   const form = useForm<FormSchema>({
     resolver: zodResolver(schema),

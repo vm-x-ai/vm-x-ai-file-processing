@@ -2,6 +2,7 @@
 
 import { fileClassifierApi } from '@/api';
 import { FormAction, FormSchema, schema } from '@/components/evaluation/schema';
+import { HttpEvaluationCreate, HttpEvaluationUpdate } from '@/file-classifier-api';
 
 export async function submitForm(
   prevState: FormAction,
@@ -19,12 +20,11 @@ export async function submitForm(
 
   if (!data.id || data.id.startsWith('new_evaluation')) {
     // Prepare payload for creation
-    const createPayload = {
+    const createPayload: HttpEvaluationCreate = {
       title: data.title,
       description: data.description,
       system_prompt: data.system_prompt,
       prompt: data.prompt,
-      project_id: data.project_id,
       evaluation_type: data.evaluation_type,
       evaluation_options: data.evaluation_options,
       parent_evaluation_id: data.parent_evaluation_id,
@@ -38,18 +38,31 @@ export async function submitForm(
       {
         project_id: data.project_id,
       },
-      createPayload as any
+      createPayload
     );
 
     return {
       ...prevState,
       success: true,
       message: 'Evaluation created successfully',
-      data: newEvaluation.data as any,
+      data: {
+        ...newEvaluation.data,
+        category_name: null,
+        category_description: null,
+      },
     };
   } else {
     // For updates, only include the standard fields
-    const updatePayload = {
+    if (!data.category_id) {
+      return {
+        ...prevState,
+        success: false,
+        message: 'Category ID is required',
+        data,
+      };
+    }
+
+    const updatePayload: HttpEvaluationUpdate = {
       title: data.title,
       description: data.description,
       system_prompt: data.system_prompt,
@@ -59,7 +72,7 @@ export async function submitForm(
       evaluation_options: data.evaluation_options,
       parent_evaluation_id: data.parent_evaluation_id,
       parent_evaluation_option: data.parent_evaluation_option,
-      category_id: data.category_id!,
+      category_id: data.category_id,
     };
 
     const updatedEvaluation = await fileClassifierApi.updateEvaluation(
@@ -74,7 +87,12 @@ export async function submitForm(
       ...prevState,
       success: true,
       message: 'Evaluation updated successfully',
-      data: updatedEvaluation.data as any,
+      data: {
+        ...prevState.data,
+        ...updatedEvaluation.data,
+        category_name: null,
+        category_description: null,
+      },
     };
   }
 }

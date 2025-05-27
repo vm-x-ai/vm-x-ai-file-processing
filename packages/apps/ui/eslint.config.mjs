@@ -1,3 +1,5 @@
+/* eslint-disable import/no-anonymous-default-export */
+
 import { FlatCompat } from '@eslint/eslintrc';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';

@@ -19,7 +19,7 @@ import {
   NodeHeaderIcon,
 } from '@/components/node-header';
 import { Brain } from 'lucide-react';
-import { stratify, tree } from 'd3-hierarchy';
+import { HierarchyPointNode, stratify, tree } from 'd3-hierarchy';
 
 import '@xyflow/react/dist/style.css';
 import { useCallback, useMemo, useState, useEffect } from 'react';
@@ -162,7 +162,7 @@ const getLayoutedElementsWithDimensions = (nodes: Node[], edges: Edge[], width: 
         } else {
       // Hierarchical layout: we have parent-child relationships
       // Group nodes by their root tree
-      const treeGroups = new Map<string, any[]>();
+      const treeGroups = new Map<string, HierarchyPointNode<Node>[]>();
       
       layout.descendants().forEach(node => {
         if (node.data.id === 'virtual-root') return;
@@ -177,7 +177,7 @@ const getLayoutedElementsWithDimensions = (nodes: Node[], edges: Edge[], width: 
         if (!treeGroups.has(rootId)) {
           treeGroups.set(rootId, []);
         }
-        treeGroups.get(rootId)!.push(node);
+        treeGroups.get(rootId)?.push(node);
       });
       
       // For hierarchical layout, use more compact spacing between trees

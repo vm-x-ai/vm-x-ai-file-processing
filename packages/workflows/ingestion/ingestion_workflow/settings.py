@@ -53,6 +53,17 @@ class Landing(BaseSettings):
     s3_bucket_name: str
 
 
+class IngestionCallback(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=env_file,
+        env_file_encoding="utf-8",
+        extra="ignore",
+        env_prefix="INGESTION_CALLBACK_",
+    )
+
+    url: str
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=env_file, env_file_encoding="utf-8", extra="ignore"
@@ -69,3 +80,4 @@ class Settings(BaseSettings):
     vmx: VMX = VMX()
     thumbnail: Thumbnail = Thumbnail()
     landing: Landing = Landing()
+    ingestion_callback: IngestionCallback = IngestionCallback()

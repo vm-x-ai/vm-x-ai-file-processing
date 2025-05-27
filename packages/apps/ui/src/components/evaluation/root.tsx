@@ -5,7 +5,6 @@ import { Evaluation } from '@/components/evaluation';
 import { EvaluationTree, EvaluationCategoryRead } from '@/file-classifier-api';
 import { FormAction, FormSchema } from './schema';
 import { useState, useMemo } from 'react';
-import { Separator } from '../ui/separator';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Plus, Check, X } from 'lucide-react';
@@ -67,8 +66,6 @@ export default function EvaluationRoot({
   }, [data, categoriesData]);
 
   // Get default category for new evaluations
-  const defaultCategory = categoriesData.find(cat => cat.name.toLowerCase() === 'default') || categoriesData[0];
-
   const addEvaluationToCategory = (categoryId: string) => {
     const newEvaluation: EvaluationTree = {
       parent_evaluation_id: null,
@@ -153,7 +150,7 @@ export default function EvaluationRoot({
         category_id: deleteModal.category.id,
       });
       
-      setCategoriesData(categoriesData.filter(cat => cat.id !== deleteModal.category!.id));
+      setCategoriesData(categoriesData.filter(cat => cat.id !== deleteModal.category?.id));
     } catch (error) {
       console.error('Failed to delete category:', error);
     }

@@ -8,8 +8,8 @@ from sqlalchemy.dialects import postgresql
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
-    from ingestion_workflow.models.file import FileEvaluation
     from ingestion_workflow.models.evaluation_category import EvaluationCategory
+    from ingestion_workflow.models.file import FileEvaluation
 
 
 class EvaluationType(str, Enum):

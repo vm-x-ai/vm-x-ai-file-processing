@@ -5,7 +5,6 @@ import { fileClassifierApi } from '@/api';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Components } from '@/file-classifier-api';
-import { shouldShowEmptyCategory } from '@/lib/category-utils';
 
 type EvaluationCategoryRead = Components.Schemas.EvaluationCategoryRead;
 

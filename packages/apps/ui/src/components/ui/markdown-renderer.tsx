@@ -1,4 +1,5 @@
-import React, { Suspense } from "react"
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { JSX, Suspense } from "react"
 import Markdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 
@@ -123,7 +124,7 @@ function childrenTakeAllStringContents(element: any): string {
   }
 
   if (element?.props?.children) {
-    let children = element.props.children
+    const children = element.props.children
 
     if (Array.isArray(children)) {
       return children

@@ -100,7 +100,7 @@ class EvaluationRepository(
                 select(models.Evaluation)
                 .where(
                     models.Evaluation.project_id == project_id,
-                    models.Evaluation.category_id == category_id
+                    models.Evaluation.category_id == category_id,
                 )
                 .order_by(col(models.Evaluation.created_at).desc())
             )

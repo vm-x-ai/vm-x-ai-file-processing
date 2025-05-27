@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { fileClassifierApi } from '@/api';
 import { Card, CardContent } from '@/components/ui/card';
 import { CategoryTabs, ResultsTable } from '@/components/evaluation';
@@ -20,16 +20,10 @@ interface PageProps {
 }
 
 export default function Page({ params }: PageProps) {
-  const [projectId, setProjectId] = useState<string>('');
+  const { projectId } = use(params);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [results, setResults] = useState<ResultWithEvaluation[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    params.then(({ projectId }) => {
-      setProjectId(projectId);
-    });
-  }, [params]);
 
   // Function to deduplicate results, keeping the most recently updated record
   const deduplicateResults = (results: ResultWithEvaluation[]): ResultWithEvaluation[] => {
@@ -49,7 +43,7 @@ export default function Page({ params }: PageProps) {
   };
 
   useEffect(() => {
-    if (!projectId || !selectedCategoryId) return;
+    if (!selectedCategoryId) return;
 
     async function fetchResults() {
       setLoading(true);

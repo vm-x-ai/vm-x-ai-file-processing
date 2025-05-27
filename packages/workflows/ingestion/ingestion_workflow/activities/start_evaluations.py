@@ -173,8 +173,7 @@ async def start_evaluations(
         environment_id=settings.vmx.environment_id,
     )
 
-    # callback_url = f"http://localhost:8000/ingestion-callback/{workflow_id}"
-    callback_url = f"https://f9e0-135-180-185-167.ngrok-free.app/ingestion-callback/{workflow_id}"
+    callback_url = f"{settings.ingestion_callback.url}/{workflow_id}"
 
     batch_response = await vmx.completion_batch_callback(
         requests=requests,

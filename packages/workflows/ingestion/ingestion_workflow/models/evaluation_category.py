@@ -44,4 +44,4 @@ class EvaluationCategoryCreate(EvaluationCategoryBase):
 class EvaluationCategoryRead(EvaluationCategoryBase):
     id: UUID
     created_at: datetime
-    updated_at: datetime 
+    updated_at: datetime

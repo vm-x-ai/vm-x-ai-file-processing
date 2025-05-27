@@ -10,7 +10,9 @@ from utils.s3 import generate_download_url
 from ingestion_workflow import models
 from ingestion_workflow.containers import Container
 from ingestion_workflow.repositories.evaluation import EvaluationRepository
-from ingestion_workflow.repositories.evaluation_category import EvaluationCategoryRepository
+from ingestion_workflow.repositories.evaluation_category import (
+    EvaluationCategoryRepository,
+)
 from ingestion_workflow.repositories.file_evaluation import FileEvaluationRepository
 from ingestion_workflow.schema.evaluation import (
     HttpEvaluationCreate,
@@ -136,18 +138,24 @@ async def create_evaluation(
         category = await evaluation_category_repository.find_or_create_by_name(
             name=payload.category_name,
             project_id=project_id,
-            description=payload.category_description
+            description=payload.category_description,
         )
         category_id = category.id
     elif not category_id:
         # Ensure default category exists
-        default_category = await evaluation_category_repository.ensure_default_category_exists(project_id)
+        default_category = (
+            await evaluation_category_repository.ensure_default_category_exists(
+                project_id
+            )
+        )
         category_id = default_category.id
 
     return await evaluation_repository.add(
         models.EvaluationCreate.model_validate(
             {
-                **payload.model_dump(exclude={"project_id", "category_name", "category_description"}),
+                **payload.model_dump(
+                    exclude={"project_id", "category_name", "category_description"}
+                ),
                 "project_id": project_id,
                 "category_id": category_id,
                 "id": uuid.uuid4(),
