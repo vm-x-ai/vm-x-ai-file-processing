@@ -83,6 +83,7 @@ interface ToolCall {
 interface ToolResult {
   state: 'result';
   toolName: string;
+  args?: Record<string, unknown>;
   result: {
     __cancelled?: boolean;
     [key: string]: unknown;
@@ -394,8 +395,13 @@ function ToolCall({
                         </Button>
                       </CollapsibleTrigger>
                     </div>
-                    <CollapsibleContent className="space-y-2">
-                      <pre className="overflow-x-auto whitespace-pre-wrap text-foreground">
+                    <CollapsibleContent className="space-y-2 p-4">
+                      <h4 className="text-sm font-bold">Args</h4>
+                      <pre className="overflow-x-auto overflow-y-auto max-h-[300px] whitespace-pre-wrap text-foreground">
+                        {JSON.stringify(invocation.args, null, 2)}
+                      </pre>
+                      <h4 className="text-sm font-bold">Result</h4>
+                      <pre className="overflow-x-auto overflow-y-auto max-h-[300px] whitespace-pre-wrap text-foreground">
                         {JSON.stringify(invocation.result, null, 2)}
                       </pre>
                     </CollapsibleContent>

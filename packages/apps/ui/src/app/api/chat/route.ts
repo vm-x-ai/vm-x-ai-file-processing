@@ -56,8 +56,9 @@ export async function POST(request: NextRequest) {
             .array(z.string())
             .optional()
             .describe('The file ids to search'),
+          limit: z.number().optional().describe('The limit of results to return'),
         }),
-        execute: async ({ search, scoreThreshold, fileIds }) => {
+        execute: async ({ search, scoreThreshold, fileIds, limit }) => {
           try {
             const score = scoreThreshold === undefined ? 0.3 : scoreThreshold;
             const response = await fileClassifierApi.similaritySearch(
@@ -72,6 +73,7 @@ export async function POST(request: NextRequest) {
                 after_neighbor_count: score > 0.3 ? 1 : 0,
                 score_threshold: score,
                 order_by: score > 0.3 ? 'score' : 'chunk',
+                limit: limit ?? 10,
               }
             );
 

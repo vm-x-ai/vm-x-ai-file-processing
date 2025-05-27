@@ -17,13 +17,18 @@ import {
 } from './ui/card';
 import { Combobox } from './combobox';
 import { parseAsJson, useQueryState } from 'nuqs';
-import { Trash2 } from 'lucide-react';
+import { ChevronsUpDown, Trash2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { useCallback, useMemo } from 'react';
 import { Badge } from './ui/badge';
 import { Chat } from './ui/chat';
 import { useChat } from '@ai-sdk/react';
 import { Message } from './ui/chat-message';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 
 export type ExploreProps = {
   projectId: string;
@@ -303,39 +308,56 @@ export function Explore({ projectId, evaluations, files }: ExploreProps) {
                 <CardDescription>{file.status}</CardDescription>
               </CardHeader>
               <CardContent>
-                <div>
-                  {Object.entries(
-                    file.evaluations.reduce<
-                      Record<number, FileEvaluationReadWithEvaluation[]>
-                    >((acc, evaluation) => {
-                      if (!acc[evaluation.content.content_number]) {
-                        acc[evaluation.content.content_number] = [];
-                      }
+                <Collapsible className="w-full space-y-2">
+                  <div className="flex items-center justify-between space-x-4">
+                    <h4 className="text-sm font-semibold">
+                      <strong>{file.evaluations.length}</strong> Evaluations across all pages
+                    </h4>
+                    <CollapsibleTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <ChevronsUpDown className="h-4 w-4" />
+                        <span className="sr-only">Toggle</span>
+                      </Button>
+                    </CollapsibleTrigger>
+                  </div>
+                  <CollapsibleContent className="space-y-2">
+                    <div>
+                      {Object.entries(
+                        file.evaluations.reduce<
+                          Record<number, FileEvaluationReadWithEvaluation[]>
+                        >((acc, evaluation) => {
+                          if (!acc[evaluation.content.content_number]) {
+                            acc[evaluation.content.content_number] = [];
+                          }
 
-                      acc[evaluation.content.content_number].push(evaluation);
-                      return acc;
-                    }, {})
-                  ).map(([pageNumber, evaluations]) => (
-                    <div key={pageNumber}>
-                      <div>Page #{pageNumber}</div>
-                      <div className="flex flex-wrap gap-2">
-                        {evaluations.map((evaluation) => (
-                          <Badge key={evaluation.id}>
-                            {evaluation.evaluation.evaluation_type !==
-                            'text' ? (
-                              <>
-                                {evaluation.evaluation.title}:{' '}
-                                {evaluation.response}
-                              </>
-                            ) : (
-                              evaluation.response
-                            )}
-                          </Badge>
-                        ))}
-                      </div>
+                          acc[evaluation.content.content_number].push(
+                            evaluation
+                          );
+                          return acc;
+                        }, {})
+                      ).map(([pageNumber, evaluations]) => (
+                        <div key={pageNumber}>
+                          <div>Page #{pageNumber}</div>
+                          <div className="flex flex-wrap gap-2">
+                            {evaluations.map((evaluation) => (
+                              <Badge key={evaluation.id}>
+                                {evaluation.evaluation.evaluation_type !==
+                                'text' ? (
+                                  <>
+                                    {evaluation.evaluation.title}:{' '}
+                                    {evaluation.response}
+                                  </>
+                                ) : (
+                                  evaluation.response
+                                )}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </CollapsibleContent>
+                </Collapsible>
               </CardContent>
             </Card>
           ))}
