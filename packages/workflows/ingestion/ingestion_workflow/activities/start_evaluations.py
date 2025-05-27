@@ -2,7 +2,6 @@ import logging
 from typing import Optional
 from uuid import UUID
 
-from langchain_core.documents import Document
 from pydantic import BaseModel
 from temporalio import activity
 from vmxai import (
@@ -14,7 +13,6 @@ from vmxai import (
 )
 from vmxai.types import (
     BatchRequestCallbackOptions,
-    CompletionBatchResponse,
     CompletionRequest,
     RequestMessage,
 )
@@ -26,44 +24,57 @@ logger = logging.getLogger(__name__)
 
 
 class StartEvaluationOutput(BaseModel):
-    evaluations: dict[UUID, models.EvaluationRead]
-    batch_response: CompletionBatchResponse | None
+    evaluation_ids: list[UUID]
+    batch_id: UUID | None
+    batch_item_ids: list[UUID] | None
 
 
 @activity.defn
 async def start_evaluations(
-    file: models.FileRead,
-    docs: list[tuple[models.FileContentRead, Document]],
+    file_id: UUID,
+    project_id: UUID,
+    file_content_ids: list[UUID],
     parent_evaluation_id: Optional[UUID] = None,
     parent_evaluation_option: Optional[str] = None,
 ) -> StartEvaluationOutput:
     workflow_id = activity.info().workflow_id
     evaluation_repository = Container.evaluation_repository()
     file_repository = Container.file_repository()
+    file_content_repository = Container.file_content_repository()
     settings = Container.settings()
 
-    await file_repository.update(file.id, {"status": models.FileStatus.EVALUATING})
+    file = await file_repository.get(file_id)
+    if not file:
+        raise ValueError(f"File {file_id} not found")
 
-    logger.info(f"Starting evaluations for file {file.id}")
-    logger.info(f"Getting questions for project {file.project_id}")
+    await file_repository.update(file_id, {"status": models.FileStatus.EVALUATING})
+
+    logger.info(f"Starting evaluations for file {file_id}")
+    logger.info(f"Getting questions for project {project_id}")
     evaluations = (
         await evaluation_repository.get_by_project_id_and_parent_evaluation_id(
-            project_id=file.project_id,
+            project_id=project_id,
             parent_evaluation_id=parent_evaluation_id,
             parent_evaluation_option=parent_evaluation_option,
         )
     )
-    logger.info(f"Found {len(evaluations)} evaluations for project {file.project_id}")
+    logger.info(f"Found {len(evaluations)} evaluations for project {project_id}")
 
     if not evaluations:
         return StartEvaluationOutput(
-            evaluations={},
-            batch_response=None,
+            evaluation_ids=[],
+            batch_id=None,
+            batch_item_ids=None,
         )
 
     requests: list[CompletionRequest] = []
 
-    for file_content, doc in docs:
+    for file_content_id in file_content_ids:
+        file_content = await file_content_repository.get(file_content_id)
+        if not file_content:
+            logger.warning(f"File content {file_content_id} not found")
+            continue
+
         for evaluation in evaluations:
             messages: list[RequestMessage] = []
             if evaluation.system_prompt:
@@ -78,7 +89,8 @@ async def start_evaluations(
                 RequestMessage(
                     role="system",
                     content=(
-                        f"Document Page: {doc.page_content}\n\nMetadata: {doc.metadata}"
+                        f"Document Page: {file_content.content}"
+                        f"\n\nMetadata: {file_content.content_metadata}"
                     ),
                 )
             )
@@ -95,9 +107,9 @@ async def start_evaluations(
                 resource="default",
                 metadata={
                     "evaluation_id": str(evaluation.id),
-                    "file_id": str(file.id),
-                    "file_content_id": str(file_content.id),
-                    "page_metadata": doc.metadata,
+                    "file_id": str(file_id),
+                    "file_content_id": str(file_content_id),
+                    "page_metadata": file_content.content_metadata,
                     "workflow_id": workflow_id,
                     "parent_evaluation_id": str(parent_evaluation_id)
                     if parent_evaluation_id
@@ -185,6 +197,7 @@ async def start_evaluations(
     )
 
     return StartEvaluationOutput(
-        evaluations={evaluation.id: evaluation for evaluation in evaluations},
-        batch_response=batch_response,
+        evaluation_ids=[evaluation.id for evaluation in evaluations],
+        batch_id=batch_response.batch_id,
+        batch_item_ids=[item.item_id for item in batch_response.items],
     )

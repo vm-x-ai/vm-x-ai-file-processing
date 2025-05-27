@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import Enum
 from typing import Any
 from uuid import UUID
 
@@ -8,6 +9,11 @@ from sqlalchemy.dialects import postgresql
 from sqlmodel import Field, SQLModel
 
 
+class FileEmbeddingStatus(str, Enum):
+    CHUNKED = "CHUNKED"
+    EMBEDDED = "EMBEDDED"
+
+
 class FileEmbeddingBase(SQLModel):
     file_id: UUID = Field(foreign_key="files.id", ondelete="CASCADE")
     chunk_number: int = Field(nullable=False)
@@ -15,7 +21,8 @@ class FileEmbeddingBase(SQLModel):
     project_id: UUID = Field(foreign_key="projects.id", ondelete="CASCADE")
     content_id: UUID = Field(foreign_key="file_contents.id", ondelete="CASCADE")
     content: str = Field(sa_type=Text, nullable=False)
-    embedding: Any = Field(sa_type=Vector(dim=1536), nullable=False)
+    embedding: Any | None = Field(sa_type=Vector(dim=1536), nullable=True)
+    status: FileEmbeddingStatus = Field(default=FileEmbeddingStatus.CHUNKED)
 
 
 class FileEmbedding(FileEmbeddingBase, table=True):

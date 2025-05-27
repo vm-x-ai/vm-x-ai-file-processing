@@ -1,4 +1,6 @@
 import logging
+import uuid
+from uuid import UUID
 
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -12,28 +14,60 @@ logger = logging.getLogger(__name__)
 
 
 class ChunkDocumentOutput(BaseModel):
-    chunks: list[Document]
-    file_content: models.FileContentRead
+    chunk_ids: list[UUID]
+    file_content_id: UUID
 
 
 @activity.defn
 async def chunk_document(
-    file: models.FileRead, document: tuple[models.FileContentRead, Document]
+    file_id: UUID,
+    project_id: UUID,
+    file_content_id: UUID,
 ) -> ChunkDocumentOutput:
     file_repository = Container.file_repository()
-    file_repository = Container.file_repository()
+    file_content_repository = Container.file_content_repository()
+    file_embedding_repository = Container.file_embedding_repository()
 
-    logger.info(f"Chunking document length: {len(document[1].page_content)}")
+    file_content = await file_content_repository.get(file_content_id)
+    if not file_content:
+        raise ValueError(f"File content {file_content_id} not found")
+
+    logger.info(f"Chunking document length: {len(file_content.content)}")
     text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
         encoding_name="cl100k_base", chunk_size=100, chunk_overlap=20
     )
 
-    result = text_splitter.split_documents([document[1]])
+    document = Document(
+        page_content=file_content.content,
+        metadata=file_content.content_metadata,
+    )
+
+    result = text_splitter.split_documents([document])
     logger.info(f"Split {len(result)} chunks")
 
-    await file_repository.update(file.id, {"status": models.FileStatus.CHUNKED})
+    await file_repository.update(file_id, {"status": models.FileStatus.CHUNKED})
+
+    logger.info("Adding chunks to database")
+    chunks = await file_embedding_repository.add_all(
+        [
+            models.FileEmbeddingCreate(
+                id=uuid.uuid4(),
+                file_id=file_id,
+                chunk_number=chunk_number + 1,
+                chunk_metadata=chunk.metadata,
+                content_id=file_content.id,
+                content=chunk.page_content,
+                project_id=project_id,
+                embedding=None,
+                status=models.FileEmbeddingStatus.CHUNKED,
+            )
+            for chunk_number, chunk in enumerate(result)
+        ],
+        return_models=True,
+    )
+    logger.info("Added chunks to database")
 
     return ChunkDocumentOutput(
-        chunks=result,
-        file_content=document[0],
+        chunk_ids=[chunk.id for chunk in chunks],
+        file_content_id=file_content_id,
     )

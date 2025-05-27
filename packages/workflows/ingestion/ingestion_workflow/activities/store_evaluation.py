@@ -17,11 +17,21 @@ logger = logging.getLogger(__name__)
 
 @activity.defn
 async def store_evaluation(
-    file: models.FileRead,
-    evaluation: models.EvaluationRead,
-    result: CompletionBatchItemUpdateCallbackPayload,
+    file_id: UUID,
+    evaluation_id: UUID,
     file_content_id: UUID,
+    result: CompletionBatchItemUpdateCallbackPayload,
 ):
+    file_repository = Container.file_repository()
+    file = await file_repository.get(file_id)
+    if not file:
+        raise ValueError(f"File {file_id} not found")
+
+    evaluation_repository = Container.evaluation_repository()
+    evaluation = await evaluation_repository.get(evaluation_id)
+    if not evaluation:
+        raise ValueError(f"Evaluation {evaluation_id} not found")
+
     if not result.payload.response:
         raise ValueError("No response from VMX")
 
@@ -64,7 +74,7 @@ async def store_evaluation(
         models.FileEvaluationCreate(
             id=uuid.uuid4(),
             file_id=file.id,
-            evaluation_id=UUID(result.payload.request.metadata["evaluation_id"]),
+            evaluation_id=evaluation_id,
             response=response,
             content_id=file_content_id,
             status=models.FileEvaluationStatus.COMPLETED

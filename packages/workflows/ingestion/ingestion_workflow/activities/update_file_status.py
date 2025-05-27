@@ -1,4 +1,5 @@
 import logging
+from uuid import UUID
 
 from temporalio import activity
 
@@ -9,6 +10,6 @@ logger = logging.getLogger(__name__)
 
 
 @activity.defn
-async def update_file_status(file: models.FileRead, status: models.FileStatus):
+async def update_file_status(file_id: UUID, status: models.FileStatus):
     file_repository = Container.file_repository()
-    await file_repository.update(file.id, {"status": status})
+    await file_repository.update(file_id, {"status": status})

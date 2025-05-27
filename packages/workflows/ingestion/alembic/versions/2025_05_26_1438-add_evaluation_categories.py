@@ -61,8 +61,12 @@ def upgrade() -> None:
         project_id = project[0]
         connection.execute(
             sa.text("""
-                INSERT INTO evaluation_categories (id, name, description, project_id, created_at, updated_at)
-                VALUES (gen_random_uuid(), 'default', 'Default evaluation category', :project_id, now(), now())
+                INSERT INTO evaluation_categories
+                (id, name, description, project_id, created_at, updated_at)
+                VALUES (
+                    gen_random_uuid(), 'default',
+                    'Default evaluation category', :project_id, now(), now()
+                )
             """),
             {"project_id": project_id},
         )

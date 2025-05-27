@@ -7,7 +7,6 @@ from io import BytesIO
 from uuid import UUID
 
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_core.documents import Document
 from pdf2image import convert_from_path
 from pydantic import BaseModel
 from temporalio import activity
@@ -22,8 +21,9 @@ THUMBNAIL_SIZE = (1280, 1280)
 
 
 class LoadS3FileOutput(BaseModel):
-    file: models.FileRead
-    docs: list[tuple[models.FileContentRead, Document]]
+    file_id: UUID
+    project_id: UUID
+    file_content_ids: list[UUID]
 
 
 @activity.defn
@@ -113,8 +113,9 @@ async def load_s3_file(
 
                         logger.info(f"Loaded {len(docs)} documents")
                         return LoadS3FileOutput(
-                            file=file,
-                            docs=list(zip(contents, docs)),
+                            file_id=file.id,
+                            project_id=project.id,
+                            file_content_ids=[content.id for content in contents],
                         )
                     case _:
                         raise ValueError(f"Unsupported file extension: {file_ext}")

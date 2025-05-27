@@ -34,6 +34,7 @@ from .file_embedding import (
     FileEmbedding,
     FileEmbeddingCreate,
     FileEmbeddingRead,
+    FileEmbeddingStatus,
 )
 from .project import (
     Project,
@@ -63,6 +64,7 @@ __all__ = [
     "FileEmbedding",
     "FileEmbeddingCreate",
     "FileEmbeddingRead",
+    "FileEmbeddingStatus",
     "Project",
     "ProjectCreate",
     "ProjectRead",
