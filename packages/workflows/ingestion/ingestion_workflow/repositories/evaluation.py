@@ -3,6 +3,7 @@ from typing import Callable, Optional, cast
 from uuid import UUID
 
 from sqlalchemy import Column, ColumnExpressionArgument, select
+from sqlalchemy.orm import selectinload
 from sqlmodel import col
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -43,7 +44,7 @@ class EvaluationRepository(
             query = (
                 select(models.Evaluation)
                 .where(models.Evaluation.project_id == project_id)
-                .order_by(col(models.Evaluation.created_at).desc())
+                .order_by(col(models.Evaluation.created_at).asc())
             )
 
             result = await session.scalars(query)
@@ -58,10 +59,12 @@ class EvaluationRepository(
         project_id: UUID,
         parent_evaluation_id: Optional[UUID] = None,
         parent_evaluation_option: Optional[str] = None,
-    ) -> list[models.EvaluationRead]:
+    ) -> list[models.EvaluationReadWithTemplate]:
         async with self._session_factory() as session:
-            query = select(models.Evaluation).where(
-                models.Evaluation.project_id == project_id
+            query = (
+                select(models.Evaluation)
+                .where(models.Evaluation.project_id == project_id)
+                .options(selectinload(models.Evaluation.template))
             )
 
             if parent_evaluation_id is not None:
@@ -86,7 +89,7 @@ class EvaluationRepository(
             result = await session.scalars(query)
 
             return [
-                models.EvaluationRead.model_validate(evaluation)
+                models.EvaluationReadWithTemplate.model_validate(evaluation)
                 for evaluation in result.all()
             ]
 

@@ -20,7 +20,11 @@ interface CategoryFilterProps {
   onCategoryChange: (categoryId: string) => void;
 }
 
-export function CategoryFilter({ projectId, selectedCategoryId, onCategoryChange }: CategoryFilterProps) {
+export function CategoryFilter({
+  projectId,
+  selectedCategoryId,
+  onCategoryChange,
+}: CategoryFilterProps) {
   const [categories, setCategories] = useState<EvaluationCategoryRead[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -31,7 +35,7 @@ export function CategoryFilter({ projectId, selectedCategoryId, onCategoryChange
           project_id: projectId,
         });
         setCategories(data);
-        
+
         // Auto-select the first category if none is selected
         if (data.length > 0 && !selectedCategoryId) {
           onCategoryChange(data[0].id);
@@ -50,8 +54,12 @@ export function CategoryFilter({ projectId, selectedCategoryId, onCategoryChange
     return <div className="w-48 h-10 bg-muted animate-pulse rounded-md" />;
   }
 
-  const selectedCategory = categories.find(cat => cat.id === selectedCategoryId);
-  const displayText = selectedCategory ? selectedCategory.name : 'Select Category';
+  const selectedCategory = categories.find(
+    (cat) => cat.id === selectedCategoryId
+  );
+  const displayText = selectedCategory
+    ? selectedCategory.name
+    : 'Select Category';
 
   return (
     <DropdownMenu>
@@ -63,11 +71,14 @@ export function CategoryFilter({ projectId, selectedCategoryId, onCategoryChange
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-48">
         {categories.map((category) => (
-          <DropdownMenuItem key={category.id} onClick={() => onCategoryChange(category.id)}>
+          <DropdownMenuItem
+            key={category.id}
+            onClick={() => onCategoryChange(category.id)}
+          >
             {category.name}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );
-} 
+}

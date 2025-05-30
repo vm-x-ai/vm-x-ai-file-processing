@@ -12,4 +12,3 @@ export const useStore = create<Store>((set, get) => ({
   file: undefined,
   setState: (state: Partial<Store>) => set({ ...get(), ...state }),
 }));
-

@@ -3,7 +3,6 @@ import uuid
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-from sqlmodel import col
 
 from ingestion_workflow import models
 from ingestion_workflow.containers import Container
@@ -16,7 +15,7 @@ router = APIRouter()
     "/projects",
     operation_id="getProjects",
     description="Get all projects",
-    response_model=list[models.ProjectRead],
+    response_model=list[models.ProjectReadWithStats],
     tags=["projects"],
 )
 @inject
@@ -24,11 +23,8 @@ async def get_projects(
     project_repository: ProjectRepository = Depends(
         Provide[Container.project_repository]
     ),
-) -> list[models.ProjectRead]:
-    return await project_repository.get_all(
-        order_by=col(models.Project.created_at),
-        order_type="desc",
-    )
+) -> list[models.ProjectReadWithStats]:
+    return await project_repository.get_all_with_stats()
 
 
 class ProjectCreateRequest(BaseModel):
@@ -50,7 +46,7 @@ async def create_project(
         Provide[Container.project_repository]
     ),
 ) -> models.ProjectRead:
-    return await project_repository.create(
+    return await project_repository.add(
         models.ProjectCreate(
             id=uuid.uuid4(),
             name=request.name,

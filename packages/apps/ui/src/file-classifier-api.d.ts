@@ -79,6 +79,55 @@ declare namespace Components {
              */
             category_id: string; // uuid
             /**
+             * Template Id
+             */
+            template_id: /* Template Id */ string /* uuid */ | null;
+            /**
+             * Id
+             */
+            id: string; // uuid
+            /**
+             * Created At
+             */
+            created_at: string; // date-time
+            /**
+             * Updated At
+             */
+            updated_at: string; // date-time
+        }
+        /**
+         * EvaluationTemplateRead
+         */
+        export interface EvaluationTemplateRead {
+            /**
+             * Name
+             */
+            name: string;
+            /**
+             * Description
+             */
+            description: string;
+            /**
+             * Project Id
+             */
+            project_id: string; // uuid
+            /**
+             * System Prompt
+             */
+            system_prompt: /* System Prompt */ string | null;
+            /**
+             * Prompt
+             */
+            prompt: string;
+            /**
+             * Category Id
+             */
+            category_id: string; // uuid
+            /**
+             * Default
+             */
+            default?: boolean;
+            /**
              * Id
              */
             id: string; // uuid
@@ -132,6 +181,10 @@ declare namespace Components {
              * Category Id
              */
             category_id: string; // uuid
+            /**
+             * Template Id
+             */
+            template_id: /* Template Id */ string /* uuid */ | null;
             /**
              * Id
              */
@@ -268,7 +321,8 @@ declare namespace Components {
             /**
              * Embedding
              */
-            embedding: any;
+            embedding: /* Embedding */ any | null;
+            status?: /* FileEmbeddingStatus */ FileEmbeddingStatus;
             /**
              * Id
              */
@@ -294,6 +348,10 @@ declare namespace Components {
              */
             updated_at: string; // date-time
         }
+        /**
+         * FileEmbeddingStatus
+         */
+        export type FileEmbeddingStatus = "CHUNKED" | "EMBEDDED";
         /**
          * FileEvaluationReadWithEvaluation
          */
@@ -594,6 +652,133 @@ declare namespace Components {
              */
             string | null;
             /**
+             * Template Id
+             * Template ID
+             */
+            template_id?: /**
+             * Template Id
+             * Template ID
+             */
+            string /* uuid */ | null;
+            /**
+             * Category Id
+             * ID of existing category
+             */
+            category_id?: /**
+             * Category Id
+             * ID of existing category
+             */
+            string /* uuid */ | null;
+            /**
+             * Category Name
+             * Name of new category to create
+             */
+            category_name?: /**
+             * Category Name
+             * Name of new category to create
+             */
+            string | null;
+            /**
+             * Category Description
+             * Description for new category
+             */
+            category_description?: /**
+             * Category Description
+             * Description for new category
+             */
+            string | null;
+        }
+        /**
+         * HttpEvaluationTemplateCreate
+         */
+        export interface HttpEvaluationTemplateCreate {
+            /**
+             * Name
+             */
+            name: string;
+            /**
+             * Description
+             */
+            description: string;
+            /**
+             * System Prompt
+             * System prompt for the evaluation template
+             */
+            system_prompt?: /**
+             * System Prompt
+             * System prompt for the evaluation template
+             */
+            string | null;
+            /**
+             * Prompt
+             * Prompt for the evaluation template
+             */
+            prompt: string;
+            /**
+             * Default
+             * Whether the evaluation template is the default evaluation template within a category
+             */
+            default?: boolean;
+            /**
+             * Category Id
+             * ID of existing category
+             */
+            category_id?: /**
+             * Category Id
+             * ID of existing category
+             */
+            string /* uuid */ | null;
+            /**
+             * Category Name
+             * Name of new category to create
+             */
+            category_name?: /**
+             * Category Name
+             * Name of new category to create
+             */
+            string | null;
+            /**
+             * Category Description
+             * Description for new category
+             */
+            category_description?: /**
+             * Category Description
+             * Description for new category
+             */
+            string | null;
+        }
+        /**
+         * HttpEvaluationTemplateUpdate
+         */
+        export interface HttpEvaluationTemplateUpdate {
+            /**
+             * Name
+             */
+            name: string;
+            /**
+             * Description
+             */
+            description: string;
+            /**
+             * System Prompt
+             * System prompt for the evaluation template
+             */
+            system_prompt?: /**
+             * System Prompt
+             * System prompt for the evaluation template
+             */
+            string | null;
+            /**
+             * Prompt
+             * Prompt for the evaluation template
+             */
+            prompt: string;
+            /**
+             * Default
+             * Whether the evaluation template is the default evaluation template within a category
+             */
+            default?: boolean;
+            /**
              * Category Id
              * ID of existing category
              */
@@ -662,6 +847,10 @@ declare namespace Components {
              * Category Id
              */
             category_id: string; // uuid
+            /**
+             * Template Id
+             */
+            template_id: /* Template Id */ string /* uuid */ | null;
         }
         /**
          * ProjectCreateRequest
@@ -700,6 +889,55 @@ declare namespace Components {
              * Updated At
              */
             updated_at: string; // date-time
+        }
+        /**
+         * ProjectReadWithStats
+         */
+        export interface ProjectReadWithStats {
+            /**
+             * Name
+             */
+            name: string;
+            /**
+             * Description
+             */
+            description: string;
+            /**
+             * Id
+             */
+            id: string; // uuid
+            /**
+             * Created At
+             */
+            created_at: string; // date-time
+            /**
+             * Updated At
+             */
+            updated_at: string; // date-time
+            /**
+             * Total Files Count
+             */
+            total_files_count: number;
+            /**
+             * Pending Files Count
+             */
+            pending_files_count: number;
+            /**
+             * Completed Files Count
+             */
+            completed_files_count: number;
+            /**
+             * Failed Files Count
+             */
+            failed_files_count: number;
+            /**
+             * Total Size
+             */
+            total_size: /* Total Size */ number | null;
+            /**
+             * Total Evaluations
+             */
+            total_evaluations: number;
         }
         /**
          * ProjectUpdateRequest
@@ -887,6 +1125,22 @@ declare namespace Paths {
             export type $422 = /* HTTPValidationError */ Components.Schemas.HTTPValidationError;
         }
     }
+    namespace CreateEvaluationTemplate {
+        namespace Parameters {
+            /**
+             * Project Id
+             */
+            export type ProjectId = string; // uuid
+        }
+        export interface PathParameters {
+            project_id: /* Project Id */ Parameters.ProjectId /* uuid */;
+        }
+        export type RequestBody = /* HttpEvaluationTemplateCreate */ Components.Schemas.HttpEvaluationTemplateCreate;
+        namespace Responses {
+            export type $200 = /* EvaluationTemplateRead */ Components.Schemas.EvaluationTemplateRead;
+            export type $422 = /* HTTPValidationError */ Components.Schemas.HTTPValidationError;
+        }
+    }
     namespace CreateProject {
         export type RequestBody = /* ProjectCreateRequest */ Components.Schemas.ProjectCreateRequest;
         namespace Responses {
@@ -928,6 +1182,26 @@ declare namespace Paths {
         export interface PathParameters {
             project_id: /* Project Id */ Parameters.ProjectId /* uuid */;
             category_id: /* Category Id */ Parameters.CategoryId /* uuid */;
+        }
+        namespace Responses {
+            export type $200 = any;
+            export type $422 = /* HTTPValidationError */ Components.Schemas.HTTPValidationError;
+        }
+    }
+    namespace DeleteEvaluationTemplate {
+        namespace Parameters {
+            /**
+             * Evaluation Template Id
+             */
+            export type EvaluationTemplateId = string; // uuid
+            /**
+             * Project Id
+             */
+            export type ProjectId = string; // uuid
+        }
+        export interface PathParameters {
+            project_id: /* Project Id */ Parameters.ProjectId /* uuid */;
+            evaluation_template_id: /* Evaluation Template Id */ Parameters.EvaluationTemplateId /* uuid */;
         }
         namespace Responses {
             export type $200 = any;
@@ -984,6 +1258,24 @@ declare namespace Paths {
              * Response Getevaluationcategories
              */
             export type $200 = /* EvaluationCategoryRead */ Components.Schemas.EvaluationCategoryRead[];
+            export type $422 = /* HTTPValidationError */ Components.Schemas.HTTPValidationError;
+        }
+    }
+    namespace GetEvaluationTemplates {
+        namespace Parameters {
+            /**
+             * Project Id
+             */
+            export type ProjectId = string; // uuid
+        }
+        export interface PathParameters {
+            project_id: /* Project Id */ Parameters.ProjectId /* uuid */;
+        }
+        namespace Responses {
+            /**
+             * Response Getevaluationtemplates
+             */
+            export type $200 = /* EvaluationTemplateRead */ Components.Schemas.EvaluationTemplateRead[];
             export type $422 = /* HTTPValidationError */ Components.Schemas.HTTPValidationError;
         }
     }
@@ -1157,7 +1449,7 @@ declare namespace Paths {
             /**
              * Response Getprojects
              */
-            export type $200 = /* ProjectRead */ Components.Schemas.ProjectRead[];
+            export type $200 = /* ProjectReadWithStats */ Components.Schemas.ProjectReadWithStats[];
         }
     }
     namespace SearchFiles {
@@ -1261,6 +1553,27 @@ declare namespace Paths {
         }
         namespace Responses {
             export type $200 = /* EvaluationCategoryRead */ Components.Schemas.EvaluationCategoryRead;
+            export type $422 = /* HTTPValidationError */ Components.Schemas.HTTPValidationError;
+        }
+    }
+    namespace UpdateEvaluationTemplate {
+        namespace Parameters {
+            /**
+             * Evaluation Template Id
+             */
+            export type EvaluationTemplateId = string; // uuid
+            /**
+             * Project Id
+             */
+            export type ProjectId = string; // uuid
+        }
+        export interface PathParameters {
+            project_id: /* Project Id */ Parameters.ProjectId /* uuid */;
+            evaluation_template_id: /* Evaluation Template Id */ Parameters.EvaluationTemplateId /* uuid */;
+        }
+        export type RequestBody = /* HttpEvaluationTemplateUpdate */ Components.Schemas.HttpEvaluationTemplateUpdate;
+        namespace Responses {
+            export type $200 = /* EvaluationTemplateRead */ Components.Schemas.EvaluationTemplateRead;
             export type $422 = /* HTTPValidationError */ Components.Schemas.HTTPValidationError;
         }
     }
@@ -1530,6 +1843,46 @@ export interface OperationMethods {
     data?: Paths.SimilaritySearch.RequestBody,
     config?: AxiosRequestConfig  
   ): OperationResponse<Paths.SimilaritySearch.Responses.$200>
+  /**
+   * getEvaluationTemplates - Get Evaluation Templates
+   * 
+   * Get all evaluation templates for a project
+   */
+  'getEvaluationTemplates'(
+    parameters?: Parameters<Paths.GetEvaluationTemplates.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.GetEvaluationTemplates.Responses.$200>
+  /**
+   * createEvaluationTemplate - Create Evaluation Template
+   * 
+   * Create an evaluation template for a project
+   */
+  'createEvaluationTemplate'(
+    parameters?: Parameters<Paths.CreateEvaluationTemplate.PathParameters> | null,
+    data?: Paths.CreateEvaluationTemplate.RequestBody,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.CreateEvaluationTemplate.Responses.$200>
+  /**
+   * updateEvaluationTemplate - Update Evaluation Template
+   * 
+   * Update an evaluation template for a project
+   */
+  'updateEvaluationTemplate'(
+    parameters?: Parameters<Paths.UpdateEvaluationTemplate.PathParameters> | null,
+    data?: Paths.UpdateEvaluationTemplate.RequestBody,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.UpdateEvaluationTemplate.Responses.$200>
+  /**
+   * deleteEvaluationTemplate - Delete Evaluation Template
+   * 
+   * Delete an evaluation template by project and evaluation template id
+   */
+  'deleteEvaluationTemplate'(
+    parameters?: Parameters<Paths.DeleteEvaluationTemplate.PathParameters> | null,
+    data?: any,
+    config?: AxiosRequestConfig  
+  ): OperationResponse<Paths.DeleteEvaluationTemplate.Responses.$200>
 }
 
 export interface PathsDictionary {
@@ -1793,6 +2146,50 @@ export interface PathsDictionary {
       config?: AxiosRequestConfig  
     ): OperationResponse<Paths.SimilaritySearch.Responses.$200>
   }
+  ['/projects/{project_id}/evaluation-templates']: {
+    /**
+     * getEvaluationTemplates - Get Evaluation Templates
+     * 
+     * Get all evaluation templates for a project
+     */
+    'get'(
+      parameters?: Parameters<Paths.GetEvaluationTemplates.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.GetEvaluationTemplates.Responses.$200>
+    /**
+     * createEvaluationTemplate - Create Evaluation Template
+     * 
+     * Create an evaluation template for a project
+     */
+    'post'(
+      parameters?: Parameters<Paths.CreateEvaluationTemplate.PathParameters> | null,
+      data?: Paths.CreateEvaluationTemplate.RequestBody,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.CreateEvaluationTemplate.Responses.$200>
+  }
+  ['/projects/{project_id}/evaluation-templates/{evaluation_template_id}']: {
+    /**
+     * updateEvaluationTemplate - Update Evaluation Template
+     * 
+     * Update an evaluation template for a project
+     */
+    'put'(
+      parameters?: Parameters<Paths.UpdateEvaluationTemplate.PathParameters> | null,
+      data?: Paths.UpdateEvaluationTemplate.RequestBody,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.UpdateEvaluationTemplate.Responses.$200>
+    /**
+     * deleteEvaluationTemplate - Delete Evaluation Template
+     * 
+     * Delete an evaluation template by project and evaluation template id
+     */
+    'delete'(
+      parameters?: Parameters<Paths.DeleteEvaluationTemplate.PathParameters> | null,
+      data?: any,
+      config?: AxiosRequestConfig  
+    ): OperationResponse<Paths.DeleteEvaluationTemplate.Responses.$200>
+  }
 }
 
 export type Client = OpenAPIClient<OperationMethods, PathsDictionary>
@@ -1800,11 +2197,13 @@ export type Client = OpenAPIClient<OperationMethods, PathsDictionary>
 
 export type EvaluationCategoryRead = Components.Schemas.EvaluationCategoryRead;
 export type EvaluationRead = Components.Schemas.EvaluationRead;
+export type EvaluationTemplateRead = Components.Schemas.EvaluationTemplateRead;
 export type EvaluationTree = Components.Schemas.EvaluationTree;
 export type EvaluationType = Components.Schemas.EvaluationType;
 export type FileContentRead = Components.Schemas.FileContentRead;
 export type FileContentReadWithChunkScore = Components.Schemas.FileContentReadWithChunkScore;
 export type FileEmbeddingRead = Components.Schemas.FileEmbeddingRead;
+export type FileEmbeddingStatus = Components.Schemas.FileEmbeddingStatus;
 export type FileEvaluationReadWithEvaluation = Components.Schemas.FileEvaluationReadWithEvaluation;
 export type FileEvaluationReadWithFile = Components.Schemas.FileEvaluationReadWithFile;
 export type FileEvaluationStatus = Components.Schemas.FileEvaluationStatus;
@@ -1817,9 +2216,12 @@ export type FileSearchRequest = Components.Schemas.FileSearchRequest;
 export type FileStatus = Components.Schemas.FileStatus;
 export type HTTPValidationError = Components.Schemas.HTTPValidationError;
 export type HttpEvaluationCreate = Components.Schemas.HttpEvaluationCreate;
+export type HttpEvaluationTemplateCreate = Components.Schemas.HttpEvaluationTemplateCreate;
+export type HttpEvaluationTemplateUpdate = Components.Schemas.HttpEvaluationTemplateUpdate;
 export type HttpEvaluationUpdate = Components.Schemas.HttpEvaluationUpdate;
 export type ProjectCreateRequest = Components.Schemas.ProjectCreateRequest;
 export type ProjectRead = Components.Schemas.ProjectRead;
+export type ProjectReadWithStats = Components.Schemas.ProjectReadWithStats;
 export type ProjectUpdateRequest = Components.Schemas.ProjectUpdateRequest;
 export type SimilaritySearchOrderBy = Components.Schemas.SimilaritySearchOrderBy;
 export type SimilaritySearchRequest = Components.Schemas.SimilaritySearchRequest;

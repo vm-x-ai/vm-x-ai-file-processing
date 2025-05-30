@@ -2,7 +2,7 @@ import aioboto3
 from dependency_injector import containers, providers
 from temporalio.client import Client
 
-from ingestion_workflow import repositories
+from ingestion_workflow import repositories, services
 from ingestion_workflow.database import Database
 from ingestion_workflow.pydantic_converter import pydantic_data_converter
 from ingestion_workflow.settings import Settings
@@ -73,4 +73,16 @@ class Container(containers.DeclarativeContainer):
         repositories.EvaluationCategoryRepository,
         session_factory=db.provided.session,
         write_session_factory=db.provided.writer_session,
+    )
+
+    evaluation_template_repository = providers.Factory(
+        repositories.EvaluationTemplateRepository,
+        session_factory=db.provided.session,
+        write_session_factory=db.provided.writer_session,
+    )
+
+    evaluation_service = providers.Factory(
+        services.EvaluationService,
+        evaluation_repository=evaluation_repository,
+        evaluation_template_repository=evaluation_template_repository,
     )

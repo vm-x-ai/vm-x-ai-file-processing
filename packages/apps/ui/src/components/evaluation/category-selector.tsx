@@ -4,7 +4,11 @@ import { useState, useEffect, useMemo } from 'react';
 import { ControllerRenderProps, FieldPath, FieldValues } from 'react-hook-form';
 import { fileClassifierApi } from '@/api';
 import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { Check, ChevronsUpDown, Plus } from 'lucide-react';
 import {
   Command,
@@ -65,30 +69,34 @@ export function CategorySelector({
   }, [projectId]);
 
   const selectedCategory = useMemo(
-    () => categories.find(cat => cat.id === value),
+    () => categories.find((cat) => cat.id === value),
     [categories, value]
   );
 
   const filteredCategories = useMemo(
-    () => categories.filter(cat => {
-      // Filter by search term
-      const matchesSearch = cat.name.toLowerCase().includes(searchValue.toLowerCase());
-      if (!matchesSearch) return false;
-      
-      // Filter out empty default categories if requested
-      if (hideEmptyDefault && !shouldShowEmptyCategory(cat)) {
-        return false;
-      }
-      
-      return true;
-    }),
+    () =>
+      categories.filter((cat) => {
+        // Filter by search term
+        const matchesSearch = cat.name
+          .toLowerCase()
+          .includes(searchValue.toLowerCase());
+        if (!matchesSearch) return false;
+
+        // Filter out empty default categories if requested
+        if (hideEmptyDefault && !shouldShowEmptyCategory(cat)) {
+          return false;
+        }
+
+        return true;
+      }),
     [categories, searchValue, hideEmptyDefault]
   );
 
   const exactMatch = useMemo(
-    () => categories.find(cat => 
-      cat.name.toLowerCase() === searchValue.toLowerCase()
-    ),
+    () =>
+      categories.find(
+        (cat) => cat.name.toLowerCase() === searchValue.toLowerCase()
+      ),
     [categories, searchValue]
   );
 
@@ -108,10 +116,10 @@ export function CategorySelector({
   }
 
   // Display logic: show selected category name, pending category name, or placeholder
-  const displayText = selectedCategory 
-    ? selectedCategory.name 
-    : pendingCategoryName 
-    ? pendingCategoryName 
+  const displayText = selectedCategory
+    ? selectedCategory.name
+    : pendingCategoryName
+    ? pendingCategoryName
     : 'Select Category';
 
   return (
@@ -133,15 +141,17 @@ export function CategorySelector({
       </PopoverTrigger>
       <PopoverContent className={cn('w-48 p-0', popoverClassName)}>
         <Command>
-          <CommandInput 
-            placeholder="Search categories..." 
+          <CommandInput
+            placeholder="Search categories..."
             className="h-9"
             value={searchValue}
             onValueChange={setSearchValue}
           />
           <CommandList>
             <CommandEmpty>
-              {searchValue ? 'No categories found.' : 'No categories available.'}
+              {searchValue
+                ? 'No categories found.'
+                : 'No categories available.'}
             </CommandEmpty>
             {filteredCategories.length > 0 && (
               <CommandGroup>
@@ -202,12 +212,18 @@ export function CategorySelectorField<
   onCreateCategory,
   ...props
 }: CategorySelectorFieldProps<S, K>) {
-  const [pendingCategoryName, setPendingCategoryName] = useState<string | null>(null);
+  const [pendingCategoryName, setPendingCategoryName] = useState<string | null>(
+    null
+  );
 
   // Determine if the current value is a category ID or a category name
-  const isValueCategoryId = typeof field.value === 'string' && field.value.match(/^[0-9a-f-]{8,}/);
+  const isValueCategoryId =
+    typeof field.value === 'string' && field.value.match(/^[0-9a-f-]{8,}/);
   const displayValue = isValueCategoryId ? field.value : null;
-  const displayPendingName = !isValueCategoryId && typeof field.value === 'string' ? field.value : pendingCategoryName;
+  const displayPendingName =
+    !isValueCategoryId && typeof field.value === 'string'
+      ? field.value
+      : pendingCategoryName;
 
   return (
     <CategorySelector
@@ -228,4 +244,4 @@ export function CategorySelectorField<
       {...props}
     />
   );
-} 
+}

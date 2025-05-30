@@ -37,7 +37,7 @@ async def start_evaluations(
     parent_evaluation_option: Optional[str] = None,
 ) -> StartEvaluationOutput:
     workflow_id = activity.info().workflow_id
-    evaluation_repository = Container.evaluation_repository()
+    evaluation_service = Container.evaluation_service()
     file_repository = Container.file_repository()
     file_content_repository = Container.file_content_repository()
     settings = Container.settings()
@@ -51,10 +51,10 @@ async def start_evaluations(
     logger.info(f"Starting evaluations for file {file_id}")
     logger.info(f"Getting questions for project {file.project_id}")
     if evaluation_id and not parent_evaluation_id and not parent_evaluation_option:
-        evaluations = [await evaluation_repository.get(evaluation_id)]
+        evaluations = [await evaluation_service.get(evaluation_id)]
     else:
         evaluations = (
-            await evaluation_repository.get_by_project_id_and_parent_evaluation_id(
+            await evaluation_service.get_by_project_id_and_parent_evaluation_id(
                 project_id=file.project_id,
                 parent_evaluation_id=parent_evaluation_id,
                 parent_evaluation_option=parent_evaluation_option,

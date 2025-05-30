@@ -1,8 +1,8 @@
-import React, { ReactNode } from "react";
-import clsx from "clsx";
+import React, { ReactNode } from 'react';
+import clsx from 'clsx';
 
 export type NodeStatusIndicatorProps = {
-  status?: "loading" | "success" | "error" | "initial";
+  status?: 'loading' | 'success' | 'error' | 'initial';
   children: ReactNode;
 };
 
@@ -47,8 +47,8 @@ const StatusBorder = ({
     <>
       <div
         className={clsx(
-          "absolute -left-[1px] -top-[1px] h-[calc(100%+2px)] w-[calc(100%+2px)] rounded-[7px] border-2",
-          className,
+          'absolute -left-[1px] -top-[1px] h-[calc(100%+2px)] w-[calc(100%+2px)] rounded-[7px] border-2',
+          className
         )}
       />
       {children}
@@ -61,13 +61,13 @@ export const NodeStatusIndicator = ({
   children,
 }: NodeStatusIndicatorProps) => {
   switch (status) {
-    case "loading":
+    case 'loading':
       return <LoadingIndicator>{children}</LoadingIndicator>;
-    case "success":
+    case 'success':
       return (
         <StatusBorder className="border-emerald-600">{children}</StatusBorder>
       );
-    case "error":
+    case 'error':
       return <StatusBorder className="border-red-400">{children}</StatusBorder>;
     default:
       return <>{children}</>;

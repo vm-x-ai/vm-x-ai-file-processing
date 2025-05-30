@@ -14,6 +14,8 @@ import './global.css';
 import { fileClassifierApi } from '@/api';
 import Breadcrumbs from '@/components/breadcrumbs';
 import { HeaderUser } from '@/components/header-user';
+import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 
 const roboto = Roboto({
   weight: ['300', '400', '500', '700'],
@@ -55,7 +57,22 @@ export default async function RootLayout({ children }: RootLayoutProps) {
             disableTransitionOnChange
           >
             <SidebarProvider>
-              <AppSidebar projects={projects.data} />
+              <AppSidebar
+                projects={projects.data}
+                onDeleteProjectAction={async (projectId, isActive) => {
+                  'use server';
+
+                  await fileClassifierApi.deleteProject(projectId);
+
+                  revalidatePath('/');
+                  revalidatePath(`/project`);
+                  revalidatePath(`/project/${projectId}`);
+
+                  if (isActive) {
+                    redirect(`/project`);
+                  }
+                }}
+              />
               <SidebarInset>
                 <header className="flex h-16 shrink-0 items-center justify-between gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 bg-muted/50">
                   <div className="flex items-center gap-2 px-4">

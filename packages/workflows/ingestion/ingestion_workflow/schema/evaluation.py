@@ -24,6 +24,8 @@ class HttpEvaluationCreate(BaseModel):
         None, description="Parent evaluation option"
     )
 
+    template_id: Optional[UUID] = Field(None, description="Template ID")
+
     # Allow either category_id or category_name, but not both
     category_id: Optional[UUID] = Field(None, description="ID of existing category")
     category_name: Optional[str] = Field(

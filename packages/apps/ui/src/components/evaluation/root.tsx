@@ -2,9 +2,9 @@
 
 import { Accordion } from '@/components/ui/accordion';
 import { Evaluation } from '@/components/evaluation';
-import { EvaluationTree, EvaluationCategoryRead } from '@/file-classifier-api';
+import { EvaluationTree, EvaluationCategoryRead, EvaluationTemplateRead } from '@/file-classifier-api';
 import { FormAction, FormSchema } from './schema';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Plus, Check, X } from 'lucide-react';
@@ -12,27 +12,31 @@ import { fileClassifierApi } from '@/api';
 import { shouldShowEmptyCategory } from '@/lib/category-utils';
 import { EditableText } from '../ui/editable-text';
 import { ConfirmationModal } from '../ui/confirmation-modal';
+import { nanoid } from 'nanoid';
 
 type EvaluationRootProps = {
   projectId: string;
   evaluations: EvaluationTree[];
   categories: EvaluationCategoryRead[];
+  evaluationTemplates: EvaluationTemplateRead[];
   submitAction: (
     prevState: FormAction,
     data: FormSchema
   ) => Promise<FormAction>;
-  onDelete: (evaluation: EvaluationTree) => Promise<void>;
+  onDeleteAction: (evaluation: EvaluationTree) => Promise<void>;
 };
 
 export default function EvaluationRoot({
   projectId,
   evaluations,
   categories,
+  evaluationTemplates,
   submitAction,
-  onDelete,
+  onDeleteAction,
 }: EvaluationRootProps) {
   const [data, setData] = useState<EvaluationTree[]>(evaluations);
-  const [categoriesData, setCategoriesData] = useState<EvaluationCategoryRead[]>(categories);
+  const [categoriesData, setCategoriesData] =
+    useState<EvaluationCategoryRead[]>(categories);
   const [open, setOpen] = useState<string[]>([]);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -42,26 +46,37 @@ export default function EvaluationRoot({
     canDelete: boolean;
   }>({ isOpen: false, category: null, canDelete: false });
 
+  useEffect(() => {
+    setData(evaluations);
+  }, [evaluations]);
+
+  useEffect(() => {
+    setCategoriesData(categories);
+  }, [categories]);
 
   // Group evaluations by category
   const groupedEvaluations = useMemo(() => {
-    const groups: Record<string, { category: EvaluationCategoryRead; evaluations: EvaluationTree[] }> = {};
-    
+    const groups: Record<
+      string,
+      { category: EvaluationCategoryRead; evaluations: EvaluationTree[] }
+    > = {};
+
     // Initialize groups for all categories
-    categoriesData.forEach(category => {
+    categoriesData.forEach((category) => {
       groups[category.id] = { category, evaluations: [] };
     });
-    
+
     // Group evaluations by category
-    data.forEach(evaluation => {
+    data.forEach((evaluation) => {
       if (groups[evaluation.category_id]) {
         groups[evaluation.category_id].evaluations.push(evaluation);
       }
     });
-    
+
     // Return groups, filtering out empty default categories
-    return Object.values(groups).filter(group => 
-      group.evaluations.length > 0 || shouldShowEmptyCategory(group.category)
+    return Object.values(groups).filter(
+      (group) =>
+        group.evaluations.length > 0 || shouldShowEmptyCategory(group.category)
     );
   }, [data, categoriesData]);
 
@@ -76,12 +91,13 @@ export default function EvaluationRoot({
       prompt: '',
       title: 'Untitled',
       project_id: projectId,
-      id: `new_evaluation_${data.length}`,
+      id: `new_evaluation_${nanoid()}`,
       evaluation_options: null,
       category_id: categoryId,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       children: [],
+      template_id: null,
     };
 
     setData([...data, newEvaluation]);
@@ -90,15 +106,18 @@ export default function EvaluationRoot({
 
   const handleCreateCategory = async () => {
     if (!newCategoryName.trim()) return;
-    
+
     try {
-      const response = await fileClassifierApi.createEvaluationCategory({
-        project_id: projectId,
-      }, {
-        name: newCategoryName.trim(),
-        description: null,
-      });
-      
+      const response = await fileClassifierApi.createEvaluationCategory(
+        {
+          project_id: projectId,
+        },
+        {
+          name: newCategoryName.trim(),
+          description: null,
+        }
+      );
+
       setCategoriesData([...categoriesData, response.data]);
       setNewCategoryName('');
       setIsAddingCategory(false);
@@ -112,28 +131,38 @@ export default function EvaluationRoot({
     setIsAddingCategory(false);
   };
 
-  const handleUpdateCategory = async (category: EvaluationCategoryRead, newName: string) => {
+  const handleUpdateCategory = async (
+    category: EvaluationCategoryRead,
+    newName: string
+  ) => {
     try {
-      const response = await fileClassifierApi.updateEvaluationCategory({
-        project_id: projectId,
-        category_id: category.id,
-      }, {
-        name: newName,
-        description: category.description,
-      });
-      
-      setCategoriesData(categoriesData.map(cat => 
-        cat.id === category.id ? response.data : cat
-      ));
+      const response = await fileClassifierApi.updateEvaluationCategory(
+        {
+          project_id: projectId,
+          category_id: category.id,
+        },
+        {
+          name: newName,
+          description: category.description,
+        }
+      );
+
+      setCategoriesData(
+        categoriesData.map((cat) =>
+          cat.id === category.id ? response.data : cat
+        )
+      );
     } catch (error) {
       console.error('Failed to update category:', error);
     }
   };
 
   const handleDeleteCategory = (category: EvaluationCategoryRead) => {
-    const evaluationsInCategory = data.filter(evaluation => evaluation.category_id === category.id);
+    const evaluationsInCategory = data.filter(
+      (evaluation) => evaluation.category_id === category.id
+    );
     const canDelete = evaluationsInCategory.length === 0;
-    
+
     setDeleteModal({
       isOpen: true,
       category,
@@ -143,14 +172,16 @@ export default function EvaluationRoot({
 
   const confirmDeleteCategory = async () => {
     if (!deleteModal.category || !deleteModal.canDelete) return;
-    
+
     try {
       await fileClassifierApi.deleteEvaluationCategory({
         project_id: projectId,
         category_id: deleteModal.category.id,
       });
-      
-      setCategoriesData(categoriesData.filter(cat => cat.id !== deleteModal.category?.id));
+
+      setCategoriesData(
+        categoriesData.filter((cat) => cat.id !== deleteModal.category?.id)
+      );
     } catch (error) {
       console.error('Failed to delete category:', error);
     }
@@ -159,14 +190,17 @@ export default function EvaluationRoot({
   return (
     <>
       {groupedEvaluations.map(({ category, evaluations }, index) => (
-        <div key={category.id} className={`space-y-4 ${index > 0 ? 'mt-8' : ''}`}>
+        <div
+          key={category.id}
+          className={`space-y-4 ${index > 0 ? 'mt-8' : ''}`}
+        >
           <EditableText
             value={category.name}
             onSave={(newName) => handleUpdateCategory(category, newName)}
             onDelete={() => handleDeleteCategory(category)}
             className="text-lg font-semibold text-foreground"
           />
-          
+
           <Accordion
             type="multiple"
             value={open}
@@ -180,46 +214,61 @@ export default function EvaluationRoot({
                 projectId={projectId}
                 evaluation={evaluation}
                 submitAction={submitAction}
+                evaluationTemplates={evaluationTemplates}
+                level={1}
                 onChange={(oldEval, newEval) => {
-                  setData(
-                    data.map((item) => (item.id === oldEval.id ? newEval : item))
+                  setData((prev) =>
+                    prev.map((item) =>
+                      item.id === oldEval.id ? newEval : item
+                    )
                   );
 
                   // Update the open state with new ID and then collapse it
                   setOpen((prevOpen) => {
-                    const updatedOpen = prevOpen.map((item) => (item === oldEval.id ? newEval.id : item));
+                    const updatedOpen = prevOpen.map((item) =>
+                      item === oldEval.id ? newEval.id : item
+                    );
                     // Collapse all evaluations after save
-                    return updatedOpen.filter(id => id !== newEval.id);
+                    return updatedOpen.filter((id) => id !== newEval.id);
                   });
                 }}
-                onDelete={async (evaluation) => {
-                  if (evaluation.id.startsWith('new_evaluation')) {
-                    setData(data.filter((item) => item.id !== evaluation.id));
-                    return;
+                onDeleteAction={async (item) => {
+                  if (!item.id.startsWith('new_evaluation')) {
+                    await onDeleteAction(item);
                   }
+                }}
+                onDelete={async (evaluation) => {
+                  setData((prev) => [
+                    ...prev.filter((item) => item.id !== evaluation.id),
+                  ]);
 
-                  await onDelete(evaluation);
-                  setData(data.filter((item) => item.id !== evaluation.id));
+                  if (!evaluation.id.startsWith('new_evaluation')) {
+                    await onDeleteAction(evaluation);
+                  }
                 }}
               />
             ))}
           </Accordion>
-          
+
           {/* Add evaluation card for this category */}
-          <div 
+          <div
             className="border-2 border-dashed border-muted-foreground/30 rounded-xl border px-4 py-4 cursor-pointer hover:border-muted-foreground/50 hover:bg-muted/20 transition-colors flex items-center gap-2 bg-muted/50"
             onClick={() => addEvaluationToCategory(category.id)}
           >
             <Plus className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-            <span className="text-sm text-muted-foreground font-medium">Add evaluation to {category.name}</span>
+            <span className="text-sm text-muted-foreground font-medium">
+              Add evaluation to {category.name}
+            </span>
           </div>
         </div>
       ))}
-      
+
       {/* Add new category section */}
-      <div className={`space-y-4 ${groupedEvaluations.length > 0 ? 'mt-8' : ''}`}>
+      <div
+        className={`space-y-4 ${groupedEvaluations.length > 0 ? 'mt-8' : ''}`}
+      >
         {!isAddingCategory ? (
-          <h3 
+          <h3
             className="text-lg font-semibold cursor-pointer transition-colors text-muted-foreground hover:text-foreground flex items-center gap-2"
             onClick={() => setIsAddingCategory(true)}
           >
@@ -261,7 +310,7 @@ export default function EvaluationRoot({
           </div>
         )}
       </div>
-      
+
       {categoriesData.length === 0 && (
         <div className="text-center text-muted-foreground py-8">
           No categories found. Create a category to get started.
@@ -270,9 +319,13 @@ export default function EvaluationRoot({
 
       <ConfirmationModal
         isOpen={deleteModal.isOpen}
-        onClose={() => setDeleteModal({ isOpen: false, category: null, canDelete: false })}
+        onClose={() =>
+          setDeleteModal({ isOpen: false, category: null, canDelete: false })
+        }
         onConfirm={deleteModal.canDelete ? confirmDeleteCategory : undefined}
-        title={deleteModal.canDelete ? "Delete Category" : "Cannot Delete Category"}
+        title={
+          deleteModal.canDelete ? 'Delete Category' : 'Cannot Delete Category'
+        }
         description={
           deleteModal.canDelete
             ? `Are you sure you want to delete "${deleteModal.category?.name}"? This action cannot be undone.`

@@ -44,7 +44,9 @@ function NodeHeaderDemo({ selected, data }: NodeProps<EvaluationNode>) {
         <NodeHeaderIcon>
           <Brain />
         </NodeHeaderIcon>
-        <NodeHeaderTitle className="truncate">{data.evaluation.evaluation.title}</NodeHeaderTitle>
+        <NodeHeaderTitle className="truncate">
+          {data.evaluation.evaluation.title}
+        </NodeHeaderTitle>
       </NodeHeader>
       <div>
         <div className="mt-2 text-center">
@@ -81,27 +83,32 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
 
   // Use reasonable default dimensions for evaluation cards
   // These are typical sizes for the evaluation node cards
-  const cardWidth = 256;  // Match the w-64 class (256px)
+  const cardWidth = 256; // Match the w-64 class (256px)
   const cardHeight = 150; // Reduced height for more compact layout
-  
+
   return getLayoutedElementsWithDimensions(nodes, edges, cardWidth, cardHeight);
 };
 
-const getLayoutedElementsWithDimensions = (nodes: Node[], edges: Edge[], width: number, height: number) => {
+const getLayoutedElementsWithDimensions = (
+  nodes: Node[],
+  edges: Edge[],
+  width: number,
+  height: number
+) => {
   // Deduplicate nodes by ID (handle the duplicate database entries)
-  const uniqueNodes = nodes.filter((node, index, self) => 
-    index === self.findIndex(n => n.id === node.id)
+  const uniqueNodes = nodes.filter(
+    (node, index, self) => index === self.findIndex((n) => n.id === node.id)
   );
-  
+
   // Find root nodes (nodes without incoming edges)
-  const rootNodes = uniqueNodes.filter(node => 
-    !edges.some(edge => edge.target === node.id)
+  const rootNodes = uniqueNodes.filter(
+    (node) => !edges.some((edge) => edge.target === node.id)
   );
-  
+
   // If we have multiple roots, create a virtual root
   let nodesWithVirtualRoot = [...uniqueNodes];
   let edgesWithVirtualRoot = [...edges];
-  
+
   if (rootNodes.length > 1) {
     // Create a virtual root node
     const virtualRoot: Node = {
@@ -111,101 +118,110 @@ const getLayoutedElementsWithDimensions = (nodes: Node[], edges: Edge[], width: 
       data: {},
       hidden: true, // Hide the virtual root
     };
-    
+
     nodesWithVirtualRoot = [virtualRoot, ...uniqueNodes];
-    
+
     // Connect virtual root to all actual root nodes
-    const virtualEdges = rootNodes.map(rootNode => ({
+    const virtualEdges = rootNodes.map((rootNode) => ({
       id: `virtual-root->${rootNode.id}`,
       source: 'virtual-root',
       target: rootNode.id,
       type: 'dataEdge',
       hidden: true, // Hide the virtual edges
     }));
-    
+
     edgesWithVirtualRoot = [...edges, ...virtualEdges];
   }
-  
+
   const hierarchy = stratify<Node>()
     .id((node) => node.id)
-    .parentId((node) => edgesWithVirtualRoot.find((edge) => edge.target === node.id)?.source);
-  
+    .parentId(
+      (node) =>
+        edgesWithVirtualRoot.find((edge) => edge.target === node.id)?.source
+    );
+
   const root = hierarchy(nodesWithVirtualRoot);
   const layout = g.nodeSize([width * 1.1, height * 1.1])(root);
 
   // If we have multiple root trees, spread them out horizontally
   let layoutNodes: Node[];
   if (rootNodes.length > 1) {
-        // Special case: if there are no edges at all, just arrange nodes in a grid
+    // Special case: if there are no edges at all, just arrange nodes in a grid
     if (edges.length === 0) {
       const nodesPerRow = Math.ceil(Math.sqrt(uniqueNodes.length));
       // Use more compact spacing
-      const nodeSpacing = width + 30;  // Card width + 30px padding (reduced from 50px)
-      const rowSpacing = height + 20;  // Card height + 20px padding (reduced from 30px)
-      
+      const nodeSpacing = width + 30; // Card width + 30px padding (reduced from 50px)
+      const rowSpacing = height + 20; // Card height + 20px padding (reduced from 30px)
+
       layoutNodes = uniqueNodes.map((node, index) => {
         const row = Math.floor(index / nodesPerRow);
         const col = index % nodesPerRow;
-        const totalCols = Math.min(uniqueNodes.length - row * nodesPerRow, nodesPerRow);
-        const startX = -(totalCols - 1) * nodeSpacing / 2;
-        
+        const totalCols = Math.min(
+          uniqueNodes.length - row * nodesPerRow,
+          nodesPerRow
+        );
+        const startX = (-(totalCols - 1) * nodeSpacing) / 2;
+
         const position = {
           x: startX + col * nodeSpacing,
-          y: row * rowSpacing
+          y: row * rowSpacing,
         };
-        
+
         return {
           ...node,
-          position
+          position,
         };
       });
-        } else {
+    } else {
       // Hierarchical layout: we have parent-child relationships
       // Group nodes by their root tree
       const treeGroups = new Map<string, HierarchyPointNode<Node>[]>();
-      
-      layout.descendants().forEach(node => {
+
+      layout.descendants().forEach((node) => {
         if (node.data.id === 'virtual-root') return;
-        
+
         // Find which root this node belongs to
         let currentNode = node;
-        while (currentNode.parent && currentNode.parent.data.id !== 'virtual-root') {
+        while (
+          currentNode.parent &&
+          currentNode.parent.data.id !== 'virtual-root'
+        ) {
           currentNode = currentNode.parent;
         }
-        
+
         const rootId = currentNode.data.id;
         if (!treeGroups.has(rootId)) {
           treeGroups.set(rootId, []);
         }
         treeGroups.get(rootId)?.push(node);
       });
-      
+
       // For hierarchical layout, use more compact spacing between trees
       // but keep the tree structure intact
       const treeSpacing = width * 1.5 + 60; // More compact space between independent trees
       const trees = Array.from(treeGroups.entries());
       const totalWidth = (trees.length - 1) * treeSpacing;
       const startX = -totalWidth / 2;
-      
+
       layoutNodes = [];
       trees.forEach(([rootId, treeNodes], treeIndex) => {
-        const treeOffsetX = startX + (treeIndex * treeSpacing);
-        
+        const treeOffsetX = startX + treeIndex * treeSpacing;
+
         // Find the bounds of this tree to center it
-        const treeXPositions = treeNodes.map(node => node.x);
+        const treeXPositions = treeNodes.map((node) => node.x);
         const minX = Math.min(...treeXPositions);
         const maxX = Math.max(...treeXPositions);
         const treeCenterOffset = -(minX + maxX) / 2;
-        
-        treeNodes.forEach(node => {
-          const finalPosition = { 
-            x: node.x + treeCenterOffset + treeOffsetX, 
-            y: node.y 
+
+        treeNodes.forEach((node) => {
+          const finalPosition = {
+            x: node.x + treeCenterOffset + treeOffsetX,
+            y: node.y,
           };
-          
+
           layoutNodes.push({
             ...node.data,
-            position: finalPosition
+            position: finalPosition,
           });
         });
       });
@@ -214,7 +230,7 @@ const getLayoutedElementsWithDimensions = (nodes: Node[], edges: Edge[], width: 
     // Single tree - use original layout
     layoutNodes = layout
       .descendants()
-      .filter(node => node.data.id !== 'virtual-root')
+      .filter((node) => node.data.id !== 'virtual-root')
       .map((node) => ({ ...node.data, position: { x: node.x, y: node.y } }));
   }
 
@@ -287,7 +303,7 @@ export default function FileEvaluationGraph({
     const layouted = getLayoutedElements(initialNodes, initialEdges);
     setNodes([...layouted.nodes]);
     setEdges([...layouted.edges]);
-    
+
     // Mark layout as ready and fit view
     setTimeout(() => {
       setIsLayoutReady(true);
@@ -315,7 +331,7 @@ export default function FileEvaluationGraph({
           onInit={onLayout}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
-          fitView={false}  // Disable automatic fitView to preserve our custom positioning
+          fitView={false} // Disable automatic fitView to preserve our custom positioning
           style={{ opacity: isLayoutReady ? 1 : 0 }}
         >
           <Background />

@@ -13,13 +13,13 @@ import {
 import { cn } from '@/lib/utils';
 import { useMemo } from 'react';
 
-export type ComboboxProps<T, V extends string> = {
+export type ComboboxProps<T, V extends string | null> = {
   options: T[];
   value?: V | null;
   searchPlaceholder?: string;
   emptyMessage?: string;
   onChange?: (option: T) => void;
-  isOptionMatch?: (option: T, value: V) => boolean;
+  isOptionMatch?: (option: T, value: V | null | undefined) => boolean;
   getOptionLabel?: (option: T) => string | React.ReactNode;
   getOptionKey?: (option: T) => string;
   getOptionValue?: (option: T) => V;
@@ -60,7 +60,7 @@ export function Combobox<T, V extends string>({
     [options, getOptionValue]
   );
   const optionMatch = useMemo(
-    () => options.find((option) => value && isOptionMatch(option, value)),
+    () => options.find((option) => isOptionMatch(option, value)),
     [options, value, isOptionMatch]
   );
   const optionLabel = useMemo(
@@ -75,11 +75,11 @@ export function Combobox<T, V extends string>({
           role="combobox"
           className={cn(
             'w-[200px] justify-between',
-            !value && 'text-muted-foreground',
+            !optionLabel && 'text-muted-foreground',
             buttonClassName
           )}
         >
-          {value ? optionLabel : searchPlaceholder}
+          {optionLabel || searchPlaceholder}
           <ChevronsUpDown className="opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -127,7 +127,8 @@ export type ComboboxFieldProps<
   K extends FieldPath<S>
 > = {
   field: ControllerRenderProps<S, K>;
-} & Omit<ComboboxProps<T, string>, 'value'>;
+  getFieldValue?: (option: T) => ControllerRenderProps<S, K>['value'];
+} & Omit<ComboboxProps<T, ControllerRenderProps<S, K>['value']>, 'value'>;
 
 export function ComboboxField<
   T,
@@ -138,10 +139,13 @@ export function ComboboxField<
   field,
   searchPlaceholder,
   emptyMessage,
-  isOptionMatch = (option, value) => option === value,
+  isOptionMatch = (option, value) => option === (value as unknown as T),
   getOptionLabel = (option) => option as unknown as string,
   getOptionKey = (option) => option as unknown as string,
-  getOptionValue = (option) => option as unknown as string,
+  getOptionValue = (option) =>
+    option as unknown as ControllerRenderProps<S, K>['value'],
+  getFieldValue = (option: T) =>
+    option as unknown as ControllerRenderProps<S, K>['value'],
   onChange,
 }: ComboboxFieldProps<T, S, K>) {
   return (
@@ -155,7 +159,7 @@ export function ComboboxField<
       getOptionKey={getOptionKey}
       getOptionValue={getOptionValue}
       onChange={(option) => {
-        field.onChange(option);
+        field.onChange(getFieldValue(option));
         onChange?.(option);
       }}
     />

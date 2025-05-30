@@ -56,7 +56,10 @@ export async function POST(request: NextRequest) {
             .array(z.string())
             .optional()
             .describe('The file ids to search'),
-          limit: z.number().optional().describe('The limit of results to return'),
+          limit: z
+            .number()
+            .optional()
+            .describe('The limit of results to return'),
         }),
         execute: async ({ search, scoreThreshold, fileIds, limit }) => {
           try {

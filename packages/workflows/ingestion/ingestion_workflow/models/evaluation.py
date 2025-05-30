@@ -7,9 +7,11 @@ from sqlalchemy import Column, Text, func
 from sqlalchemy.dialects import postgresql
 from sqlmodel import Field, Relationship, SQLModel
 
+from .evaluation_template import EvaluationTemplate
+
 if TYPE_CHECKING:
-    from ingestion_workflow.models.evaluation_category import EvaluationCategory
-    from ingestion_workflow.models.file import FileEvaluation
+    from .evaluation_category import EvaluationCategory
+    from .file import FileEvaluation
 
 
 class EvaluationType(str, Enum):
@@ -33,6 +35,9 @@ class EvaluationBase(SQLModel):
     )
     parent_evaluation_option: Optional[str] = Field(sa_type=Text, nullable=True)
     category_id: UUID = Field(foreign_key="evaluation_categories.id")
+    template_id: Optional[UUID] = Field(
+        foreign_key="evaluation_templates.id", nullable=True
+    )
 
 
 class Evaluation(EvaluationBase, table=True):
@@ -61,6 +66,9 @@ class Evaluation(EvaluationBase, table=True):
 
     file_evaluations: list["FileEvaluation"] = Relationship(back_populates="evaluation")
     category: "EvaluationCategory" = Relationship()
+    template: Optional["EvaluationTemplate"] = Relationship(
+        back_populates="evaluations"
+    )
 
 
 class EvaluationCreate(EvaluationBase):
@@ -71,6 +79,10 @@ class EvaluationRead(EvaluationBase):
     id: UUID
     created_at: datetime
     updated_at: datetime
+
+
+class EvaluationReadWithTemplate(EvaluationRead):
+    template: EvaluationTemplate | None = None
 
 
 class EvaluationTree(EvaluationRead):

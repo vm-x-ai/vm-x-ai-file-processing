@@ -221,6 +221,7 @@ async def update_evaluation(
 
     return updated_evaluation
 
+
 @router.delete(
     "/projects/{project_id}/evaluations/{evaluation_id}",
     operation_id="deleteEvaluation",

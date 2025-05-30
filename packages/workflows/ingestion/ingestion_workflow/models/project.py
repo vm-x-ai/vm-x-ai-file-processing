@@ -46,6 +46,15 @@ class ProjectRead(ProjectBase):
     updated_at: datetime
 
 
+class ProjectReadWithStats(ProjectRead):
+    total_files_count: int
+    pending_files_count: int
+    completed_files_count: int
+    failed_files_count: int
+    total_size: float | None
+    total_evaluations: int
+
+
 class ProjectEvaluationBase(SQLModel):
     evaluation_id: UUID = Field(foreign_key="evaluations.id", primary_key=True)
     project_id: UUID = Field(foreign_key="projects.id", primary_key=True)

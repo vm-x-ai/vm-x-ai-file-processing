@@ -1,6 +1,7 @@
 # Project Config Example
 
 nest-cli.json
+
 ```json
 {
   "$schema": "https://json.schemastore.org/nest-cli",
@@ -13,6 +14,7 @@ nest-cli.json
 ```
 
 project.json
+
 ```json
 {
   "name": "api",

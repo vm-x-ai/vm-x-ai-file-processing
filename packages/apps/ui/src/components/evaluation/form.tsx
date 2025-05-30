@@ -15,7 +15,11 @@ import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
 import { schema } from './schema';
 import type { FormSchema, FormAction } from './schema';
-import { EvaluationRead, EvaluationType } from '@/file-classifier-api';
+import {
+  EvaluationRead,
+  EvaluationTemplateRead,
+  EvaluationType,
+} from '@/file-classifier-api';
 import { useTransition } from 'react';
 import { Separator } from '../ui/separator';
 import { PlusIcon, SaveIcon, TrashIcon } from 'lucide-react';
@@ -23,13 +27,21 @@ import { Textarea } from '../ui/textarea';
 import { ComboboxField } from '../combobox';
 import { CategorySelectorField } from './category-selector';
 import Editor from '@monaco-editor/react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '../ui/accordion';
 
 export type EvaluationFormProps = {
   projectId: string;
   data: EvaluationRead;
+  evaluationTemplates: EvaluationTemplateRead[];
   onChange: (
     oldEvaluation: EvaluationRead,
-    newEvaluation: EvaluationRead
+    newEvaluation: EvaluationRead,
+    parent?: EvaluationRead
   ) => void;
   parent?: EvaluationRead;
   submitAction: (
@@ -45,6 +57,7 @@ export default function EvaluationForm({
   submitAction,
   parent,
   data,
+  evaluationTemplates,
   onChange,
 }: EvaluationFormProps) {
   const [submitting, startTransition] = useTransition();
@@ -55,37 +68,37 @@ export default function EvaluationForm({
       ...data,
       project_id: projectId,
       parent_evaluation_id: data?.parent_evaluation_id || parent?.id || null,
-      parent_evaluation_option:
-        data?.parent_evaluation_option ||
-        parent?.parent_evaluation_option ||
-        null,
+      parent_evaluation_option: data?.parent_evaluation_option || null,
       evaluation_type: data?.evaluation_type ?? 'text',
       category_id: data?.category_id || null,
       category_name: null,
       category_description: null,
+      template_id:
+        data?.template_id ||
+        (!data?.id &&
+          evaluationTemplates.find(
+            (template) =>
+              template.category_id === data?.category_id && template.default
+          )?.id) ||
+        null,
     },
   });
 
   const handleSubmit = form.handleSubmit(async (values) => {
-    console.log('values', values);
     startTransition(async () => {
       const result = await submitAction(
         { message: '', data: undefined, success: undefined },
         values
       );
       if (result.success && result.data) {
-        onChange(data, result.data as unknown as EvaluationRead);
+        onChange(data, result.data as unknown as EvaluationRead, parent);
       }
     });
   });
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={handleSubmit}
-        noValidate
-        className="space-y-4"
-      >
+      <form onSubmit={handleSubmit} noValidate className="space-y-4">
         <div className="grid grid-cols-1 gap-4 w-1/2">
           {parent && parent.evaluation_type === 'enum_choice' && (
             <FormField
@@ -96,7 +109,63 @@ export default function EvaluationForm({
                   <FormLabel>Parent Evaluation Option</FormLabel>
                   <FormControl>
                     <ComboboxField
-                      options={parent.evaluation_options || []}
+                      options={[
+                        { label: 'Any', value: 'ANY' },
+                        ...(parent.evaluation_options || []).map((option) => ({
+                          label: option,
+                          value: option,
+                        })),
+                      ]}
+                      isOptionMatch={(option, value) => {
+                        return (
+                          (value === null && option.value === 'ANY') ||
+                          option.value === value
+                        );
+                      }}
+                      getOptionValue={(option) => option.value}
+                      getOptionLabel={(option) => option.label}
+                      getOptionKey={(option) => option.label}
+                      getFieldValue={(option) =>
+                        option.value === 'ANY' ? null : option.value
+                      }
+                      field={field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    It will trigger this evaluation when the LLM responds with
+                    the selected option from the parent evaluation.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+          {parent && parent.evaluation_type === 'boolean' && (
+            <FormField
+              control={form.control}
+              name="parent_evaluation_option"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Parent Evaluation Option</FormLabel>
+                  <FormControl>
+                    <ComboboxField
+                      options={[
+                        { label: 'Any', value: 'ANY' },
+                        { label: 'Yes', value: 'true' },
+                        { label: 'No', value: 'false' },
+                      ]}
+                      isOptionMatch={(option, value) => {
+                        return (
+                          (value === null && option.value === 'ANY') ||
+                          option.value === value
+                        );
+                      }}
+                      getOptionValue={(option) => option.value}
+                      getOptionLabel={(option) => option.label}
+                      getOptionKey={(option) => option.label}
+                      getFieldValue={(option) =>
+                        option.value === 'ANY' ? null : option.value
+                      }
                       field={field}
                     />
                   </FormControl>
@@ -136,6 +205,44 @@ export default function EvaluationForm({
                 </FormControl>
                 <FormDescription>
                   Longer description of your evaluation.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="template_id"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Evaluation Template</FormLabel>
+                <ComboboxField
+                  options={[
+                    {
+                      label: 'None',
+                      value: 'NONE',
+                    },
+                    ...evaluationTemplates.map((template) => ({
+                      label: template.name,
+                      value: template.id,
+                    })),
+                  ]}
+                  isOptionMatch={(option, value) => {
+                    return (
+                      (value === null && option.value === 'NONE') ||
+                      option.value === value
+                    );
+                  }}
+                  getOptionValue={(option) => option.value}
+                  getOptionLabel={(option) => option.label}
+                  getOptionKey={(option) => option.label}
+                  getFieldValue={(option) =>
+                    option.value === 'NONE' ? null : option.value
+                  }
+                  field={field}
+                />
+                <FormDescription>
+                  Select an evaluation template to use for this evaluation.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -256,50 +363,66 @@ export default function EvaluationForm({
               />
             </>
           )}
-          <FormField
-            control={form.control}
-            name="system_prompt"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>System Prompt</FormLabel>
-                <FormControl>
-                  <Editor
-                    height="15vh"
-                    language="markdown"
-                    value={field.value ?? ''}
-                    onChange={field.onChange}
-                    theme="vs-dark"
-                  />
-                </FormControl>
-                <FormDescription>
-                  Instruct the LLM on how to interpret the document.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="prompt"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Prompt</FormLabel>
-                <FormControl>
-                  <Editor
-                    height="15vh"
-                    language="markdown"
-                    value={field.value ?? ''}
-                    onChange={field.onChange}
-                    theme="vs-dark"
-                  />
-                </FormControl>
-                <FormDescription>
-                  Formulate what you want to evaluate in the document.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <Accordion type="multiple" className="w-full">
+            <AccordionItem
+              value="advanced-options"
+              className="rounded-xl border px-4 mt-2 bg-muted/50"
+            >
+              <AccordionTrigger>Advanced Options</AccordionTrigger>
+              <AccordionContent className="flex flex-col gap-4 text-balance">
+                <FormField
+                  control={form.control}
+                  name="system_prompt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>System Prompt</FormLabel>
+                      <FormControl>
+                        <Editor
+                          height="15vh"
+                          language="markdown"
+                          value={field.value ?? ''}
+                          onChange={field.onChange}
+                          theme="vs-dark"
+                          options={{
+                            wordWrap: 'on',
+                          }}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Instruct the LLM on how to interpret the document.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="prompt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Prompt</FormLabel>
+                      <FormControl>
+                        <Editor
+                          height="15vh"
+                          language="markdown"
+                          value={field.value ?? ''}
+                          onChange={field.onChange}
+                          theme="vs-dark"
+                          options={{
+                            wordWrap: 'on',
+                          }}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Formulate what you want to evaluate in the document.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
 
         <Separator />

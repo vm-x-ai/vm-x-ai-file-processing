@@ -3,6 +3,7 @@ import logging
 import uuid
 from uuid import UUID
 
+from google.protobuf.json_format import MessageToDict
 from temporalio import activity
 from vmxai.types import (
     CompletionBatchItemUpdateCallbackPayload,
@@ -84,6 +85,18 @@ async def store_evaluation(
         else models.FileEvaluationStatus.FAILED
     )
 
+    llm_request = result.payload.request.model_dump(mode="json")
+    llm_response = MessageToDict(result.payload.response)
+
+    if not llm_response or not llm_request:
+        logger.warning(
+            "No LLM request or response for "
+            f"file evaluation {existing_file_evaluation.id}"
+        )
+
+    logger.info(f"LLM request: {type(llm_request)}")
+    logger.info(f"LLM response: {type(llm_response)}")
+
     if existing_file_evaluation:
         logger.info(f"Updating file evaluation {existing_file_evaluation.id}")
         await file_evaluation_repository.update(
@@ -92,6 +105,8 @@ async def store_evaluation(
                 "response": response,
                 "status": status,
                 "error": result.payload.error,
+                "llm_request": llm_request,
+                "llm_response": llm_response,
             },
         )
     else:
@@ -108,6 +123,8 @@ async def store_evaluation(
                 content_id=file_content_id,
                 status=status,
                 error=result.payload.error,
+                llm_request=llm_request or {},
+                llm_response=llm_response or {},
             )
         )
 

@@ -2,6 +2,7 @@ from .evaluation import (
     Evaluation,
     EvaluationCreate,
     EvaluationRead,
+    EvaluationReadWithTemplate,
     EvaluationTree,
     EvaluationType,
 )
@@ -10,6 +11,11 @@ from .evaluation_category import (
     EvaluationCategoryBase,
     EvaluationCategoryCreate,
     EvaluationCategoryRead,
+)
+from .evaluation_template import (
+    EvaluationTemplate,
+    EvaluationTemplateCreate,
+    EvaluationTemplateRead,
 )
 from .file import (
     File,
@@ -43,6 +49,7 @@ from .project import (
     ProjectEvaluationCreate,
     ProjectEvaluationRead,
     ProjectRead,
+    ProjectReadWithStats,
 )
 
 __all__ = [
@@ -71,13 +78,18 @@ __all__ = [
     "ProjectEvaluation",
     "ProjectEvaluationCreate",
     "ProjectEvaluationRead",
+    "ProjectReadWithStats",
     "Evaluation",
     "EvaluationCreate",
     "EvaluationRead",
     "EvaluationType",
     "EvaluationTree",
+    "EvaluationReadWithTemplate",
     "EvaluationCategory",
     "EvaluationCategoryBase",
     "EvaluationCategoryCreate",
     "EvaluationCategoryRead",
+    "EvaluationTemplate",
+    "EvaluationTemplateCreate",
+    "EvaluationTemplateRead",
 ]

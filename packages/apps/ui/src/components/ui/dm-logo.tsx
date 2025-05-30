@@ -26,7 +26,7 @@ export function DMLogo({ className = '', size = 32 }: DMLogoProps) {
         stroke="#e9ecef"
         strokeWidth="1"
       />
-      
+
       {/* Blue D shape - elliptical right half */}
       <path
         d="M 15 15 
@@ -37,7 +37,7 @@ export function DMLogo({ className = '', size = 32 }: DMLogoProps) {
            Z"
         fill="#1e40af"
       />
-      
+
       {/* White M letter */}
       <text
         x="47"
@@ -52,4 +52,4 @@ export function DMLogo({ className = '', size = 32 }: DMLogoProps) {
       </text>
     </svg>
   );
-} 
+}

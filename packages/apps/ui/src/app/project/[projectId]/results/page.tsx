@@ -21,24 +21,31 @@ interface PageProps {
 
 export default function Page({ params }: PageProps) {
   const { projectId } = use(params);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+    null
+  );
   const [results, setResults] = useState<ResultWithEvaluation[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Function to deduplicate results, keeping the most recently updated record
-  const deduplicateResults = (results: ResultWithEvaluation[]): ResultWithEvaluation[] => {
+  const deduplicateResults = (
+    results: ResultWithEvaluation[]
+  ): ResultWithEvaluation[] => {
     const resultMap = new Map<string, ResultWithEvaluation>();
-    
-    results.forEach(result => {
+
+    results.forEach((result) => {
       // Create a unique key based on all the important fields that define a "duplicate"
       const key = `${result.file.id}-${result.evaluation.id}-${result.content.id}-${result.response}`;
-      
+
       const existing = resultMap.get(key);
-      if (!existing || new Date(result.updated_at) > new Date(existing.updated_at)) {
+      if (
+        !existing ||
+        new Date(result.updated_at) > new Date(existing.updated_at)
+      ) {
         resultMap.set(key, result);
       }
     });
-    
+
     return Array.from(resultMap.values());
   };
 
@@ -49,19 +56,21 @@ export default function Page({ params }: PageProps) {
       setLoading(true);
       try {
         // Get evaluations for specific category
-        const { data: evaluations } = await fileClassifierApi.getEvaluationsByCategory({
-          project_id: projectId,
-          category_id: selectedCategoryId as string,
-        });
+        const { data: evaluations } =
+          await fileClassifierApi.getEvaluationsByCategory({
+            project_id: projectId,
+            category_id: selectedCategoryId as string,
+          });
 
         // Get results for each evaluation
         const allResults = await Promise.all(
           evaluations.map(async (evaluation) => {
-            const { data: results } = await fileClassifierApi.getFilesByEvaluation({
-              project_id: projectId,
-              evaluation_id: evaluation.id,
-            });
-            return results.map(result => ({
+            const { data: results } =
+              await fileClassifierApi.getFilesByEvaluation({
+                project_id: projectId,
+                evaluation_id: evaluation.id,
+              });
+            return results.map((result) => ({
               ...result,
               evaluation,
             }));
@@ -99,7 +108,9 @@ export default function Page({ params }: PageProps) {
           <CategoryTabs
             projectId={projectId}
             selectedCategoryId={selectedCategoryId}
-            onCategoryChange={(categoryId: string) => setSelectedCategoryId(categoryId)}
+            onCategoryChange={(categoryId: string) =>
+              setSelectedCategoryId(categoryId)
+            }
           />
           {loading ? (
             <Card>
@@ -125,4 +136,4 @@ export default function Page({ params }: PageProps) {
       </div>
     </div>
   );
-} 
+}

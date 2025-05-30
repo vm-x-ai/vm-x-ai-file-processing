@@ -175,7 +175,7 @@ class UpdateEvaluationWorkflow:
 
             for file_id in files_to_evaluate:
                 await self.process_evaluations(file_id, evaluation.id)
-            
+
             await asyncio.gather(
                 *[
                     workflow.execute_activity(

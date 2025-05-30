@@ -88,6 +88,8 @@ class FileEvaluationBase(SQLModel):
     response: str = Field(sa_type=Text, nullable=False)
     status: FileEvaluationStatus = Field(default=FileEvaluationStatus.PENDING)
     error: str | None = Field(default=None, sa_type=Text)
+    llm_request: dict | None = Field(default=None, sa_type=postgresql.JSONB)
+    llm_response: dict | None = Field(default=None, sa_type=postgresql.JSONB)
 
 
 class FileEvaluation(FileEvaluationBase, table=True):

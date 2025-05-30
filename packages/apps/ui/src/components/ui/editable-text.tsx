@@ -12,7 +12,13 @@ interface EditableTextProps {
   placeholder?: string;
 }
 
-export function EditableText({ value, onSave, onDelete, className = '', placeholder }: EditableTextProps) {
+export function EditableText({
+  value,
+  onSave,
+  onDelete,
+  className = '',
+  placeholder,
+}: EditableTextProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -80,7 +86,7 @@ export function EditableText({ value, onSave, onDelete, className = '', placehol
         onBlur={handleSave}
         className={className}
         placeholder={placeholder}
-        style={{ 
+        style={{
           background: 'transparent',
           border: 'none',
           outline: 'none',
@@ -95,7 +101,7 @@ export function EditableText({ value, onSave, onDelete, className = '', placehol
           color: 'inherit',
           textAlign: 'inherit',
           width: '100%',
-          minWidth: 0
+          minWidth: 0,
         }}
       />
     );
@@ -103,7 +109,9 @@ export function EditableText({ value, onSave, onDelete, className = '', placehol
 
   return (
     <div className="group flex items-center gap-2">
-      <span ref={spanRef} className={className}>{value}</span>
+      <span ref={spanRef} className={className}>
+        {value}
+      </span>
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <Button
           size="sm"
@@ -126,4 +134,4 @@ export function EditableText({ value, onSave, onDelete, className = '', placehol
       </div>
     </div>
   );
-} 
+}

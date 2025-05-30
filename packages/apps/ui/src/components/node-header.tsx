@@ -1,15 +1,15 @@
-import { forwardRef, useCallback, HTMLAttributes, ReactNode } from "react";
-import { useNodeId, useReactFlow } from "@xyflow/react";
-import { EllipsisVertical, Trash } from "lucide-react";
+import { forwardRef, useCallback, HTMLAttributes, ReactNode } from 'react';
+import { useNodeId, useReactFlow } from '@xyflow/react';
+import { EllipsisVertical, Trash } from 'lucide-react';
 
-import { cn } from "@/lib/utils";
-import { Slot } from "@radix-ui/react-slot";
-import { Button, ButtonProps } from "@/components/ui/button";
+import { cn } from '@/lib/utils';
+import { Slot } from '@radix-ui/react-slot';
+import { Button, ButtonProps } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 
 /* NODE HEADER -------------------------------------------------------------- */
 
@@ -26,17 +26,17 @@ export const NodeHeader = forwardRef<HTMLElement, NodeHeaderProps>(
         ref={ref}
         {...props}
         className={cn(
-          "flex items-center justify-between gap-2 px-3 py-2",
+          'flex items-center justify-between gap-2 px-3 py-2',
           // Remove or modify these classes if you modify the padding in the
           // `<BaseNode />` component.
-          className,
+          className
         )}
       />
     );
-  },
+  }
 );
 
-NodeHeader.displayName = "NodeHeader";
+NodeHeader.displayName = 'NodeHeader';
 
 /* NODE HEADER TITLE -------------------------------------------------------- */
 
@@ -52,18 +52,18 @@ export const NodeHeaderTitle = forwardRef<
   HTMLHeadingElement,
   NodeHeaderTitleProps
 >(({ className, asChild, ...props }, ref) => {
-  const Comp = asChild ? Slot : "h3";
+  const Comp = asChild ? Slot : 'h3';
 
   return (
     <Comp
       ref={ref}
       {...props}
-      className={cn(className, "user-select-none flex-1 font-semibold")}
+      className={cn(className, 'user-select-none flex-1 font-semibold')}
     />
   );
 });
 
-NodeHeaderTitle.displayName = "NodeHeaderTitle";
+NodeHeaderTitle.displayName = 'NodeHeaderTitle';
 
 /* NODE HEADER ICON --------------------------------------------------------- */
 
@@ -72,12 +72,12 @@ export type NodeHeaderIconProps = HTMLAttributes<HTMLSpanElement>;
 export const NodeHeaderIcon = forwardRef<HTMLSpanElement, NodeHeaderIconProps>(
   ({ className, ...props }, ref) => {
     return (
-      <span ref={ref} {...props} className={cn(className, "[&>*]:size-5")} />
+      <span ref={ref} {...props} className={cn(className, '[&>*]:size-5')} />
     );
-  },
+  }
 );
 
-NodeHeaderIcon.displayName = "NodeHeaderIcon";
+NodeHeaderIcon.displayName = 'NodeHeaderIcon';
 
 /* NODE HEADER ACTIONS ------------------------------------------------------ */
 
@@ -95,14 +95,14 @@ export const NodeHeaderActions = forwardRef<
       ref={ref}
       {...props}
       className={cn(
-        "ml-auto flex items-center gap-1 justify-self-end",
-        className,
+        'ml-auto flex items-center gap-1 justify-self-end',
+        className
       )}
     />
   );
 });
 
-NodeHeaderActions.displayName = "NodeHeaderActions";
+NodeHeaderActions.displayName = 'NodeHeaderActions';
 
 /* NODE HEADER ACTION ------------------------------------------------------- */
 
@@ -128,19 +128,19 @@ export const NodeHeaderAction = forwardRef<
       variant="ghost"
       aria-label={label}
       title={title ?? label}
-      className={cn(className, "nodrag size-6 p-1")}
+      className={cn(className, 'nodrag size-6 p-1')}
       {...props}
     />
   );
 });
 
-NodeHeaderAction.displayName = "NodeHeaderAction";
+NodeHeaderAction.displayName = 'NodeHeaderAction';
 
 //
 
 export type NodeHeaderMenuActionProps = Omit<
   NodeHeaderActionProps,
-  "onClick"
+  'onClick'
 > & {
   trigger?: ReactNode;
 };
@@ -171,7 +171,7 @@ export const NodeHeaderMenuAction = forwardRef<
   );
 });
 
-NodeHeaderMenuAction.displayName = "NodeHeaderMenuAction";
+NodeHeaderMenuAction.displayName = 'NodeHeaderMenuAction';
 
 /* NODE HEADER DELETE ACTION --------------------------------------- */
 
@@ -190,4 +190,4 @@ export const NodeHeaderDeleteAction = () => {
   );
 };
 
-NodeHeaderDeleteAction.displayName = "NodeHeaderDeleteAction";
+NodeHeaderDeleteAction.displayName = 'NodeHeaderDeleteAction';

@@ -2,7 +2,10 @@
 
 import { fileClassifierApi } from '@/api';
 import { FormAction, FormSchema, schema } from '@/components/evaluation/schema';
-import { HttpEvaluationCreate, HttpEvaluationUpdate } from '@/file-classifier-api';
+import {
+  HttpEvaluationCreate,
+  HttpEvaluationUpdate,
+} from '@/file-classifier-api';
 
 export async function submitForm(
   prevState: FormAction,
@@ -32,6 +35,7 @@ export async function submitForm(
       category_id: data.category_name ? undefined : data.category_id,
       category_name: data.category_name || undefined,
       category_description: data.category_description || undefined,
+      template_id: data.template_id,
     };
 
     const newEvaluation = await fileClassifierApi.createEvaluation(
@@ -73,6 +77,7 @@ export async function submitForm(
       parent_evaluation_id: data.parent_evaluation_id,
       parent_evaluation_option: data.parent_evaluation_option,
       category_id: data.category_id,
+      template_id: data.template_id,
     };
 
     const updatedEvaluation = await fileClassifierApi.updateEvaluation(

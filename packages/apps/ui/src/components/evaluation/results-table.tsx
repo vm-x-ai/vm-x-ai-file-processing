@@ -137,7 +137,10 @@ export function ResultsTable({ data }: ResultsTableProps) {
       id: 'content_content',
       header: 'Content',
       cell: ({ row }) => (
-        <div className="max-w-[300px] truncate" title={row.original.content.content}>
+        <div
+          className="max-w-[300px] truncate"
+          title={row.original.content.content}
+        >
           {row.original.content.content}
         </div>
       ),
@@ -168,13 +171,18 @@ export function ResultsTable({ data }: ResultsTableProps) {
       <div className="flex items-center py-4 gap-4">
         <Input
           placeholder="Filter content..."
-          value={(table.getColumn('content_content')?.getFilterValue() as string) ?? ''}
+          value={
+            (table.getColumn('content_content')?.getFilterValue() as string) ??
+            ''
+          }
           onChange={(event) =>
-            table.getColumn('content_content')?.setFilterValue(event.target.value)
+            table
+              .getColumn('content_content')
+              ?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
-        
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
@@ -184,19 +192,29 @@ export function ResultsTable({ data }: ResultsTableProps) {
           <DropdownMenuContent align="end">
             <DropdownMenuCheckboxItem
               checked={!table.getColumn('response')?.getFilterValue()}
-              onCheckedChange={() => table.getColumn('response')?.setFilterValue(undefined)}
+              onCheckedChange={() =>
+                table.getColumn('response')?.setFilterValue(undefined)
+              }
             >
               All Results
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
-              checked={table.getColumn('response')?.getFilterValue() === 'match'}
-              onCheckedChange={() => table.getColumn('response')?.setFilterValue('match')}
+              checked={
+                table.getColumn('response')?.getFilterValue() === 'match'
+              }
+              onCheckedChange={() =>
+                table.getColumn('response')?.setFilterValue('match')
+              }
             >
               Matches Only
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
-              checked={table.getColumn('response')?.getFilterValue() === 'no-match'}
-              onCheckedChange={() => table.getColumn('response')?.setFilterValue('no-match')}
+              checked={
+                table.getColumn('response')?.getFilterValue() === 'no-match'
+              }
+              onCheckedChange={() =>
+                table.getColumn('response')?.setFilterValue('no-match')
+              }
             >
               No Matches Only
             </DropdownMenuCheckboxItem>
@@ -230,7 +248,7 @@ export function ResultsTable({ data }: ResultsTableProps) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -281,7 +299,7 @@ export function ResultsTable({ data }: ResultsTableProps) {
           </TableBody>
         </Table>
       </div>
-      
+
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} of{' '}
@@ -308,4 +326,4 @@ export function ResultsTable({ data }: ResultsTableProps) {
       </div>
     </div>
   );
-} 
+}
