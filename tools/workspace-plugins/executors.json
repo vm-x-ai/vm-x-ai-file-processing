@@ -1,0 +1,9 @@
+{
+  "executors": {
+    "nest-build": {
+      "implementation": "./dist/executors/nest-build",
+      "schema": "./dist/executors/schema.json",
+      "description": "NestJs Builder"
+    }
+  }
+}

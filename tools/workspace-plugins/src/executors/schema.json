@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "version": 2,
+  "title": "NestBuild executor",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "main": {
+      "type": "string",
+      "description": "The path to the entry file, relative to project.",
+      "alias": "entryFile",
+      "x-completion-type": "file",
+      "x-completion-glob": "**/*@(.js|.ts)",
+      "x-priority": "important"
+    },
+    "outputPath": {
+      "type": "string",
+      "description": "The output path of the generated files.",
+      "x-completion-type": "directory",
+      "x-priority": "important"
+    },
+    "tsConfig": {
+      "type": "string",
+      "description": "The path to tsconfig file.",
+      "x-completion-type": "file",
+      "x-completion-glob": "tsconfig.*.json",
+      "x-priority": "important"
+    },
+    "format": {
+      "type": "array",
+      "description": "List of module formats to output. Defaults to matching format from tsconfig (e.g. CJS for CommonJS, and ESM otherwise).",
+      "alias": "f",
+      "items": {
+        "type": "string",
+        "enum": ["esm", "cjs"]
+      },
+      "default": ["esm"]
+    },
+    "external": {
+      "type": "array",
+      "description": "Mark one or more module as external. Can use * wildcards, such as '*.png'.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "generatePackageJson": {
+      "type": "boolean",
+      "description": "Generates a `package.json` and pruned lock file with the project's `node_module` dependencies populated for installing in a container. If a `package.json` exists in the project's directory, it will be reused with dependencies populated.",
+      "default": true
+    },
+    "thirdParty": {
+      "type": "boolean",
+      "description": "Includes third-party packages in the bundle (i.e. npm packages)."
+    }
+  },
+  "required": []
+}

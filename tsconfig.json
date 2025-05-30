@@ -5,6 +5,9 @@
   "references": [
     {
       "path": "./packages/apps/ui"
+    },
+    {
+      "path": "./tools/workspace-plugins"
     }
   ]
 }
