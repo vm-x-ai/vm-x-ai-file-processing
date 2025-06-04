@@ -35,8 +35,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: 'VM-X AI File Classifier',
-  description: 'VM-X AI File Classifier',
+  title: 'Diligence Machine',
+  description: 'Diligence Machine',
 };
 
 type RootLayoutProps = {
