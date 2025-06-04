@@ -1,5 +1,5 @@
 {
-  "name": "@vm-x-ai-file-classifier/source",
+  "name": "@dm/source",
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {},
@@ -22,6 +22,9 @@
     "tw-animate-css": "^1.3.0"
   },
   "devDependencies": {
+    "aws-cdk": "^2.1017.1",
+    "aws-cdk-lib": "^2.200.1",
+    "constructs": "^10.4.2",
     "@eslint/compat": "^1.1.1",
     "@eslint/eslintrc": "^2.1.1",
     "@eslint/js": "^9.8.0",

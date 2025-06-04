@@ -4,6 +4,30 @@
   "projectType": "application",
   "sourceRoot": "packages/workflows/ingestion/ingestion_workflow",
   "targets": {
+    "cdk-bootstrap": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cdk bootstrap",
+        "cwd": "{projectRoot}"
+      },
+      "configurations": {
+        "dev": {
+          "command": "cdk bootstrap -c stage=dev"
+        }
+      }
+    },
+    "cdk-deploy": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cdk deploy",
+        "cwd": "{projectRoot}"
+      },
+      "configurations": {
+        "dev": {
+          "command": "cdk deploy -c stage=dev"
+        }
+      }
+    },
     "docker-compose-up": {
       "executor": "nx:run-commands",
       "options": {

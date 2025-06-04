@@ -1,7 +1,9 @@
 packages:
   - 'packages/*'
   - 'packages/apps/*'
+  - 'packages/workflows/*'
   - 'tools/*'
+  - 'packages/infra/cdk/*'
+  - 'packages/infra/*'
 onlyBuiltDependencies:
-  - '@swc/core'
-  - 'nx'
+  - 'esbuild'

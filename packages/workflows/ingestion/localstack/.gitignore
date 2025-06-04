@@ -1,5 +1,0 @@
-.terraform.lock.hcl
-.terraform
-.tf/terraform.tfstate
-.tf/terraform.tfstate.backup
-output_values.txt

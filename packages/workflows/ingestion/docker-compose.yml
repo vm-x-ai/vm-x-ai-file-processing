@@ -78,24 +78,6 @@ services:
     ports:
       - 8080:8080
 
-  localstack:
-    image: localstack/localstack
-    networks:
-      - temporal-network
-    ports:
-      - '127.0.0.1:4566:4566'
-      - '127.0.0.1:4510-4559:4510-4559'
-    environment:
-      AWS_DEFAULT_REGION: us-east-1
-      SERVICES: s3,kms,iam,sts,sns
-      TEST_AWS_ACCOUNT_ID: '000000000000'
-      SKIP_SSL_CERT_DOWNLOAD: 1
-    volumes:
-      - './localstack:/etc/localstack/init/ready.d'
-      - './.tf:/etc/localstack/init/ready.d/root-tf'
-
-      - '/var/run/docker.sock:/var/run/docker.sock'
-
   app-postgresql:
     container_name: app-postgresql
     environment:

@@ -20,7 +20,7 @@ project.json
   "name": "api",
   "targets": {
     "build": {
-      "executor": "@vm-x-ai-file-classifier/workspace-plugins:nest-build",
+      "executor": "@dm/workspace-plugins:nest-build",
       "options": {
         "main": "src/main.ts",
         "outputPath": "{projectRoot}/dist",

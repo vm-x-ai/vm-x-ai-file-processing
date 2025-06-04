@@ -54,3 +54,6 @@ test-output
 
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
+
+# CDK
+cdk.out

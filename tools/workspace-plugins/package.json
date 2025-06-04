@@ -1,5 +1,5 @@
 {
-  "name": "@vm-x-ai-file-classifier/workspace-plugins",
+  "name": "@dm/workspace-plugins",
   "version": "0.0.1",
   "private": true,
   "main": "./dist/index.js",

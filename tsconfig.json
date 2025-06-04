@@ -8,6 +8,15 @@
     },
     {
       "path": "./tools/workspace-plugins"
+    },
+    {
+      "path": "./packages/infra/cdk/shared"
+    },
+    {
+      "path": "./packages/infra/network"
+    },
+    {
+      "path": "./packages/workflows/ingestion"
     }
   ]
 }

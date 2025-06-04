@@ -1,0 +1,12 @@
+{
+  "name": "@dm/ingestion",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "aws-cdk-lib": "^2.200.1",
+    "constructs": "^10.4.2",
+    "tslib": "^2.3.0",
+    "@dm/infra-cdk-shared": "file:../../infra/cdk/shared"
+  }
+}
