@@ -6,7 +6,7 @@ export const stages = [
     apiRootDomainName: 'TBC',
     region: 'us-east-1',
     isProd: false,
-    cidr: '10.1.0.0/16'
+    cidr: '10.1.0.0/16',
   },
   {
     accountId: '978398161683',
@@ -15,8 +15,8 @@ export const stages = [
     apiRootDomainName: 'TBC',
     region: 'us-east-1',
     isProd: false,
-    cidr: '10.0.0.0/16'
-  }
+    cidr: '10.0.0.0/16',
+  },
 ];
 
 export const getStages = (env?: string) => {

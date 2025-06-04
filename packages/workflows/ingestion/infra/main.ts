@@ -7,10 +7,10 @@ const stageMap: Record<string, { ingestionUrls: string[] }> = {
   dev: {
     ingestionUrls: [
       // Lucas's local ngrok
-      'https://e975-2804-1b3-aec1-6963-e95f-f8fe-4e03-36cb.ngrok-free.app/ingest'
-    ]
-  }
-}
+      'https://chamois-accepted-bluebird.ngrok-free.app/ingest',
+    ],
+  },
+};
 
 const app = new cdk.App();
 for (const stage of getStages(app.node.tryGetContext('stage') ?? 'dev')) {

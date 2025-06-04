@@ -1,109 +1,143 @@
-# VmXAiFileClassifier
+# Diligence Machines Platform
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+## Getting Started
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+### Prerequisites
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/js?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+You will need the following tools installed on your machine:
 
-## Generate a library
+- Node.js (v20+) ([NVM](https://github.com/nvm-sh/nvm) recommended)
+- [PNPM](https://pnpm.io/installation) Node.js package manager
+- [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) AWS command line tool
+- [Docker](https://docs.docker.com/desktop/setup/install/mac-install/) Docker container runtime
+- [ngrok](https://ngrok.com/docs/getting-started/) Local development tool for exposing local services to the internet
+- [UV](https://docs.astral.sh/uv/getting-started/installation/) Python package manager
 
-```sh
-npx nx g @nx/js:lib packages/pkg1 --publishable --importPath=@my-org/pkg1
+### Install Dependencies
+
+Install the Node.js dependencies:
+
+```bash
+pnpm install
 ```
 
-## Run tasks
+Install the Python dependencies:
 
-To build the library use:
-
-```sh
-npx nx build pkg1
+```bash
+uv sync
 ```
 
-To run any task with Nx use:
+### Configure AWS CLI Profile
 
-```sh
-npx nx <target> <project-name>
+Add the following content to your `~/.aws/config` file:
+
+```text
+[profile dm-app-dev]
+sso_start_url = https://diligencemachines.awsapps.com/start
+sso_region = us-east-1
+sso_account_id = 978398161683
+sso_role_name = AWSAdministratorAccess
+region = us-east-1
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+Run the command below to login to the AWS SSO:
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Versioning and releasing
-
-To version and release the library use
-
-```
-npx nx release
+```bash
+aws sso login --profile dm-app-dev
 ```
 
-Pass `--dry-run` to see what would happen without actually releasing the library.
+### Start Temporal Containers
 
-[Learn more about Nx release &raquo;](hhttps://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Keep TypeScript project references up to date
-
-Nx automatically updates TypeScript [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) in `tsconfig.json` files to ensure they remain accurate based on your project dependencies (`import` or `require` statements). This sync is automatically done when running tasks such as `build` or `typecheck`, which require updated references to function correctly.
-
-To manually trigger the process to sync the project graph dependencies information to the TypeScript project references, run the following command:
-
-```sh
-npx nx sync
+```bash
+pnpm nx run ingestion-workflow:docker-compose-up
 ```
 
-You can enforce that the TypeScript project references are always in the correct state when running in CI by adding a step to your CI job configuration that runs the following command:
+### Start Ngrok
 
-```sh
-npx nx sync:check
+Please make sure you created a static ngrok domain in the [ngrok dashboard](https://dashboard.ngrok.com/domains).
+
+```bash
+ngrok http --url=<STATIC_DOMAIN> 8000
 ```
 
-[Learn more about nx sync](https://nx.dev/reference/nx-commands#sync)
+**NOTE:** Make sure you're authenticated with ngrok.
 
-## Set up CI!
+Copy the ngrok url, and update the `packages/workflows/ingestion/infra/main.ts` file.
 
-### Step 1
+```typescript
+#!/usr/bin/env node
+import * as cdk from 'aws-cdk-lib';
+import { getStages } from '@dm/infra-cdk-shared';
+import { IngestionWorkflowStorageStack } from './stacks/storage-stack.js';
 
-To connect to Nx Cloud, run the following command:
-
-```sh
-npx nx connect
+const stageMap: Record<string, { ingestionUrls: string[] }> = {
+  dev: {
+    ingestionUrls: [
+      // Lucas's local ngrok
+      'https://chamois-accepted-bluebird.ngrok-free.app/ingest',
+      // YOUR NGROK URL here
+      // e.g. 'https://<your-ngrok-url>/ingest'
+    ],
+  },
+};
 ```
 
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
+### Add Environment Variables files
 
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+`packages/workflows/ingestion/.env.local`
 
-### Step 2
+Copy the content from the [1Password note](https://share.1password.com/s#7jQbyl8p8zb3s0slhANUhZnVCil8R9cDuvO7q7r7_oY)
 
-Use the following command to configure a CI workflow for your workspace:
+Update the `INGESTION_CALLBACK_URL` with your ngrok url.
 
-```sh
-npx nx g ci-workflow
+`packages/apps/api/.env.local`
+
+Copy the content from the [1Password note](https://share.1password.com/s#MSMPfyoPU97KKD-WB-I4mRuZKYF6MCuSHHtXoJ1_Cco)
+
+`packages/apps/ui/.env.local`
+
+Copy the content from the [1Password note](https://share.1password.com/s#u54oTXSFlwU06wvLqQ7SCyaMj0lmCAHtyCIbU806wXI)
+
+### Apply Database Migrations
+
+```bash
+pnpm nx run py-db-models:alembic-upgrade
 ```
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### Start the Workflow Worker
 
-## Install Nx Console
+```bash
+pnpm nx run ingestion-workflow:serve
+```
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+### Start the Application
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+```bash
+pnpm nx run api:serve
+```
 
-## Useful links
+### Update the Workflow Infra Stack
 
-Learn more:
+```bash
+pnpm nx run ingestion-workflow:cdk-deploy:dev
+```
 
-- [Learn more about this workspace setup](https://nx.dev/nx-api/js?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### Start the UI
 
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+```bash
+pnpm nx run ui:dev
+```
+
+Useful URLs:
+
+- [Temporal UI](http://localhost:8080/)
+- [UI](http://localhost:3002/)
+- [API OpenAPI Spec](http://localhost:8000/docs)
+
+Local Database Details:
+
+- Host: `localhost`
+- Port: `5433`
+- Database: `ingestion`
+- Username: `app`
+- Password: `app`

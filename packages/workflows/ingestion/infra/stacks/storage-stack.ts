@@ -65,11 +65,15 @@ export class IngestionWorkflowStorageStack extends cdk.Stack {
     );
 
     for (const ingestionUrl of props.ingestionUrls) {
-      new sns.Subscription(this, `IngestionWorkflowTriggerSubscription-${ingestionUrl}`, {
-        endpoint: ingestionUrl,
-        protocol: sns.SubscriptionProtocol.HTTPS,
-        topic: this.workflowTriggerTopic,
-      });
+      new sns.Subscription(
+        this,
+        `IngestionWorkflowTriggerSubscription-${ingestionUrl}`,
+        {
+          endpoint: ingestionUrl,
+          protocol: sns.SubscriptionProtocol.HTTPS,
+          topic: this.workflowTriggerTopic,
+        }
+      );
     }
   }
 }
