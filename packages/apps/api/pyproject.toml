@@ -1,0 +1,87 @@
+[tool.coverage.run]
+branch = true
+source = [ "api" ]
+
+[tool.coverage.report]
+exclude_lines = ['if TYPE_CHECKING:']
+show_missing = true
+
+[tool.pytest.ini_options]
+addopts = """
+ --cov
+ --cov-report html:'../../../coverage/packages/apps/api/html'
+ --cov-report xml:'../../../coverage/packages/apps/api/coverage.xml'
+ --html='../../../reports/packages/apps/api/unittests/html/index.html'
+ --junitxml='../../../reports/packages/apps/api/unittests/junit.xml'
+"""
+
+[project]
+name = "api"
+version = "1.0.0"
+description = "API"
+requires-python = ">=3.9,<4"
+readme = 'README.md'
+dependencies = [
+    "dependency-injector>=4.46.0",
+    "fastapi>=0.115.12",
+    "dm-py-db-models",
+    "dm-py-db-repositories",
+    "dm-py-db-services",
+    "dm-py-schemas",
+    "dm-py-logger",
+    "dm-py-services",
+    "dm-py-utils",
+    "temporalio>=1.11.1",
+    "uvicorn>=0.34.2",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["api"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+exclude = [
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  "dist",
+]
+
+line-length = 88
+indent-width = 4
+
+[tool.ruff.lint]
+select = [
+  # pycodestyle
+  "E",
+  # Pyflakes
+  "F",
+  # pyupgrade
+  "UP",
+  # flake8-bugbear
+  "B",
+  # flake8-simplify
+  "SIM",
+  # isort
+  "I",
+]
+ignore = [ "B008" ]
+
+fixable = ["ALL"]
+unfixable = []
+
+[tool.uv.sources]
+dm-py-utils = { workspace = true }
+dm-py-db-models = { workspace = true }
+dm-py-db-repositories = { workspace = true }
+dm-py-services = { workspace = true }
+dm-py-db-services = { workspace = true }
+dm-py-logger = { workspace = true }
+dm-py-schemas = { workspace = true }

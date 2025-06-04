@@ -52,11 +52,7 @@ export function EvaluationTemplate({
           <AccordionTrigger>
             <div>
               <strong>{data.name}</strong>
-              {data.default && (
-                <Badge className="ml-2">
-                  Default
-                </Badge>
-              )}
+              {data.default && <Badge className="ml-2">Default</Badge>}
             </div>
           </AccordionTrigger>
           <div className="ml-auto">

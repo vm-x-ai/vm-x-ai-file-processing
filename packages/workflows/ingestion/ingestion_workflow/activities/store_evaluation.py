@@ -3,6 +3,7 @@ import logging
 import uuid
 from uuid import UUID
 
+import dm_db_models
 from google.protobuf.json_format import MessageToDict
 from temporalio import activity
 from vmxai.types import (
@@ -10,7 +11,6 @@ from vmxai.types import (
     CompletionBatchRequestStatus,
 )
 
-from ingestion_workflow import models
 from ingestion_workflow.containers import Container
 
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ async def store_evaluation(
     response: str | None = None
 
     match evaluation.evaluation_type:
-        case models.EvaluationType.BOOLEAN:
+        case dm_db_models.EvaluationType.BOOLEAN:
             if not result.payload.response.tool_calls:
                 raise ValueError("No tool calls from VMX")
 
@@ -53,7 +53,7 @@ async def store_evaluation(
 
             boolean_answer = json.loads(boolean_answer)
             response = str(boolean_answer["answer"]).lower()
-        case models.EvaluationType.ENUM_CHOICE:
+        case dm_db_models.EvaluationType.ENUM_CHOICE:
             if not result.payload.response.tool_calls:
                 raise ValueError("No tool calls from VMX")
 
@@ -67,7 +67,7 @@ async def store_evaluation(
 
             enum_answer = json.loads(enum_answer)
             response = enum_answer["answer"]
-        case models.EvaluationType.TEXT:
+        case dm_db_models.EvaluationType.TEXT:
             response = result.payload.response.message
 
     file_evaluation_repository = Container.file_evaluation_repository()
@@ -80,9 +80,9 @@ async def store_evaluation(
     )
 
     status = (
-        models.FileEvaluationStatus.COMPLETED
+        dm_db_models.FileEvaluationStatus.COMPLETED
         if result.payload.status == CompletionBatchRequestStatus.COMPLETED
-        else models.FileEvaluationStatus.FAILED
+        else dm_db_models.FileEvaluationStatus.FAILED
     )
 
     llm_request = result.payload.request.model_dump(mode="json")
@@ -115,7 +115,7 @@ async def store_evaluation(
             f"evaluation_id: {evaluation_id}, content_id: {file_content_id}"
         )
         await file_evaluation_repository.add(
-            models.FileEvaluationCreate(
+            dm_db_models.FileEvaluationCreate(
                 id=uuid.uuid4(),
                 file_id=file.id,
                 evaluation_id=evaluation_id,

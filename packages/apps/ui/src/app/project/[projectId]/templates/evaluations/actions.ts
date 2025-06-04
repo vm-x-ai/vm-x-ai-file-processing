@@ -1,7 +1,11 @@
 'use server';
 
 import { fileClassifierApi } from '@/api';
-import { FormAction, FormSchema, schema } from '@/components/evaluation-template/schema';
+import {
+  FormAction,
+  FormSchema,
+  schema,
+} from '@/components/evaluation-template/schema';
 import {
   HttpEvaluationTemplateCreate,
   HttpEvaluationTemplateUpdate,

@@ -2,7 +2,11 @@
 
 import { Accordion } from '@/components/ui/accordion';
 import { Evaluation } from '@/components/evaluation';
-import { EvaluationTree, EvaluationCategoryRead, EvaluationTemplateRead } from '@/file-classifier-api';
+import {
+  EvaluationTree,
+  EvaluationCategoryRead,
+  EvaluationTemplateRead,
+} from '@/file-classifier-api';
 import { FormAction, FormSchema } from './schema';
 import { useState, useMemo, useEffect } from 'react';
 import { Button } from '../ui/button';

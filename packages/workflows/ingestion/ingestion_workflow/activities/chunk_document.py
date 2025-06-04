@@ -2,12 +2,12 @@ import logging
 import uuid
 from uuid import UUID
 
+import dm_db_models
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pydantic import BaseModel
 from temporalio import activity
 
-from ingestion_workflow import models
 from ingestion_workflow.containers import Container
 
 logger = logging.getLogger(__name__)
@@ -45,12 +45,12 @@ async def chunk_document(
     result = text_splitter.split_documents([document])
     logger.info(f"Split {len(result)} chunks")
 
-    await file_repository.update(file_id, {"status": models.FileStatus.CHUNKED})
+    await file_repository.update(file_id, {"status": dm_db_models.FileStatus.CHUNKED})
 
     logger.info("Adding chunks to database")
     chunks = await file_embedding_repository.add_all(
         [
-            models.FileEmbeddingCreate(
+            dm_db_models.FileEmbeddingCreate(
                 id=uuid.uuid4(),
                 file_id=file_id,
                 chunk_number=chunk_number + 1,
@@ -59,7 +59,7 @@ async def chunk_document(
                 content=chunk.page_content,
                 project_id=project_id,
                 embedding=None,
-                status=models.FileEmbeddingStatus.CHUNKED,
+                status=dm_db_models.FileEmbeddingStatus.CHUNKED,
             )
             for chunk_number, chunk in enumerate(result)
         ],

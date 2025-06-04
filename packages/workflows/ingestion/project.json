@@ -13,13 +13,6 @@
     },
     "serve": {
       "executor": "@nxlv/python:run-commands",
-      "options": {
-        "command": "python ingestion_workflow/api/__init__.py",
-        "cwd": "{projectRoot}"
-      }
-    },
-    "serve-worker": {
-      "executor": "@nxlv/python:run-commands",
       "continuous": true,
       "options": {
         "command": "python ingestion_workflow/worker.py",
@@ -76,7 +69,7 @@
       "executor": "@nxlv/python:ruff-format",
       "outputs": [],
       "options": {
-        "filePatterns": ["ingestion_workflow", "tests", "alembic"]
+        "filePatterns": ["ingestion_workflow", "tests"]
       },
       "cache": true
     },
@@ -100,33 +93,12 @@
         "verbose": false,
         "debug": false
       }
-    },
-    "alembic-revision": {
-      "executor": "@nxlv/python:run-commands",
-      "options": {
-        "command": "alembic revision",
-        "cwd": "{projectRoot}"
-      }
-    },
-    "alembic-upgrade": {
-      "executor": "@nxlv/python:run-commands",
-      "options": {
-        "command": "alembic upgrade head",
-        "cwd": "{projectRoot}"
-      }
-    },
-    "alembic-downgrade": {
-      "executor": "@nxlv/python:run-commands",
-      "options": {
-        "command": "alembic downgrade",
-        "cwd": "{projectRoot}"
-      }
     }
   },
-  "tags": [],
+  "tags": ["temporal", "python", "workflow"],
   "release": {
     "version": {
-      "generator": "@nxlv/python:release-version"
+      "versionActions": "@nxlv/python/src/release/version-actions"
     }
   }
 }

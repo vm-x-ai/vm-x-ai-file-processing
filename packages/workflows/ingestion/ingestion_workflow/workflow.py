@@ -4,12 +4,11 @@ from datetime import timedelta
 from typing import Optional
 from uuid import UUID
 
+import dm_db_models
+from dm_schemas.s3 import S3Event
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 from temporalio.exceptions import ApplicationError
-
-from ingestion_workflow import models
-from ingestion_workflow.schema.s3 import S3Event
 
 with workflow.unsafe.imports_passed_through():
     from vmxai.types import CompletionBatchItemUpdateCallbackPayload
@@ -23,7 +22,7 @@ DEFAULT_RETRY_POLICY = RetryPolicy(maximum_attempts=3)
 DEFAULT_TIMEOUT = timedelta(seconds=300)
 
 
-@workflow.defn
+@workflow.defn(name="IngestionWorkflow")
 class IngestionWorkflow:
     @workflow.run
     async def run(self, message: S3Event) -> dict:
@@ -74,7 +73,7 @@ class IngestionWorkflow:
 
             await workflow.execute_activity(
                 activities.update_file_status,
-                args=[load_output.file_id, models.FileStatus.COMPLETED],
+                args=[load_output.file_id, dm_db_models.FileStatus.COMPLETED],
                 start_to_close_timeout=DEFAULT_TIMEOUT,
                 retry_policy=DEFAULT_RETRY_POLICY,
             )
@@ -86,7 +85,7 @@ class IngestionWorkflow:
             if load_output.file_id:
                 await workflow.execute_activity(
                     activities.update_file_status,
-                    args=[load_output.file_id, models.FileStatus.FAILED],
+                    args=[load_output.file_id, dm_db_models.FileStatus.FAILED],
                     start_to_close_timeout=DEFAULT_TIMEOUT,
                     retry_policy=DEFAULT_RETRY_POLICY,
                 )
@@ -155,13 +154,13 @@ class IngestionWorkflow:
             self.evaluations_map[evaluation_key] = evaluation_id
 
 
-@workflow.defn
+@workflow.defn(name="UpdateEvaluationWorkflow")
 class UpdateEvaluationWorkflow:
     @workflow.run
     async def run(
         self,
-        evaluation: models.EvaluationRead,
-        old_evaluation: models.EvaluationRead | None = None,
+        evaluation: dm_db_models.EvaluationRead,
+        old_evaluation: dm_db_models.EvaluationRead | None = None,
     ):
         try:
             files_to_evaluate = await workflow.execute_activity(
@@ -180,7 +179,7 @@ class UpdateEvaluationWorkflow:
                 *[
                     workflow.execute_activity(
                         activities.update_file_status,
-                        args=[file_id, models.FileStatus.COMPLETED],
+                        args=[file_id, dm_db_models.FileStatus.COMPLETED],
                         start_to_close_timeout=DEFAULT_TIMEOUT,
                         retry_policy=DEFAULT_RETRY_POLICY,
                     )

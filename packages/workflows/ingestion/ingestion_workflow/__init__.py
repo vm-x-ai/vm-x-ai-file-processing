@@ -1,4 +1,3 @@
-import logging
+from dm_logger import setup_logger
 
-logging.basicConfig(level=logging.INFO)
-logging.getLogger("sqlalchemy").setLevel(logging.ERROR)
+setup_logger()

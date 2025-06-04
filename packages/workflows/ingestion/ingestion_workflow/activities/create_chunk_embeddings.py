@@ -1,10 +1,10 @@
 import logging
 import uuid
 
+import dm_db_models
 from langchain_openai import OpenAIEmbeddings
 from temporalio import activity
 
-from ingestion_workflow import models
 from ingestion_workflow.containers import Container
 
 logger = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ async def create_chunk_embeddings(
     file_repository = Container.file_repository()
     settings = Container.settings()
 
-    await file_repository.update(file_id, {"status": models.FileStatus.EMBEDDING})
+    await file_repository.update(file_id, {"status": dm_db_models.FileStatus.EMBEDDING})
 
     logger.info(f"Creating embeddings for chunk {chunk_number}")
     embeddings = OpenAIEmbeddings(
@@ -41,10 +41,10 @@ async def create_chunk_embeddings(
         {
             "chunk_number": chunk_number,
             "embedding": embedding[0],
-            "status": models.FileEmbeddingStatus.EMBEDDED,
+            "status": dm_db_models.FileEmbeddingStatus.EMBEDDED,
         },
     )
 
     logger.info(f"Updated embedding for chunk {chunk_number} to database")
 
-    await file_repository.update(file_id, {"status": models.FileStatus.EMBEDDED})
+    await file_repository.update(file_id, {"status": dm_db_models.FileStatus.EMBEDDED})

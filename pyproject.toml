@@ -1,15 +1,61 @@
 [project]
 name = "nx-workspace"
 version = "1.0.0"
-dependencies = [ "ingestion-workflow", "utils" ]
+dependencies = [
+  "ingestion-workflow",
+  "dm-py-utils",
+  "api",
+  "dm-py-db-models",
+  "dm-py-db-repositories",
+  "dm-py-services",
+  "dm-py-db-services",
+  "dm-py-temporal-utils",
+  "dm-py-logger",
+  "dm-py-schemas"
+]
 
 [tool.uv.workspace]
-members = [ "packages/libs/utils", "packages/workflows/ingestion" ]
+members = [
+  "packages/apps/api",
+  "packages/libs/py/utils",
+  "packages/libs/py/db/models",
+  "packages/workflows/ingestion",
+  "packages/libs/py/db/repositories",
+  "packages/libs/py/services",
+  "packages/libs/py/db/services",
+  "packages/libs/py/temporal/utils",
+  "packages/libs/py/logger",
+  "packages/libs/py/schemas"
+]
 
 [tool.uv.sources.ingestion-workflow]
 workspace = true
 
-[tool.uv.sources.utils]
+[tool.uv.sources.dm-py-utils]
+workspace = true
+
+[tool.uv.sources.api]
+workspace = true
+
+[tool.uv.sources.dm-py-db-models]
+workspace = true
+
+[tool.uv.sources.dm-py-db-repositories]
+workspace = true
+
+[tool.uv.sources.dm-py-services]
+workspace = true
+
+[tool.uv.sources.dm-py-db-services]
+workspace = true
+
+[tool.uv.sources.dm-py-temporal-utils]
+workspace = true
+
+[tool.uv.sources.dm-py-logger]
+workspace = true
+
+[tool.uv.sources.dm-py-schemas]
 workspace = true
 
 [dependency-groups]
@@ -20,5 +66,5 @@ dev = [
   "pytest-sugar>=1.0.0",
   "pytest-cov>=6.0.0",
   "pytest-html>=4.1.1",
-  "watchdog>=6.0.0",
+  "watchdog>=6.0.0"
 ]

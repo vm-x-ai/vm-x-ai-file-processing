@@ -2,6 +2,7 @@ import logging
 from typing import Optional
 from uuid import UUID
 
+import dm_db_models
 from pydantic import BaseModel
 from temporalio import activity
 from vmxai import (
@@ -17,7 +18,6 @@ from vmxai.types import (
     RequestMessage,
 )
 
-from ingestion_workflow import models
 from ingestion_workflow.containers import Container
 
 logger = logging.getLogger(__name__)
@@ -46,7 +46,9 @@ async def start_evaluations(
     if not file:
         raise ValueError(f"File {file_id} not found")
 
-    await file_repository.update(file_id, {"status": models.FileStatus.EVALUATING})
+    await file_repository.update(
+        file_id, {"status": dm_db_models.FileStatus.EVALUATING}
+    )
 
     logger.info(f"Starting evaluations for file {file_id}")
     logger.info(f"Getting questions for project {file.project_id}")
@@ -118,7 +120,7 @@ async def start_evaluations(
             )
 
             match evaluation.evaluation_type:
-                case models.EvaluationType.BOOLEAN:
+                case dm_db_models.EvaluationType.BOOLEAN:
                     request.tools = [
                         RequestTools(
                             type="function",
@@ -144,7 +146,7 @@ async def start_evaluations(
                             name="boolean_answer",
                         ),
                     )
-                case models.EvaluationType.ENUM_CHOICE:
+                case dm_db_models.EvaluationType.ENUM_CHOICE:
                     request.tools = [
                         RequestTools(
                             type="function",

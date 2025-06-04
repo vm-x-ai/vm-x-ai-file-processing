@@ -33,7 +33,14 @@ indent-width = 4
   unfixable = [ ]
 
 [tool.uv.sources]
-utils = { workspace = true }
+dm-py-utils = { workspace = true }
+dm-py-db-models = { workspace = true }
+dm-py-db-repositories = { workspace = true }
+dm-py-services = { workspace = true }
+dm-py-db-services = { workspace = true }
+dm-py-temporal-utils = { workspace = true }
+dm-py-logger = { workspace = true }
+dm-py-schemas = { workspace = true }
 
 [project]
 name = "ingestion-workflow"
@@ -43,25 +50,23 @@ requires-python = ">=3.9,<4"
 readme = "README.md"
 dependencies = [
  "aioboto3>=14.3.0",
- "alembic>=1.15.2",
  "dependency-injector>=4.46.0",
- "fastapi>=0.115.12",
- "jinja2>=3.1.6",
  "langchain-community>=0.3.24",
  "langchain-openai>=0.3.16",
  "langchain-text-splitters>=0.3.8",
- "numpydantic>=1.6.9",
  "pdf2image>=1.17.0",
- "pgvector>=0.4.1",
- "psycopg[binary]>=3.2.8",
  "pypdf>=5.5.0",
- "sqlalchemy[asyncio]>=2.0.40",
- "sqlmodel>=0.0.24",
  "temporalio>=1.11.1",
  "tiktoken>=0.9.0",
- "utils",
- "uvicorn>=0.34.2",
+ "dm-py-utils",
  "vm-x-ai-sdk==1.6.2",
+ "dm-py-db-models",
+ "dm-py-db-repositories",
+ "dm-py-services",
+ "dm-py-db-services",
+ "dm-py-temporal-utils",
+ "dm-py-logger",
+ "dm-py-schemas",
 ]
 
 [build-system]

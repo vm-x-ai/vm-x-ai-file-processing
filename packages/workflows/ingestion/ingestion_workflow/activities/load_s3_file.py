@@ -6,14 +6,14 @@ import uuid
 from io import BytesIO
 from uuid import UUID
 
+import dm_db_models
+from dm_schemas.s3 import S3Event
 from langchain_community.document_loaders import PyPDFLoader
 from pdf2image import convert_from_path
 from pydantic import BaseModel
 from temporalio import activity
 
-from ingestion_workflow import models
 from ingestion_workflow.containers import Container
-from ingestion_workflow.schema.s3 import S3Event
 
 logger = logging.getLogger(__name__)
 
@@ -70,13 +70,13 @@ async def load_s3_file(
                 if not file_id:
                     file_id = uuid.uuid4()
                     file = await file_repository.add(
-                        models.FileCreate(
+                        dm_db_models.FileCreate(
                             id=file_id,
                             name=file_name,
                             type=mimetypes.guess_type(file_name)[0],
                             project_id=project.id,
                             size=record.s3.object.size,
-                            status=models.FileStatus.CHUNKING,
+                            status=dm_db_models.FileStatus.CHUNKING,
                             url=f"s3://{record.s3.bucket.name}/{record.s3.object.key}",
                             thumbnail_url=None,
                             error=None,
@@ -99,7 +99,7 @@ async def load_s3_file(
                         docs = await loader.aload()
                         contents = await file_content_repository.add_all(
                             [
-                                models.FileContentCreate(
+                                dm_db_models.FileContentCreate(
                                     id=uuid.uuid4(),
                                     file_id=file.id,
                                     content_number=idx + 1,
@@ -122,9 +122,9 @@ async def load_s3_file(
 
 
 async def _generate_pdf_thumbnail(
-    project: models.ProjectRead,
+    project: dm_db_models.ProjectRead,
     temp_file: tempfile.NamedTemporaryFile,
-    file: models.FileRead,
+    file: dm_db_models.FileRead,
 ):
     file_repository = Container.file_repository()
     settings = Container.settings()

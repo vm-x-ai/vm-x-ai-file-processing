@@ -1,9 +1,9 @@
 import logging
 from uuid import UUID
 
+import dm_db_models
 from temporalio import activity
 
-from ingestion_workflow import models
 from ingestion_workflow.containers import Container
 
 logger = logging.getLogger(__name__)
@@ -11,8 +11,8 @@ logger = logging.getLogger(__name__)
 
 @activity.defn
 async def get_files_to_evaluate(
-    evaluation: models.EvaluationRead,
-    old_evaluation: models.EvaluationRead | None = None,
+    evaluation: dm_db_models.EvaluationRead,
+    old_evaluation: dm_db_models.EvaluationRead | None = None,
 ) -> list[UUID]:
     file_evaluation_repository = Container.file_evaluation_repository()
     file_repository = Container.file_repository()
@@ -47,7 +47,7 @@ async def get_files_to_evaluate(
     else:
         files = await file_repository.get_by_project_id(evaluation.project_id)
         for file in files:
-            if file.status == models.FileStatus.COMPLETED:
+            if file.status == dm_db_models.FileStatus.COMPLETED:
                 result.append(file.id)
 
     return result

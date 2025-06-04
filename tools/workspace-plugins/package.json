@@ -46,7 +46,9 @@
   },
   "dependencies": {
     "@nx/devkit": "21.0.3",
-    "tslib": "^2.3.0"
+    "tslib": "^2.3.0",
+    "@nx/js": "21.0.3",
+    "@nx/esbuild": "21.0.3"
   },
   "executors": "./executors.json",
   "files": [
