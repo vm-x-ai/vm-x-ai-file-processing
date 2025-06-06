@@ -1,53 +1,9 @@
 {
-  "name": "ingestion-workflow",
+  "name": "workflow-ingestion",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
-  "projectType": "application",
+  "projectType": "library",
   "sourceRoot": "packages/workflows/ingestion/ingestion_workflow",
   "targets": {
-    "cdk-bootstrap": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "cdk bootstrap",
-        "cwd": "{projectRoot}"
-      },
-      "configurations": {
-        "dev": {
-          "command": "cdk bootstrap -c stage=dev"
-        }
-      }
-    },
-    "cdk-deploy": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "cdk deploy",
-        "cwd": "{projectRoot}"
-      },
-      "configurations": {
-        "dev": {
-          "command": "cdk deploy -c stage=dev"
-        }
-      }
-    },
-    "docker-compose-up": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "docker compose -f docker-compose.yml up -d",
-        "cwd": "{projectRoot}"
-      }
-    },
-    "serve": {
-      "executor": "@nxlv/python:run-commands",
-      "continuous": true,
-      "options": {
-        "command": "python ingestion_workflow/worker.py",
-        "cwd": "{projectRoot}"
-      },
-      "configurations": {
-        "watch": {
-          "command": "watchmedo auto-restart --patterns=\"*.py\" --recursive -- python ingestion_workflow/worker.py"
-        }
-      }
-    },
     "lock": {
       "executor": "@nxlv/python:lock",
       "options": {
@@ -119,7 +75,7 @@
       }
     }
   },
-  "tags": ["temporal", "python", "workflow"],
+  "tags": ["workflow", "temporal", "python"],
   "release": {
     "version": {
       "versionActions": "@nxlv/python/src/release/version-actions"

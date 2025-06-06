@@ -11,16 +11,19 @@ resolution-markers = [
 [manifest]
 members = [
     "api",
-    "ingestion-workflow",
-    "nx-workspace",
     "dm-py-db-models",
     "dm-py-db-repositories",
     "dm-py-db-services",
-    "dm-py-schemas",
     "dm-py-logger",
+    "dm-py-schemas",
     "dm-py-services",
     "dm-py-temporal-utils",
     "dm-py-utils",
+    "evaluation-workflow",
+    "nx-workspace",
+    "workflow-ingestion",
+    "workflow-shared-activities",
+    "workflow-worker",
 ]
 
 [[package]]
@@ -243,14 +246,14 @@ version = "1.0.0"
 source = { editable = "packages/apps/api" }
 dependencies = [
     { name = "dependency-injector" },
-    { name = "fastapi" },
     { name = "dm-py-db-models" },
     { name = "dm-py-db-repositories" },
     { name = "dm-py-db-services" },
-    { name = "dm-py-schemas" },
     { name = "dm-py-logger" },
+    { name = "dm-py-schemas" },
     { name = "dm-py-services" },
     { name = "dm-py-utils" },
+    { name = "fastapi" },
     { name = "temporalio" },
     { name = "uvicorn" },
 ]
@@ -258,14 +261,14 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "dependency-injector", specifier = ">=4.46.0" },
-    { name = "fastapi", specifier = ">=0.115.12" },
     { name = "dm-py-db-models", editable = "packages/libs/py/db/models" },
     { name = "dm-py-db-repositories", editable = "packages/libs/py/db/repositories" },
     { name = "dm-py-db-services", editable = "packages/libs/py/db/services" },
-    { name = "dm-py-schemas", editable = "packages/libs/py/schemas" },
     { name = "dm-py-logger", editable = "packages/libs/py/logger" },
+    { name = "dm-py-schemas", editable = "packages/libs/py/schemas" },
     { name = "dm-py-services", editable = "packages/libs/py/services" },
     { name = "dm-py-utils", editable = "packages/libs/py/utils" },
+    { name = "fastapi", specifier = ">=0.115.12" },
     { name = "temporalio", specifier = ">=1.11.1" },
     { name = "uvicorn", specifier = ">=0.34.2" },
 ]
@@ -685,6 +688,137 @@ wheels = [
 ]
 
 [[package]]
+name = "dm-py-db-models"
+version = "1.0.0"
+source = { editable = "packages/libs/py/db/models" }
+dependencies = [
+    { name = "alembic" },
+    { name = "numpydantic" },
+    { name = "pgvector" },
+    { name = "psycopg", extra = ["binary"] },
+    { name = "sqlalchemy", extra = ["asyncio"] },
+    { name = "sqlmodel" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "alembic", specifier = ">=1.15.2" },
+    { name = "numpydantic", specifier = ">=1.6.9" },
+    { name = "pgvector", specifier = ">=0.4.1" },
+    { name = "psycopg", extras = ["binary"], specifier = ">=3.2.8" },
+    { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.40" },
+    { name = "sqlmodel", specifier = ">=0.0.24" },
+]
+
+[[package]]
+name = "dm-py-db-repositories"
+version = "1.0.0"
+source = { editable = "packages/libs/py/db/repositories" }
+dependencies = [
+    { name = "dm-py-db-models" },
+    { name = "dm-py-db-services" },
+    { name = "dm-py-utils" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "dm-py-db-models", editable = "packages/libs/py/db/models" },
+    { name = "dm-py-db-services", editable = "packages/libs/py/db/services" },
+    { name = "dm-py-utils", editable = "packages/libs/py/utils" },
+]
+
+[[package]]
+name = "dm-py-db-services"
+version = "1.0.0"
+source = { editable = "packages/libs/py/db/services" }
+dependencies = [
+    { name = "psycopg", extra = ["binary"] },
+    { name = "sqlalchemy", extra = ["asyncio"] },
+    { name = "sqlmodel" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "psycopg", extras = ["binary"], specifier = ">=3.2.8" },
+    { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.40" },
+    { name = "sqlmodel", specifier = ">=0.0.24" },
+]
+
+[[package]]
+name = "dm-py-logger"
+version = "1.0.0"
+source = { editable = "packages/libs/py/logger" }
+
+[[package]]
+name = "dm-py-schemas"
+version = "1.0.0"
+source = { editable = "packages/libs/py/schemas" }
+dependencies = [
+    { name = "dm-py-db-models" },
+    { name = "pydantic" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "dm-py-db-models", editable = "packages/libs/py/db/models" },
+    { name = "pydantic", specifier = ">=2.11.4" },
+]
+
+[[package]]
+name = "dm-py-services"
+version = "1.0.0"
+source = { editable = "packages/libs/py/services" }
+dependencies = [
+    { name = "dm-py-db-models" },
+    { name = "dm-py-db-repositories" },
+    { name = "jinja2" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "dm-py-db-models", editable = "packages/libs/py/db/models" },
+    { name = "dm-py-db-repositories", editable = "packages/libs/py/db/repositories" },
+    { name = "jinja2", specifier = ">=3.1.6" },
+]
+
+[[package]]
+name = "dm-py-temporal-utils"
+version = "1.0.0"
+source = { editable = "packages/libs/py/temporal/utils" }
+dependencies = [
+    { name = "pydantic" },
+    { name = "temporalio" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "pydantic", specifier = ">=2.11.4" },
+    { name = "temporalio", specifier = ">=1.11.1" },
+]
+
+[[package]]
+name = "dm-py-utils"
+version = "1.0.0"
+source = { editable = "packages/libs/py/utils" }
+dependencies = [
+    { name = "aioboto3" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "aioboto3", specifier = ">=14.3.0" }]
+
+[[package]]
+name = "evaluation-workflow"
+version = "1.0.0"
+source = { editable = "packages/workflows/evaluation" }
+dependencies = [
+    { name = "workflow-shared-activities" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "workflow-shared-activities", editable = "packages/workflows/shared-activities" }]
+
+[[package]]
 name = "exceptiongroup"
 version = "1.2.2"
 source = { registry = "https://pypi.org/simple" }
@@ -991,67 +1125,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/f1/70/7703c29685631f5a7590aa73f1f1d3fa9a380e654b86af429e0934a32f7d/idna-3.10.tar.gz", hash = "sha256:12f65c9b470abda6dc35cf8e63cc574b1c52b11df2c86030af0ac09b01b13ea9", size = 190490, upload-time = "2024-09-15T18:07:39.745Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/76/c6/c88e154df9c4e1a2a66ccf0005a88dfb2650c1dffb6f5ce603dfbd452ce3/idna-3.10-py3-none-any.whl", hash = "sha256:946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3", size = 70442, upload-time = "2024-09-15T18:07:37.964Z" },
-]
-
-[[package]]
-name = "ingestion-workflow"
-version = "1.0.0"
-source = { editable = "packages/workflows/ingestion" }
-dependencies = [
-    { name = "aioboto3" },
-    { name = "dependency-injector" },
-    { name = "langchain-community" },
-    { name = "langchain-openai" },
-    { name = "langchain-text-splitters" },
-    { name = "pdf2image" },
-    { name = "dm-py-db-models" },
-    { name = "dm-py-db-repositories" },
-    { name = "dm-py-db-services" },
-    { name = "dm-py-schemas" },
-    { name = "dm-py-logger" },
-    { name = "dm-py-services" },
-    { name = "dm-py-temporal-utils" },
-    { name = "dm-py-utils" },
-    { name = "pypdf" },
-    { name = "temporalio" },
-    { name = "tiktoken" },
-    { name = "vm-x-ai-sdk" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "types-aioboto3", extra = ["s3"] },
-    { name = "types-aiobotocore", extra = ["s3"] },
-    { name = "watchdog" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "aioboto3", specifier = ">=14.3.0" },
-    { name = "dependency-injector", specifier = ">=4.46.0" },
-    { name = "langchain-community", specifier = ">=0.3.24" },
-    { name = "langchain-openai", specifier = ">=0.3.16" },
-    { name = "langchain-text-splitters", specifier = ">=0.3.8" },
-    { name = "pdf2image", specifier = ">=1.17.0" },
-    { name = "dm-py-db-models", editable = "packages/libs/py/db/models" },
-    { name = "dm-py-db-repositories", editable = "packages/libs/py/db/repositories" },
-    { name = "dm-py-db-services", editable = "packages/libs/py/db/services" },
-    { name = "dm-py-schemas", editable = "packages/libs/py/schemas" },
-    { name = "dm-py-logger", editable = "packages/libs/py/logger" },
-    { name = "dm-py-services", editable = "packages/libs/py/services" },
-    { name = "dm-py-temporal-utils", editable = "packages/libs/py/temporal/utils" },
-    { name = "dm-py-utils", editable = "packages/libs/py/utils" },
-    { name = "pypdf", specifier = ">=5.5.0" },
-    { name = "temporalio", specifier = ">=1.11.1" },
-    { name = "tiktoken", specifier = ">=0.9.0" },
-    { name = "vm-x-ai-sdk", specifier = "==1.6.2" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "types-aioboto3", extras = ["s3"], specifier = ">=14.3.0" },
-    { name = "types-aiobotocore", extras = ["s3"], specifier = ">=2.22.0" },
-    { name = "watchdog", specifier = ">=6.0.0" },
 ]
 
 [[package]]
@@ -1639,15 +1712,18 @@ version = "1.0.0"
 source = { virtual = "." }
 dependencies = [
     { name = "api" },
-    { name = "ingestion-workflow" },
     { name = "dm-py-db-models" },
     { name = "dm-py-db-repositories" },
     { name = "dm-py-db-services" },
-    { name = "dm-py-schemas" },
     { name = "dm-py-logger" },
+    { name = "dm-py-schemas" },
     { name = "dm-py-services" },
     { name = "dm-py-temporal-utils" },
     { name = "dm-py-utils" },
+    { name = "evaluation-workflow" },
+    { name = "workflow-ingestion" },
+    { name = "workflow-shared-activities" },
+    { name = "workflow-worker" },
 ]
 
 [package.dev-dependencies]
@@ -1664,15 +1740,18 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "api", editable = "packages/apps/api" },
-    { name = "ingestion-workflow", editable = "packages/workflows/ingestion" },
     { name = "dm-py-db-models", editable = "packages/libs/py/db/models" },
     { name = "dm-py-db-repositories", editable = "packages/libs/py/db/repositories" },
     { name = "dm-py-db-services", editable = "packages/libs/py/db/services" },
-    { name = "dm-py-schemas", editable = "packages/libs/py/schemas" },
     { name = "dm-py-logger", editable = "packages/libs/py/logger" },
+    { name = "dm-py-schemas", editable = "packages/libs/py/schemas" },
     { name = "dm-py-services", editable = "packages/libs/py/services" },
     { name = "dm-py-temporal-utils", editable = "packages/libs/py/temporal/utils" },
     { name = "dm-py-utils", editable = "packages/libs/py/utils" },
+    { name = "evaluation-workflow", editable = "packages/workflows/evaluation" },
+    { name = "workflow-ingestion", editable = "packages/workflows/ingestion" },
+    { name = "workflow-shared-activities", editable = "packages/workflows/shared-activities" },
+    { name = "workflow-worker", editable = "packages/workflows/worker" },
 ]
 
 [package.metadata.requires-dev]
@@ -2115,124 +2194,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/4b/48/0a861b7f338e31d69dc6c2c77105a73ae4fad1cd7e487580f485af1ae552/psycopg_binary-3.2.8-cp39-cp39-musllinux_1_2_x86_64.whl", hash = "sha256:2f1be2d3160cdfb4732cd9f5777b0e9c78509ef0033dd6cff34ee0f16560e2fe", size = 3498637, upload-time = "2025-05-11T17:20:49.921Z" },
     { url = "https://files.pythonhosted.org/packages/e5/a6/725406483100aa4b79fd01970114db7202aaaada2d1739b0331ecfc18251/psycopg_binary-3.2.8-cp39-cp39-win_amd64.whl", hash = "sha256:6a45e2409352a99c8b4f733b86daf19c4df3dc7d9c1f2fb880adf7dfa225678a", size = 3784709, upload-time = "2025-05-11T17:20:54.303Z" },
 ]
-
-[[package]]
-name = "dm-py-db-models"
-version = "1.0.0"
-source = { editable = "packages/libs/py/db/models" }
-dependencies = [
-    { name = "alembic" },
-    { name = "numpydantic" },
-    { name = "pgvector" },
-    { name = "psycopg", extra = ["binary"] },
-    { name = "sqlalchemy", extra = ["asyncio"] },
-    { name = "sqlmodel" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "alembic", specifier = ">=1.15.2" },
-    { name = "numpydantic", specifier = ">=1.6.9" },
-    { name = "pgvector", specifier = ">=0.4.1" },
-    { name = "psycopg", extras = ["binary"], specifier = ">=3.2.8" },
-    { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.40" },
-    { name = "sqlmodel", specifier = ">=0.0.24" },
-]
-
-[[package]]
-name = "dm-py-db-repositories"
-version = "1.0.0"
-source = { editable = "packages/libs/py/db/repositories" }
-dependencies = [
-    { name = "dm-py-db-models" },
-    { name = "dm-py-utils" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "dm-py-db-models", editable = "packages/libs/py/db/models" },
-    { name = "dm-py-utils", editable = "packages/libs/py/utils" },
-]
-
-[[package]]
-name = "dm-py-db-services"
-version = "1.0.0"
-source = { editable = "packages/libs/py/db/services" }
-dependencies = [
-    { name = "psycopg", extra = ["binary"] },
-    { name = "sqlalchemy", extra = ["asyncio"] },
-    { name = "sqlmodel" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "psycopg", extras = ["binary"], specifier = ">=3.2.8" },
-    { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.40" },
-    { name = "sqlmodel", specifier = ">=0.0.24" },
-]
-
-[[package]]
-name = "dm-py-schemas"
-version = "1.0.0"
-source = { editable = "packages/libs/py/schemas" }
-dependencies = [
-    { name = "dm-py-db-models" },
-    { name = "pydantic" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "dm-py-db-models", editable = "packages/libs/py/db/models" },
-    { name = "pydantic", specifier = ">=2.11.4" },
-]
-
-[[package]]
-name = "dm-py-logger"
-version = "1.0.0"
-source = { editable = "packages/libs/py/logger" }
-
-[[package]]
-name = "dm-py-services"
-version = "1.0.0"
-source = { editable = "packages/libs/py/services" }
-dependencies = [
-    { name = "jinja2" },
-    { name = "dm-py-db-models" },
-    { name = "dm-py-db-repositories" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "jinja2", specifier = ">=3.1.6" },
-    { name = "dm-py-db-models", editable = "packages/libs/py/db/models" },
-    { name = "dm-py-db-repositories", editable = "packages/libs/py/db/repositories" },
-]
-
-[[package]]
-name = "dm-py-temporal-utils"
-version = "1.0.0"
-source = { editable = "packages/libs/py/temporal/utils" }
-dependencies = [
-    { name = "pydantic" },
-    { name = "temporalio" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "pydantic", specifier = ">=2.11.4" },
-    { name = "temporalio", specifier = ">=1.11.1" },
-]
-
-[[package]]
-name = "dm-py-utils"
-version = "1.0.0"
-source = { editable = "packages/libs/py/utils" }
-dependencies = [
-    { name = "aioboto3" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "aioboto3", specifier = ">=14.3.0" }]
 
 [[package]]
 name = "pycodestyle"
@@ -3164,6 +3125,103 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/07/f6/d0e5b343768e8bcb4cda79f0f2f55051bf26177ecd5651f84c07567461cf/watchdog-6.0.0-py3-none-win32.whl", hash = "sha256:07df1fdd701c5d4c8e55ef6cf55b8f0120fe1aef7ef39a1c6fc6bc2e606d517a", size = 79065, upload-time = "2024-11-01T14:07:09.525Z" },
     { url = "https://files.pythonhosted.org/packages/db/d9/c495884c6e548fce18a8f40568ff120bc3a4b7b99813081c8ac0c936fa64/watchdog-6.0.0-py3-none-win_amd64.whl", hash = "sha256:cbafb470cf848d93b5d013e2ecb245d4aa1c8fd0504e863ccefa32445359d680", size = 79070, upload-time = "2024-11-01T14:07:10.686Z" },
     { url = "https://files.pythonhosted.org/packages/33/e8/e40370e6d74ddba47f002a32919d91310d6074130fe4e17dabcafc15cbf1/watchdog-6.0.0-py3-none-win_ia64.whl", hash = "sha256:a1914259fa9e1454315171103c6a30961236f508b9b623eae470268bbcc6a22f", size = 79067, upload-time = "2024-11-01T14:07:11.845Z" },
+]
+
+[[package]]
+name = "workflow-ingestion"
+version = "1.0.0"
+source = { editable = "packages/workflows/ingestion" }
+dependencies = [
+    { name = "aioboto3" },
+    { name = "langchain-community" },
+    { name = "langchain-openai" },
+    { name = "langchain-text-splitters" },
+    { name = "pdf2image" },
+    { name = "pypdf" },
+    { name = "temporalio" },
+    { name = "tiktoken" },
+    { name = "workflow-shared-activities" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "aioboto3", specifier = ">=14.3.0" },
+    { name = "langchain-community", specifier = ">=0.3.24" },
+    { name = "langchain-openai", specifier = ">=0.3.16" },
+    { name = "langchain-text-splitters", specifier = ">=0.3.8" },
+    { name = "pdf2image", specifier = ">=1.17.0" },
+    { name = "pypdf", specifier = ">=5.5.0" },
+    { name = "temporalio", specifier = ">=1.11.1" },
+    { name = "tiktoken", specifier = ">=0.9.0" },
+    { name = "workflow-shared-activities", editable = "packages/workflows/shared-activities" },
+]
+
+[[package]]
+name = "workflow-shared-activities"
+version = "1.0.0"
+source = { editable = "packages/workflows/shared-activities" }
+
+[[package]]
+name = "workflow-worker"
+version = "1.0.0"
+source = { editable = "packages/workflows/worker" }
+dependencies = [
+    { name = "aioboto3" },
+    { name = "dependency-injector" },
+    { name = "dm-py-db-models" },
+    { name = "dm-py-db-repositories" },
+    { name = "dm-py-db-services" },
+    { name = "dm-py-logger" },
+    { name = "dm-py-schemas" },
+    { name = "dm-py-services" },
+    { name = "dm-py-temporal-utils" },
+    { name = "dm-py-utils" },
+    { name = "langchain-community" },
+    { name = "langchain-openai" },
+    { name = "langchain-text-splitters" },
+    { name = "pdf2image" },
+    { name = "pypdf" },
+    { name = "temporalio" },
+    { name = "tiktoken" },
+    { name = "vm-x-ai-sdk" },
+    { name = "workflow-ingestion" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "types-aioboto3", extra = ["s3"] },
+    { name = "types-aiobotocore", extra = ["s3"] },
+    { name = "watchdog" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "aioboto3", specifier = ">=14.3.0" },
+    { name = "dependency-injector", specifier = ">=4.46.0" },
+    { name = "dm-py-db-models", editable = "packages/libs/py/db/models" },
+    { name = "dm-py-db-repositories", editable = "packages/libs/py/db/repositories" },
+    { name = "dm-py-db-services", editable = "packages/libs/py/db/services" },
+    { name = "dm-py-logger", editable = "packages/libs/py/logger" },
+    { name = "dm-py-schemas", editable = "packages/libs/py/schemas" },
+    { name = "dm-py-services", editable = "packages/libs/py/services" },
+    { name = "dm-py-temporal-utils", editable = "packages/libs/py/temporal/utils" },
+    { name = "dm-py-utils", editable = "packages/libs/py/utils" },
+    { name = "langchain-community", specifier = ">=0.3.24" },
+    { name = "langchain-openai", specifier = ">=0.3.16" },
+    { name = "langchain-text-splitters", specifier = ">=0.3.8" },
+    { name = "pdf2image", specifier = ">=1.17.0" },
+    { name = "pypdf", specifier = ">=5.5.0" },
+    { name = "temporalio", specifier = ">=1.11.1" },
+    { name = "tiktoken", specifier = ">=0.9.0" },
+    { name = "vm-x-ai-sdk", specifier = "==1.6.2" },
+    { name = "workflow-ingestion", editable = "packages/workflows/ingestion" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "types-aioboto3", extras = ["s3"], specifier = ">=14.3.0" },
+    { name = "types-aiobotocore", extras = ["s3"], specifier = ">=2.22.0" },
+    { name = "watchdog", specifier = ">=6.0.0" },
 ]
 
 [[package]]

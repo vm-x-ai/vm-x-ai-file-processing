@@ -1,6 +1,6 @@
 from os import environ
 
-from pydantic import Field, PostgresDsn
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 env_file = f".env.{environ.get('ENV', 'local')}"
@@ -37,8 +37,6 @@ class Settings(BaseSettings):
     fastapi_hot_reload: bool = Field(
         False, description="FastAPI hot reload, only True on local env"
     )
-    db_url: PostgresDsn
-    db_ro_url: PostgresDsn
     temporal_host: str
     openai: OpenAI = OpenAI()
     landing: Landing = Landing()

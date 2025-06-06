@@ -79,7 +79,7 @@ export function AppSidebar({
         <div className="flex items-center gap-3 p-2">
           <DMLogo size={32} />
           <span className="font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">
-            Diligence Machines
+            VM-X AI
           </span>
         </div>
       </SidebarHeader>

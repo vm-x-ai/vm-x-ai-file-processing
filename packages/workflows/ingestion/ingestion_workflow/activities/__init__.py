@@ -1,18 +1,13 @@
-from .chunk_document import chunk_document
-from .create_chunk_embeddings import create_chunk_embeddings
-from .get_files_to_evaluate import get_files_to_evaluate
-from .load_s3_file import LoadS3FileOutput, load_s3_file
-from .start_evaluations import start_evaluations
-from .store_evaluation import store_evaluation
-from .update_file_status import update_file_status
+from .chunk_document import ChunkDocumentActivity
+from .create_chunk_embeddings import CreateChunkEmbeddingsActivity
+from .get_files_to_evaluate import GetFilesToEvaluateActivity
+from .load_s3_file import LoadS3FileActivity, LoadS3FileOutput
 
 __all__ = [
-    "chunk_document",
-    "create_chunk_embeddings",
-    "load_s3_file",
+    "ChunkDocumentActivity",
+    "CreateChunkEmbeddingsActivity",
+    "LoadS3FileActivity",
     "LoadS3FileOutput",
-    "start_evaluations",
-    "store_evaluation",
-    "update_file_status",
-    "get_files_to_evaluate",
+    "UpdateFileStatusActivity",
+    "GetFilesToEvaluateActivity",
 ]

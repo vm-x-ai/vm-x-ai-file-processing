@@ -106,6 +106,12 @@
         "style": "tailwind",
         "linter": "eslint"
       }
+    },
+    "@nxlv/python": {
+      "uv-project": {
+        "useNxReleaseLegacyVersioning": false,
+        "tags": "python"
+      }
     }
   }
 }

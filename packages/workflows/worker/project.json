@@ -1,0 +1,134 @@
+{
+  "name": "workflow-worker",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "packages/workflows/worker/workflow_worker",
+  "targets": {
+    "cdk-bootstrap": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cdk bootstrap",
+        "cwd": "{projectRoot}"
+      },
+      "configurations": {
+        "local": {
+          "command": "cdklocal bootstrap -c stage=local"
+        },
+        "dev": {
+          "command": "cdk bootstrap -c stage=dev"
+        }
+      }
+    },
+    "cdk-deploy": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cdk deploy",
+        "cwd": "{projectRoot}"
+      },
+      "configurations": {
+        "local": {
+          "command": "cdklocal deploy -c stage=local --no-rollback"
+        },
+        "dev": {
+          "command": "cdk deploy -c stage=dev"
+        }
+      }
+    },
+    "docker-compose-up": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docker compose -f docker-compose.yml up -d",
+        "cwd": "{projectRoot}"
+      }
+    },
+    "serve": {
+      "executor": "@nxlv/python:run-commands",
+      "continuous": true,
+      "options": {
+        "command": "python workflow_worker/worker.py",
+        "cwd": "{projectRoot}"
+      },
+      "configurations": {
+        "watch": {
+          "command": "watchmedo auto-restart --patterns=\"*.py\" --recursive -- python workflow_worker/worker.py"
+        }
+      }
+    },
+    "lock": {
+      "executor": "@nxlv/python:lock",
+      "options": {
+        "update": false
+      }
+    },
+    "sync": {
+      "executor": "@nxlv/python:sync",
+      "options": {}
+    },
+    "add": {
+      "executor": "@nxlv/python:add",
+      "options": {}
+    },
+    "update": {
+      "executor": "@nxlv/python:update",
+      "options": {}
+    },
+    "remove": {
+      "executor": "@nxlv/python:remove",
+      "options": {}
+    },
+    "build": {
+      "executor": "@nxlv/python:build",
+      "outputs": ["{projectRoot}/dist"],
+      "options": {
+        "outputPath": "{projectRoot}/dist",
+        "publish": false,
+        "lockedVersions": true,
+        "bundleLocalDependencies": true
+      },
+      "cache": true
+    },
+    "lint": {
+      "executor": "@nxlv/python:ruff-check",
+      "outputs": [],
+      "options": {
+        "lintFilePatterns": ["workflow_worker", "tests"]
+      },
+      "cache": true
+    },
+    "format": {
+      "executor": "@nxlv/python:ruff-format",
+      "outputs": [],
+      "options": {
+        "filePatterns": ["workflow_worker", "tests"]
+      },
+      "cache": true
+    },
+    "test": {
+      "executor": "@nxlv/python:run-commands",
+      "outputs": [
+        "{workspaceRoot}/reports/{projectRoot}/unittests",
+        "{workspaceRoot}/coverage/{projectRoot}"
+      ],
+      "options": {
+        "command": "uv run pytest tests/",
+        "cwd": "{projectRoot}"
+      },
+      "cache": true
+    },
+    "install": {
+      "executor": "@nxlv/python:install",
+      "options": {
+        "silent": false,
+        "args": "",
+        "verbose": false,
+        "debug": false
+      }
+    }
+  },
+  "tags": ["temporal", "python", "workflow"],
+  "release": {
+    "version": {
+      "versionActions": "@nxlv/python/src/release/version-actions"
+    }
+  }
+}

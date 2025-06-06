@@ -1,12 +1,11 @@
 from os import environ
 
-from pydantic import Field, PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 env_file = f".env.{environ.get('ENV', 'local')}"
 
 
-class OpenAI(BaseSettings):
+class OpenAISettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=env_file,
         env_file_encoding="utf-8",
@@ -17,7 +16,7 @@ class OpenAI(BaseSettings):
     api_key: str
 
 
-class VMX(BaseSettings):
+class VMXSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=env_file,
         env_file_encoding="utf-8",
@@ -31,7 +30,7 @@ class VMX(BaseSettings):
     environment_id: str
 
 
-class Thumbnail(BaseSettings):
+class ThumbnailSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=env_file,
         env_file_encoding="utf-8",
@@ -53,7 +52,7 @@ class Landing(BaseSettings):
     s3_bucket_name: str
 
 
-class IngestionCallback(BaseSettings):
+class IngestionCallbackSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=env_file,
         env_file_encoding="utf-8",
@@ -70,14 +69,8 @@ class Settings(BaseSettings):
     )
     log_level: str = "INFO"
     sqlalchemy_log_level: str = "INFO"
-    fastapi_hot_reload: bool = Field(
-        False, description="FastAPI hot reload, only True on local env"
-    )
-    db_url: PostgresDsn
-    db_ro_url: PostgresDsn
-    temporal_host: str
-    openai: OpenAI = OpenAI()
-    vmx: VMX = VMX()
-    thumbnail: Thumbnail = Thumbnail()
+    openai: OpenAISettings = OpenAISettings()
+    vmx: VMXSettings = VMXSettings()
+    thumbnail: ThumbnailSettings = ThumbnailSettings()
     landing: Landing = Landing()
-    ingestion_callback: IngestionCallback = IngestionCallback()
+    ingestion_callback: IngestionCallbackSettings = IngestionCallbackSettings()

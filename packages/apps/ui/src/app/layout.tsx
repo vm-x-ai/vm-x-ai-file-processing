@@ -35,8 +35,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: 'Diligence Machine',
-  description: 'Diligence Machine',
+  title: 'VM-X AI RAG Example App',
+  description: 'VM-X AI RAG Example App',
 };
 
 type RootLayoutProps = {

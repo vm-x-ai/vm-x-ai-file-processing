@@ -23,6 +23,7 @@ requires-python = ">=3.9,<4"
 readme = 'README.md'
 dependencies = [
     "dm-py-db-models",
+    "dm-py-db-services",
     "dm-py-utils",
 ]
 
@@ -71,3 +72,4 @@ unfixable = []
 [tool.uv.sources]
 dm-py-db-models = { workspace = true }
 dm-py-utils = { workspace = true }
+dm-py-db-services = { workspace = true }

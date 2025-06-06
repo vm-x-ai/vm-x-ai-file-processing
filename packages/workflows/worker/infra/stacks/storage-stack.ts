@@ -2,7 +2,8 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as sns from 'aws-cdk-lib/aws-sns';
-import * as s3n from 'aws-cdk-lib/aws-s3-notifications';
+import * as iam from 'aws-cdk-lib/aws-iam';
+
 export interface IngestionWorkflowStorageStackProps extends cdk.StackProps {
   stage: string;
   ingestionUrls: string[];
@@ -24,7 +25,7 @@ export class IngestionWorkflowStorageStack extends cdk.Stack {
       this,
       'IngestionWorkflowTriggerTopic',
       {
-        topicName: `diligencemachines-ingestion-trigger-${this.region}-${props.stage}`,
+        topicName: `vm-x-ai-ingestion-trigger-${this.region}-${props.stage}`,
       }
     );
 
@@ -44,21 +45,49 @@ export class IngestionWorkflowStorageStack extends cdk.Stack {
     ];
 
     this.landingBucket = new s3.Bucket(this, 'IngestionWorkflowStorageBucket', {
-      bucketName: `diligencemachines-ingestion-landing-${this.region}-${props.stage}`,
+      bucketName: `vm-x-ai-ingestion-landing-${this.region}-${props.stage}`,
       cors,
       versioned: true,
     });
 
-    this.landingBucket.addEventNotification(
-      s3.EventType.OBJECT_CREATED,
-      new s3n.SnsDestination(this.workflowTriggerTopic)
+    /**
+     * By default, AWS CDK does the notification configuration by
+     * creating a CloudFormation Custom Resource.
+     * 
+     * This is not supported in LocalStack, so we need to manually.
+     * 
+     * Please use the bucket.addEventNotification method if you don't
+     * want to deploy to LocalStack.
+     */
+    (
+      this.landingBucket.node.findChild('Resource') as s3.CfnBucket
+    ).notificationConfiguration = {
+      topicConfigurations: [
+        {
+          event: 's3:ObjectCreated:Put',
+          topic: this.workflowTriggerTopic.topicArn,
+        },
+      ],
+    };
+
+    this.workflowTriggerTopic.addToResourcePolicy(
+      new iam.PolicyStatement({
+        actions: ['sns:Publish'],
+        principals: [new iam.ServicePrincipal('s3.amazonaws.com')],
+        resources: [this.workflowTriggerTopic.topicArn],
+        conditions: {
+          ArnLike: {
+            'aws:SourceArn': this.landingBucket.bucketArn,
+          },
+        },
+      })
     );
 
     this.thumbnailBucket = new s3.Bucket(
       this,
       'IngestionWorkflowStorageThumbnailBucket',
       {
-        bucketName: `diligencemachines-file-thumbnail-${this.region}-${props.stage}`,
+        bucketName: `vm-x-ai-file-thumbnail-${this.region}-${props.stage}`,
         cors,
         versioned: true,
       }
@@ -70,7 +99,9 @@ export class IngestionWorkflowStorageStack extends cdk.Stack {
         `IngestionWorkflowTriggerSubscription-${ingestionUrl}`,
         {
           endpoint: ingestionUrl,
-          protocol: sns.SubscriptionProtocol.HTTPS,
+          protocol: ingestionUrl.startsWith('https://')
+            ? sns.SubscriptionProtocol.HTTPS
+            : sns.SubscriptionProtocol.HTTP,
           topic: this.workflowTriggerTopic,
         }
       );

@@ -2,7 +2,7 @@
 name = "nx-workspace"
 version = "1.0.0"
 dependencies = [
-  "ingestion-workflow",
+  "workflow-worker",
   "dm-py-utils",
   "api",
   "dm-py-db-models",
@@ -11,7 +11,10 @@ dependencies = [
   "dm-py-db-services",
   "dm-py-temporal-utils",
   "dm-py-logger",
-  "dm-py-schemas"
+  "dm-py-schemas",
+  "workflow-ingestion",
+  "evaluation-workflow",
+  "workflow-shared-activities"
 ]
 
 [tool.uv.workspace]
@@ -19,16 +22,19 @@ members = [
   "packages/apps/api",
   "packages/libs/py/utils",
   "packages/libs/py/db/models",
-  "packages/workflows/ingestion",
+  "packages/workflows/worker",
   "packages/libs/py/db/repositories",
   "packages/libs/py/services",
   "packages/libs/py/db/services",
   "packages/libs/py/temporal/utils",
   "packages/libs/py/logger",
-  "packages/libs/py/schemas"
+  "packages/libs/py/schemas",
+  "packages/workflows/ingestion",
+  "packages/workflows/evaluation",
+  "packages/workflows/shared-activities"
 ]
 
-[tool.uv.sources.ingestion-workflow]
+[tool.uv.sources.workflow-worker]
 workspace = true
 
 [tool.uv.sources.dm-py-utils]
@@ -56,6 +62,15 @@ workspace = true
 workspace = true
 
 [tool.uv.sources.dm-py-schemas]
+workspace = true
+
+[tool.uv.sources.workflow-ingestion]
+workspace = true
+
+[tool.uv.sources.evaluation-workflow]
+workspace = true
+
+[tool.uv.sources.workflow-shared-activities]
 workspace = true
 
 [dependency-groups]

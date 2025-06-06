@@ -1,4 +1,4 @@
-# Diligence Machines Platform
+# VM-X AI Example Apps
 
 ## Getting Started
 
@@ -107,7 +107,7 @@ pnpm nx run py-db-models:alembic-upgrade
 ### Start the Workflow Worker
 
 ```bash
-pnpm nx run ingestion-workflow:serve
+pnpm nx run workflow-worker:serve
 ```
 
 ### Start the Application

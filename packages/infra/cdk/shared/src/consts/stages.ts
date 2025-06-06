@@ -8,15 +8,6 @@ export const stages = [
     isProd: false,
     cidr: '10.1.0.0/16',
   },
-  {
-    accountId: '978398161683',
-    stageName: 'dev',
-    rootDomainName: 'TBC',
-    apiRootDomainName: 'TBC',
-    region: 'us-east-1',
-    isProd: false,
-    cidr: '10.0.0.0/16',
-  },
 ];
 
 export const getStages = (env?: string) => {

@@ -1,5 +1,5 @@
 {
-  "name": "dm-py-db-repositories",
+  "name": "py-db-repositories",
   "$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
   "projectType": "library",
   "sourceRoot": "packages/libs/py/db/repositories/dm_db_repositories",

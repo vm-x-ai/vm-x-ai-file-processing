@@ -4,6 +4,11 @@ import { getStages } from '@dm/infra-cdk-shared';
 import { IngestionWorkflowStorageStack } from './stacks/storage-stack.js';
 
 const stageMap: Record<string, { ingestionUrls: string[] }> = {
+  local: {
+    ingestionUrls: [
+      'http://172.17.0.1:8000/ingest',
+    ],
+  },
   dev: {
     ingestionUrls: [
       // Lucas's local ngrok
