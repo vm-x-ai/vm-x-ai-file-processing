@@ -1,3 +1,4 @@
+name: dm-temporal
 version: '3.5'
 services:
   temporal-elasticsearch:
@@ -77,37 +78,6 @@ services:
       - temporal-network
     ports:
       - 8080:8080
-
-  app-postgresql:
-    container_name: app-postgresql
-    environment:
-      POSTGRES_PASSWORD: app
-      POSTGRES_USER: app
-      POSTGRES_DB: ingestion
-    image: ankane/pgvector
-    networks:
-      - temporal-network
-    ports:
-      - '5433:5432'
-    expose:
-      - 5433
-    volumes:
-      - /var/lib/postgresql/data
-
-  localstack:
-    image: localstack/localstack
-    networks:
-      - temporal-network
-    ports:
-      - '127.0.0.1:4566:4566'
-      - '127.0.0.1:4510-4559:4510-4559'
-    environment:
-      AWS_DEFAULT_REGION: us-east-1
-      SERVICES: s3,kms,iam,sts,sns,cloudformation,lambda,ssm,events
-      TEST_AWS_ACCOUNT_ID: '000000000000'
-      SKIP_SSL_CERT_DOWNLOAD: 1
-    volumes:
-      - '/var/run/docker.sock:/var/run/docker.sock'
 
 networks:
   temporal-network:

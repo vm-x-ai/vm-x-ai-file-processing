@@ -4,6 +4,8 @@
   "projectType": "library",
   "sourceRoot": "packages/workflows/ingestion/ingestion_workflow",
   "targets": {
+    "cdk-bootstrap": {},
+    "cdk-deploy": {},
     "lock": {
       "executor": "@nxlv/python:lock",
       "options": {

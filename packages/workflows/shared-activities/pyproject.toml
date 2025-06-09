@@ -64,3 +64,9 @@ ignore = []
 
 fixable = ["ALL"]
 unfixable = []
+
+[dependency-groups]
+dev = [
+    "types-aioboto3[events]>=14.3.0",
+    "types-aiobotocore[events]>=2.22.0",
+]

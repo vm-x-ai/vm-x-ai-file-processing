@@ -4,43 +4,7 @@
   "projectType": "application",
   "sourceRoot": "packages/workflows/worker/workflow_worker",
   "targets": {
-    "cdk-bootstrap": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "cdk bootstrap",
-        "cwd": "{projectRoot}"
-      },
-      "configurations": {
-        "local": {
-          "command": "cdklocal bootstrap -c stage=local"
-        },
-        "dev": {
-          "command": "cdk bootstrap -c stage=dev"
-        }
-      }
-    },
-    "cdk-deploy": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "cdk deploy",
-        "cwd": "{projectRoot}"
-      },
-      "configurations": {
-        "local": {
-          "command": "cdklocal deploy -c stage=local --no-rollback"
-        },
-        "dev": {
-          "command": "cdk deploy -c stage=dev"
-        }
-      }
-    },
-    "docker-compose-up": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "docker compose -f docker-compose.yml up -d",
-        "cwd": "{projectRoot}"
-      }
-    },
+    "docker-compose-up": {},
     "serve": {
       "executor": "@nxlv/python:run-commands",
       "continuous": true,

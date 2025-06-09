@@ -74,10 +74,3 @@ dependencies = [
 [build-system]
 requires = [ "hatchling" ]
 build-backend = "hatchling.build"
-
-[dependency-groups]
-dev = [
-    "types-aioboto3[s3]>=14.3.0",
-    "types-aiobotocore[s3]>=2.22.0",
-    "watchdog>=6.0.0",
-]

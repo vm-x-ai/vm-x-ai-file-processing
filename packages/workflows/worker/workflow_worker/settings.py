@@ -28,6 +28,7 @@ class VMXSettings(BaseSettings):
     api_key: str
     workspace_id: str
     environment_id: str
+    resource_id: str
 
 
 class ThumbnailSettings(BaseSettings):
@@ -74,3 +75,4 @@ class Settings(BaseSettings):
     thumbnail: ThumbnailSettings = ThumbnailSettings()
     landing: Landing = Landing()
     ingestion_callback: IngestionCallbackSettings = IngestionCallbackSettings()
+    event_bus_name: str

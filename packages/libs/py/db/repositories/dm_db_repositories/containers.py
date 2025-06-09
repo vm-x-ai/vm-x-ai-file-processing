@@ -52,4 +52,3 @@ class RepositoriesContainer(DatabaseContainer):
         session_factory=DatabaseContainer.db.provided.session,
         write_session_factory=DatabaseContainer.db.provided.writer_session,
     )
-

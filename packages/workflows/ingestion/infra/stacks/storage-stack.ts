@@ -4,12 +4,12 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as sns from 'aws-cdk-lib/aws-sns';
 import * as iam from 'aws-cdk-lib/aws-iam';
 
-export interface IngestionWorkflowStorageStackProps extends cdk.StackProps {
+export interface IngestionWorkflowStackProps extends cdk.StackProps {
   stage: string;
   ingestionUrls: string[];
 }
 
-export class IngestionWorkflowStorageStack extends cdk.Stack {
+export class IngestionWorkflowStack extends cdk.Stack {
   public readonly landingBucket: s3.Bucket;
   public readonly thumbnailBucket: s3.Bucket;
   public readonly workflowTriggerTopic: sns.Topic;
@@ -17,7 +17,7 @@ export class IngestionWorkflowStorageStack extends cdk.Stack {
   constructor(
     scope: Construct,
     id: string,
-    props: IngestionWorkflowStorageStackProps
+    props: IngestionWorkflowStackProps
   ) {
     super(scope, id, props);
 
@@ -53,9 +53,9 @@ export class IngestionWorkflowStorageStack extends cdk.Stack {
     /**
      * By default, AWS CDK does the notification configuration by
      * creating a CloudFormation Custom Resource.
-     * 
+     *
      * This is not supported in LocalStack, so we need to manually.
-     * 
+     *
      * Please use the bucket.addEventNotification method if you don't
      * want to deploy to LocalStack.
      */

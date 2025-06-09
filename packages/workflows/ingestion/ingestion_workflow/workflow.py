@@ -73,6 +73,17 @@ class IngestionWorkflow:
                 retry_policy=DEFAULT_RETRY_POLICY,
             )
 
+            await workflow.execute_activity(
+                workflow_shared_actitivies.SendEventActivity.run,
+                args=[
+                    "ingestion",
+                    "file_ingested_successfully",
+                    {"file_id": load_output.file_id},
+                ],
+                start_to_close_timeout=DEFAULT_TIMEOUT,
+                retry_policy=DEFAULT_RETRY_POLICY,
+            )
+
             return load_output.file_id
         except Exception as e:
             error_msg = f"Error in ingestion workflow: {e}"
@@ -81,6 +92,20 @@ class IngestionWorkflow:
                 await workflow.execute_activity(
                     workflow_shared_actitivies.UpdateFileStatusActivity.run,
                     args=[load_output.file_id, dm_db_models.FileStatus.FAILED],
+                    start_to_close_timeout=DEFAULT_TIMEOUT,
+                    retry_policy=DEFAULT_RETRY_POLICY,
+                )
+
+                await workflow.execute_activity(
+                    workflow_shared_actitivies.SendEventActivity.run,
+                    args=[
+                        "ingestion",
+                        "file_ingestion_failed",
+                        {
+                            "file_id": load_output.file_id,
+                            "error": str(e),
+                        },
+                    ],
                     start_to_close_timeout=DEFAULT_TIMEOUT,
                     retry_policy=DEFAULT_RETRY_POLICY,
                 )

@@ -1,0 +1,23 @@
+name: dm-app
+version: '3.5'
+services:
+  app-postgresql:
+    container_name: app-postgresql
+    environment:
+      POSTGRES_PASSWORD: app
+      POSTGRES_USER: app
+      POSTGRES_DB: ingestion
+    image: ankane/pgvector
+    networks:
+      - app-network
+    ports:
+      - '5433:5432'
+    expose:
+      - 5433
+    volumes:
+      - /var/lib/postgresql/data
+
+networks:
+  app-network:
+    driver: bridge
+    name: app-network

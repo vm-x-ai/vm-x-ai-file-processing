@@ -4,6 +4,7 @@
   "projectType": "application",
   "sourceRoot": "packages/apps/api/api",
   "targets": {
+    "docker-compose-up": {},
     "lock": {
       "executor": "@nxlv/python:lock",
       "options": {

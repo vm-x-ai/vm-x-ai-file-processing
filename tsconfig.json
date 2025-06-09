@@ -17,6 +17,9 @@
     },
     {
       "path": "./packages/workflows/ingestion"
+    },
+    {
+      "path": "./packages/infra/event"
     }
   ]
 }

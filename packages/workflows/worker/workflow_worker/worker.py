@@ -21,7 +21,7 @@ async def main():
 
     worker = Worker(
         client,
-        task_queue="ingestion-workflow",
+        task_queue="temporal-worker",
         workflows=[IngestionWorkflow, EvaluationWorkflow, UpdateEvaluationWorkflow],
         activities=[activity.run for activity in activities],
     )
@@ -32,5 +32,4 @@ async def main():
 
 
 if __name__ == "__main__":
-
     asyncio.run(main())

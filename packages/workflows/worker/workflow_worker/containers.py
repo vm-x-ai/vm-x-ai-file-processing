@@ -53,6 +53,7 @@ class Container(RepositoriesContainer, ServicesContainer, TemporalContainer):
             file_repository=RepositoriesContainer.file_repository,
             file_content_repository=RepositoriesContainer.file_content_repository,
             vmx_client=vmx_client,
+            vmx_resource_id=settings.provided.vmx.resource_id,
             ingestion_callback_url=settings.provided.ingestion_callback.url,
         ),
         providers.Factory(
@@ -64,6 +65,11 @@ class Container(RepositoriesContainer, ServicesContainer, TemporalContainer):
         providers.Factory(
             workflow_shared_actitivies.UpdateFileStatusActivity,
             file_repository=RepositoriesContainer.file_repository,
+        ),
+        providers.Factory(
+            workflow_shared_actitivies.SendEventActivity,
+            aioboto3_session=aioboto3_session,
+            event_bus_name=settings.provided.event_bus_name,
         ),
         providers.Factory(
             evaluation_activities.GetFilesToEvaluateActivity,

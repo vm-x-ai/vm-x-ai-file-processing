@@ -71,12 +71,14 @@ class StartEvaluationsActivity:
         file_repository: FileRepository,
         file_content_repository: FileContentRepository,
         vmx_client: VMXClient,
+        vmx_resource_id: str,
         ingestion_callback_url: str,
     ):
         self._evaluation_service = evaluation_service
         self._file_repository = file_repository
         self._file_content_repository = file_content_repository
         self._vmx_client = vmx_client
+        self._vmx_resource_id = vmx_resource_id
         self._ingestion_callback_url = ingestion_callback_url
 
     @activity.defn(name="StartEvaluationsActivity")
@@ -151,7 +153,7 @@ class StartEvaluationsActivity:
 
                 request = CompletionRequest(
                     messages=messages,
-                    resource="default",
+                    resource=self._vmx_resource_id,
                     metadata={
                         "evaluation_id": str(evaluation.id),
                         "file_id": str(file_id),

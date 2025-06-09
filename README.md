@@ -46,13 +46,29 @@ Run the command below to login to the AWS SSO:
 aws sso login --profile dm-app-dev
 ```
 
-### Start Temporal Containers
+### Local Development
+
+#### Docker Containers
+
+##### Start Temporal Containers
 
 ```bash
-pnpm nx run ingestion-workflow:docker-compose-up
+pnpm nx run workflow-worker:docker-compose-up
 ```
 
-### Start Ngrok
+##### Start App Containers
+
+```bash
+pnpm nx run api:docker-compose-up
+```
+
+##### Start Localstack Container
+
+```bash
+docker compose -f docker-compose.yml up -d
+```
+
+#### Start Ngrok
 
 Please make sure you created a static ngrok domain in the [ngrok dashboard](https://dashboard.ngrok.com/domains).
 
@@ -62,27 +78,9 @@ ngrok http --url=<STATIC_DOMAIN> 8000
 
 **NOTE:** Make sure you're authenticated with ngrok.
 
-Copy the ngrok url, and update the `packages/workflows/ingestion/infra/main.ts` file.
+Copy the ngrok url
 
-```typescript
-#!/usr/bin/env node
-import * as cdk from 'aws-cdk-lib';
-import { getStages } from '@dm/infra-cdk-shared';
-import { IngestionWorkflowStorageStack } from './stacks/storage-stack.js';
-
-const stageMap: Record<string, { ingestionUrls: string[] }> = {
-  dev: {
-    ingestionUrls: [
-      // Lucas's local ngrok
-      'https://chamois-accepted-bluebird.ngrok-free.app/ingest',
-      // YOUR NGROK URL here
-      // e.g. 'https://<your-ngrok-url>/ingest'
-    ],
-  },
-};
-```
-
-### Add Environment Variables files
+#### Add Environment Variables files
 
 `packages/workflows/ingestion/.env.local`
 
@@ -98,28 +96,48 @@ Copy the content from the [1Password note](https://share.1password.com/s#MSMPfyo
 
 Copy the content from the [1Password note](https://share.1password.com/s#u54oTXSFlwU06wvLqQ7SCyaMj0lmCAHtyCIbU806wXI)
 
-### Apply Database Migrations
+#### Apply Database Migrations
 
 ```bash
 pnpm nx run py-db-models:alembic-upgrade
 ```
 
-### Start the Workflow Worker
+#### Start the Workflow Worker
 
 ```bash
 pnpm nx run workflow-worker:serve
 ```
 
-### Start the Application
+#### Start the Application
 
 ```bash
 pnpm nx run api:serve
 ```
 
-### Update the Workflow Infra Stack
+#### Infrastructure
+
+##### Bootstrap CDK
 
 ```bash
-pnpm nx run ingestion-workflow:cdk-deploy:dev
+pnpm nx run infra-events:cdk-bootstrap:local
+```
+
+##### Deploy Event Bus
+
+```bash
+pnpm nx run infra-events:cdk-deploy:local
+```
+
+##### Deploy the Ingestion Workflow Infra
+
+```bash
+pnpm nx run workflow-ingestion:cdk-deploy:local
+```
+
+##### Deploy the Evaluation Workflow Infra
+
+```bash
+pnpm nx run workflow-evaluation:cdk-deploy:local
 ```
 
 ### Start the UI
