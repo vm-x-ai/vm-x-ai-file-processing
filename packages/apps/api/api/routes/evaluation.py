@@ -169,7 +169,7 @@ async def create_evaluation(
         temporal_client.start_workflow(
             "UpdateEvaluationWorkflow",
             id=f"new-evaluation-workflow-{evaluation.id}",
-            task_queue="ingestion-workflow",
+            task_queue="temporal-worker",
             args=[
                 evaluation,
                 None,
@@ -210,7 +210,7 @@ async def update_evaluation(
         temporal_client.start_workflow(
             "UpdateEvaluationWorkflow",
             id=f"updated-evaluation-workflow-{updated_evaluation.id}",
-            task_queue="ingestion-workflow",
+            task_queue="temporal-worker",
             args=[
                 updated_evaluation,
                 old_evaluation,
