@@ -1,3 +1,3 @@
-# dm-py-logger
+# vmxfp-py-logger
 
 Project description here.

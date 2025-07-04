@@ -75,7 +75,7 @@
       }
     }
   },
-  "tags": ["shared", "workflow", "python"],
+  "tags": ["shared", "workflow", "python", "no-deploy:shared"],
   "release": {
     "version": {
       "versionActions": "@nxlv/python/src/release/version-actions"

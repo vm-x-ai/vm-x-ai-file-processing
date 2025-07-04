@@ -2,7 +2,7 @@
   "name": "py-db-models",
   "$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
   "projectType": "library",
-  "sourceRoot": "packages/libs/py/db/models/dm_db_models",
+  "sourceRoot": "packages/libs/py/db/models/vmxfp_db_models",
   "targets": {
     "lock": {
       "executor": "@nxlv/python:lock",
@@ -41,7 +41,7 @@
       "executor": "@nxlv/python:ruff-check",
       "outputs": [],
       "options": {
-        "lintFilePatterns": ["dm_db_models", "tests"]
+        "lintFilePatterns": ["vmxfp_db_models", "tests"]
       },
       "cache": true
     },
@@ -49,7 +49,7 @@
       "executor": "@nxlv/python:ruff-format",
       "outputs": [],
       "options": {
-        "filePatterns": ["dm_db_models", "tests", "alembic"]
+        "filePatterns": ["vmxfp_db_models", "tests", "alembic"]
       },
       "cache": true
     },
@@ -81,22 +81,58 @@
         "cwd": "{projectRoot}"
       }
     },
-    "alembic-upgrade": {
+    "migrations-apply": {
       "executor": "@nxlv/python:run-commands",
       "options": {
         "command": "alembic upgrade head",
         "cwd": "{projectRoot}"
+      },
+      "configurations": {
+        "local": {
+          "envFile": "{projectRoot}/.env"
+        },
+        "dev": {
+          "envFile": "{projectRoot}/.env.dev"
+        },
+        "prd": {
+          "envFile": "{projectRoot}/.env.prd"
+        }
       }
     },
-    "alembic-downgrade": {
+    "migrations-rollback": {
       "executor": "@nxlv/python:run-commands",
       "options": {
         "command": "alembic downgrade",
         "cwd": "{projectRoot}"
+      },
+      "configurations": {
+        "local": {
+          "envFile": "{projectRoot}/.env"
+        },
+        "dev": {
+          "envFile": "{projectRoot}/.env.dev"
+        },
+        "prd": {
+          "envFile": "{projectRoot}/.env.prd"
+        }
       }
+    },
+    "deploy": {
+      "executor": "@vmxfp/workspace-plugins:proxy-executor",
+      "options": {
+        "target": "migrations-apply"
+      },
+      "dependsOn": [
+        "^build",
+        {
+          "projects": "infra-database",
+          "target": "deploy",
+          "params": "forward"
+        }
+      ]
     }
   },
-  "tags": ["shared", "db", "python"],
+  "tags": ["shared", "db", "python", "no-deploy:shared"],
   "release": {
     "version": {
       "versionActions": "@nxlv/python/src/release/version-actions"

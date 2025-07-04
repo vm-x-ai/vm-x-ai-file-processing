@@ -279,17 +279,20 @@ declare namespace Components {
        * Match Chunks
        */
       match_chunks?: /* Match Chunks */ /* FileEmbeddingRead */
-      FileEmbeddingRead[] | null;
+        | FileEmbeddingRead[]
+        | null;
       /**
        * Before Neighbors
        */
       before_neighbors?: /* Before Neighbors */ /* FileContentRead */
-      FileContentRead[] | null;
+        | FileContentRead[]
+        | null;
       /**
        * After Neighbors
        */
       after_neighbors?: /* After Neighbors */ /* FileContentRead */
-      FileContentRead[] | null;
+        | FileContentRead[]
+        | null;
     }
     /**
      * FileEmbeddingRead
@@ -338,12 +341,14 @@ declare namespace Components {
        * Before Neighbors
        */
       before_neighbors?: /* Before Neighbors */ /* FileEmbeddingRead */
-      FileEmbeddingRead[] | null;
+        | FileEmbeddingRead[]
+        | null;
       /**
        * After Neighbors
        */
       after_neighbors?: /* After Neighbors */ /* FileEmbeddingRead */
-      FileEmbeddingRead[] | null;
+        | FileEmbeddingRead[]
+        | null;
       /**
        * Created At
        */
@@ -382,6 +387,18 @@ declare namespace Components {
        * Error
        */
       error?: /* Error */ string | null;
+      /**
+       * Llm Request
+       */
+      llm_request?: /* Llm Request */ {
+        [name: string]: any;
+      } | null;
+      /**
+       * Llm Response
+       */
+      llm_response?: /* Llm Response */ {
+        [name: string]: any;
+      } | null;
       /**
        * Id
        */
@@ -422,6 +439,18 @@ declare namespace Components {
        * Error
        */
       error?: /* Error */ string | null;
+      /**
+       * Llm Request
+       */
+      llm_request?: /* Llm Request */ {
+        [name: string]: any;
+      } | null;
+      /**
+       * Llm Response
+       */
+      llm_response?: /* Llm Response */ {
+        [name: string]: any;
+      } | null;
       /**
        * Id
        */
@@ -1404,6 +1433,43 @@ declare namespace Paths {
         /* HTTPValidationError */ Components.Schemas.HTTPValidationError;
     }
   }
+  namespace GetFileContent {
+    namespace Parameters {
+      /**
+       * File Id
+       */
+      export type FileId = string; // uuid
+      /**
+       * From Page
+       */
+      export type FromPage = number;
+      /**
+       * Project Id
+       */
+      export type ProjectId = string; // uuid
+      /**
+       * To Page
+       */
+      export type ToPage = /* To Page */ number | null;
+    }
+    export interface PathParameters {
+      project_id: /* Project Id */ Parameters.ProjectId /* uuid */;
+      file_id: /* File Id */ Parameters.FileId /* uuid */;
+    }
+    export interface QueryParameters {
+      from_page?: /* From Page */ Parameters.FromPage;
+      to_page?: /* To Page */ Parameters.ToPage;
+    }
+    namespace Responses {
+      /**
+       * Response Getfilecontent
+       */
+      export type $200 =
+        /* FileContentRead */ Components.Schemas.FileContentRead[];
+      export type $422 =
+        /* HTTPValidationError */ Components.Schemas.HTTPValidationError;
+    }
+  }
   namespace GetFileEvaluations {
     namespace Parameters {
       /**
@@ -1564,8 +1630,8 @@ declare namespace Paths {
        */
       export type $200 =
         /* Response Similaritysearch */ /* FileEmbeddingRead */
-        | Components.Schemas.FileEmbeddingRead[]
-        | /* FileContentReadWithChunkScore */ Components.Schemas.FileContentReadWithChunkScore[];
+          | Components.Schemas.FileEmbeddingRead[]
+          | /* FileContentReadWithChunkScore */ Components.Schemas.FileContentReadWithChunkScore[];
       export type $422 =
         /* HTTPValidationError */ Components.Schemas.HTTPValidationError;
     }
@@ -1785,6 +1851,18 @@ export interface OperationMethods {
     data?: any,
     config?: AxiosRequestConfig
   ): OperationResponse<Paths.DeleteFile.Responses.$200>;
+  /**
+   * getFileContent - Get File Content
+   *
+   * Get a file content by project and file id
+   */
+  'getFileContent'(
+    parameters?: Parameters<
+      Paths.GetFileContent.QueryParameters & Paths.GetFileContent.PathParameters
+    > | null,
+    data?: any,
+    config?: AxiosRequestConfig
+  ): OperationResponse<Paths.GetFileContent.Responses.$200>;
   /**
    * getFileEvaluations - Get File Evaluations
    *
@@ -2072,6 +2150,21 @@ export interface PathsDictionary {
       data?: any,
       config?: AxiosRequestConfig
     ): OperationResponse<Paths.DeleteFile.Responses.$200>;
+  };
+  ['/projects/{project_id}/file/{file_id}/content']: {
+    /**
+     * getFileContent - Get File Content
+     *
+     * Get a file content by project and file id
+     */
+    'get'(
+      parameters?: Parameters<
+        Paths.GetFileContent.QueryParameters &
+          Paths.GetFileContent.PathParameters
+      > | null,
+      data?: any,
+      config?: AxiosRequestConfig
+    ): OperationResponse<Paths.GetFileContent.Responses.$200>;
   };
   ['/projects/{project_id}/file/{file_id}/evaluations']: {
     /**

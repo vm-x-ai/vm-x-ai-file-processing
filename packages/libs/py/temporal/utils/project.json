@@ -1,8 +1,8 @@
 {
-  "name": "dm-py-temporal-utils",
+  "name": "py-temporal-utils",
   "$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
   "projectType": "library",
-  "sourceRoot": "packages/libs/py/temporal/utils/dm_temporal_utils",
+  "sourceRoot": "packages/libs/py/temporal/utils/vmxfp_temporal_utils",
   "targets": {
     "lock": {
       "executor": "@nxlv/python:lock",
@@ -41,7 +41,7 @@
       "executor": "@nxlv/python:ruff-check",
       "outputs": [],
       "options": {
-        "lintFilePatterns": ["dm_temporal_utils", "tests"]
+        "lintFilePatterns": ["vmxfp_temporal_utils", "tests"]
       },
       "cache": true
     },
@@ -49,7 +49,7 @@
       "executor": "@nxlv/python:ruff-format",
       "outputs": [],
       "options": {
-        "filePatterns": ["dm_temporal_utils", "tests"]
+        "filePatterns": ["vmxfp_temporal_utils", "tests"]
       },
       "cache": true
     },

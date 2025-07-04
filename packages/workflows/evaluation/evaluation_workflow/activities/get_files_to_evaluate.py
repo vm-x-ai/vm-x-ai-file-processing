@@ -1,10 +1,10 @@
 import logging
 from uuid import UUID
 
-import dm_db_models
-from dm_db_repositories.file import FileRepository
-from dm_db_repositories.file_evaluation import FileEvaluationRepository
+import vmxfp_db_models
 from temporalio import activity
+from vmxfp_db_repositories.file import FileRepository
+from vmxfp_db_repositories.file_evaluation import FileEvaluationRepository
 
 logger = logging.getLogger(__name__)
 
@@ -21,8 +21,8 @@ class GetFilesToEvaluateActivity:
     @activity.defn(name="GetFilesToEvaluateActivity")
     async def run(
         self,
-        evaluation: dm_db_models.EvaluationRead,
-        old_evaluation: dm_db_models.EvaluationRead | None = None,
+        evaluation: vmxfp_db_models.EvaluationRead,
+        old_evaluation: vmxfp_db_models.EvaluationRead | None = None,
     ) -> list[UUID]:
         parent_evaluation_option_changed = (
             old_evaluation
@@ -59,7 +59,7 @@ class GetFilesToEvaluateActivity:
         else:
             files = await self._file_repository.get_by_project_id(evaluation.project_id)
             for file in files:
-                if file.status == dm_db_models.FileStatus.COMPLETED:
+                if file.status == vmxfp_db_models.FileStatus.COMPLETED:
                     result.append(file.id)
 
         return result

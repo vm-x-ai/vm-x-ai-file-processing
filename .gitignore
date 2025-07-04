@@ -47,6 +47,7 @@ __pycache__
 
 # Next.js
 .next
+.nextjs-cdk
 out
 test-output
 .cursor/rules/nx-rules.mdc
@@ -60,3 +61,6 @@ cdk.out
 
 # Pytest
 reports/
+.coverage
+
+.env.*.local

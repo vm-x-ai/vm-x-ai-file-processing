@@ -1,0 +1,22 @@
+image:
+  repository: XXXXXXXXXXXX.dkr.ecr.us-east-1.amazonaws.com/vmxfp-api-ecr-shared
+  tag: 95b6e0f3190d1b434f6f3ea8c8b5b0d470397400
+  pullPolicy: IfNotPresent
+env:
+  dbSecret: vmxfp-app-database-secret
+  dbRoHost: vmxfp-app-database-ro-host
+  openaiApiKeySecret: openai-credentials
+  landingS3Bucket: vmxfp-ingestion-landing-us-east-1-dev
+  temporalHost: temporal-frontend.temporal:7233
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 200m
+  limits:
+    memory: 512Mi
+    cpu: 500m
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8000
+namespace: vmxfp-app

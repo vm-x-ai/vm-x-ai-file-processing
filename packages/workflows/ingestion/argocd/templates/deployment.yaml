@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vmxfp-ingestion-workflow
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vmxfp-ingestion-workflow
+  template:
+    metadata:
+      labels:
+        app: vmxfp-ingestion-workflow
+    spec:
+      serviceAccountName: vmxfp-ingestion-workflow-service-account
+      containers:
+        - name: vmxfp-ingestion-workflow
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: TEMPORAL_HOST
+              value: {{ .Values.env.temporalHost }}
+            - name: SQS_CONSUMER_QUEUE_URL
+              value: {{ .Values.env.queueUrl }}
+          resources:
+            requests:
+              memory: {{ .Values.resources.requests.memory }}
+              cpu: {{ .Values.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.resources.limits.memory }}
+              cpu: {{ .Values.resources.limits.cpu }}

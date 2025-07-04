@@ -3,20 +3,20 @@ import logging
 import uuid
 from uuid import UUID
 
-import dm_db_models
+import vmxfp_db_models
 from dependency_injector.wiring import Provide, inject
-from dm_db_repositories.evaluation import EvaluationRepository
-from dm_db_repositories.evaluation_category import (
+from fastapi import APIRouter, Depends, Query
+from temporalio.client import Client
+from vmxfp_db_repositories.evaluation import EvaluationRepository
+from vmxfp_db_repositories.evaluation_category import (
     EvaluationCategoryRepository,
 )
-from dm_db_repositories.file_evaluation import FileEvaluationRepository
-from dm_schemas.evaluation import (
+from vmxfp_db_repositories.file_evaluation import FileEvaluationRepository
+from vmxfp_schemas.evaluation import (
     HttpEvaluationCreate,
     HttpEvaluationUpdate,
 )
-from dm_utils.s3 import generate_download_url
-from fastapi import APIRouter, Depends, Query
-from temporalio.client import Client
+from vmxfp_utils.s3 import generate_download_url
 
 from api.containers import Container
 
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
     "/projects/{project_id}/evaluations",
     operation_id="getEvaluations",
     description="Get all evaluations for a project",
-    response_model=list[dm_db_models.EvaluationRead],
+    response_model=list[vmxfp_db_models.EvaluationRead],
     tags=["evaluations"],
 )
 @inject
@@ -37,7 +37,7 @@ async def get_evaluations(
     evaluation_repository: EvaluationRepository = Depends(
         Provide[Container.evaluation_repository]
     ),
-) -> list[dm_db_models.EvaluationRead]:
+) -> list[vmxfp_db_models.EvaluationRead]:
     return await evaluation_repository.get_by_project_id(
         project_id=project_id,
     )
@@ -47,7 +47,7 @@ async def get_evaluations(
     "/projects/{project_id}/evaluations/tree",
     operation_id="getEvaluationsTree",
     description="Get all evaluations for a project",
-    response_model=list[dm_db_models.EvaluationTree],
+    response_model=list[vmxfp_db_models.EvaluationTree],
     tags=["evaluations"],
 )
 @inject
@@ -56,14 +56,14 @@ async def get_evaluations_tree(
     evaluation_repository: EvaluationRepository = Depends(
         Provide[Container.evaluation_repository]
     ),
-) -> list[dm_db_models.EvaluationTree]:
+) -> list[vmxfp_db_models.EvaluationTree]:
     evaluations = await evaluation_repository.get_by_project_id(
         project_id=project_id,
     )
 
-    root_evaluations: list[dm_db_models.EvaluationTree] = []
+    root_evaluations: list[vmxfp_db_models.EvaluationTree] = []
     evaluation_map = {
-        evaluation.id: dm_db_models.EvaluationTree.model_validate(evaluation)
+        evaluation.id: vmxfp_db_models.EvaluationTree.model_validate(evaluation)
         for evaluation in evaluations
     }
     for evaluation in evaluations:
@@ -81,7 +81,7 @@ async def get_evaluations_tree(
     "/projects/{project_id}/evaluation/{evaluation_id}/files",
     operation_id="getFilesByEvaluation",
     description="Get all files for an evaluation",
-    response_model=list[dm_db_models.FileEvaluationReadWithFile],
+    response_model=list[vmxfp_db_models.FileEvaluationReadWithFile],
     tags=["evaluations"],
 )
 @inject
@@ -92,7 +92,7 @@ async def get_files_by_evaluation(
     file_evaluation_repository: FileEvaluationRepository = Depends(
         Provide[Container.file_evaluation_repository]
     ),
-) -> list[dm_db_models.FileEvaluationReadWithFile]:
+) -> list[vmxfp_db_models.FileEvaluationReadWithFile]:
     files = await file_evaluation_repository.get_by_evaluation_id(
         project_id=project_id,
         evaluation_id=evaluation_id,
@@ -100,8 +100,8 @@ async def get_files_by_evaluation(
     )
 
     async def update_file_evaluation(
-        file_evaluation: dm_db_models.FileEvaluationReadWithFile,
-    ) -> dm_db_models.FileEvaluationReadWithFile:
+        file_evaluation: vmxfp_db_models.FileEvaluationReadWithFile,
+    ) -> vmxfp_db_models.FileEvaluationReadWithFile:
         if file_evaluation.file.thumbnail_url:
             file_evaluation.file.thumbnail_url = await generate_download_url(
                 file_evaluation.file.thumbnail_url,
@@ -118,7 +118,7 @@ async def get_files_by_evaluation(
     "/projects/{project_id}/evaluations",
     operation_id="createEvaluation",
     description="Create an evaluation for a project",
-    response_model=dm_db_models.EvaluationRead,
+    response_model=vmxfp_db_models.EvaluationRead,
     tags=["evaluations"],
 )
 @inject
@@ -132,7 +132,7 @@ async def create_evaluation(
         Provide[Container.evaluation_category_repository]
     ),
     temporal_client: Client = Depends(Provide[Container.temporal_client]),
-) -> dm_db_models.EvaluationRead:
+) -> vmxfp_db_models.EvaluationRead:
     # Handle category creation/assignment
     category_id = payload.category_id
     if payload.category_name:
@@ -153,7 +153,7 @@ async def create_evaluation(
         category_id = default_category.id
 
     evaluation = await evaluation_repository.add(
-        dm_db_models.EvaluationCreate.model_validate(
+        vmxfp_db_models.EvaluationCreate.model_validate(
             {
                 **payload.model_dump(
                     exclude={"project_id", "category_name", "category_description"}
@@ -184,7 +184,7 @@ async def create_evaluation(
     "/projects/{project_id}/evaluations/{evaluation_id}",
     operation_id="updateEvaluation",
     description="Update an evaluation for a project",
-    response_model=dm_db_models.EvaluationRead,
+    response_model=vmxfp_db_models.EvaluationRead,
     tags=["evaluations"],
 )
 @inject
@@ -196,7 +196,7 @@ async def update_evaluation(
         Provide[Container.evaluation_repository]
     ),
     temporal_client: Client = Depends(Provide[Container.temporal_client]),
-) -> dm_db_models.EvaluationRead:
+) -> vmxfp_db_models.EvaluationRead:
     old_evaluation = await evaluation_repository.get(evaluation_id)
     await evaluation_repository.update(
         evaluation_id,
@@ -242,7 +242,7 @@ async def delete_evaluation(
     "/projects/{project_id}/evaluation-categories",
     operation_id="getEvaluationCategories",
     description="Get all evaluation categories for a project",
-    response_model=list[dm_db_models.EvaluationCategoryRead],
+    response_model=list[vmxfp_db_models.EvaluationCategoryRead],
     tags=["evaluation-categories"],
 )
 @inject
@@ -251,7 +251,7 @@ async def get_evaluation_categories(
     evaluation_category_repository: EvaluationCategoryRepository = Depends(
         Provide[Container.evaluation_category_repository]
     ),
-) -> list[dm_db_models.EvaluationCategoryRead]:
+) -> list[vmxfp_db_models.EvaluationCategoryRead]:
     return await evaluation_category_repository.get_by_project_id(
         project_id=project_id,
     )
@@ -261,7 +261,7 @@ async def get_evaluation_categories(
     "/projects/{project_id}/evaluation-categories",
     operation_id="createEvaluationCategory",
     description="Create an evaluation category for a project",
-    response_model=dm_db_models.EvaluationCategoryRead,
+    response_model=vmxfp_db_models.EvaluationCategoryRead,
     tags=["evaluation-categories"],
 )
 @inject
@@ -271,9 +271,9 @@ async def create_evaluation_category(
     evaluation_category_repository: EvaluationCategoryRepository = Depends(
         Provide[Container.evaluation_category_repository]
     ),
-) -> dm_db_models.EvaluationCategoryRead:
+) -> vmxfp_db_models.EvaluationCategoryRead:
     return await evaluation_category_repository.add(
-        dm_db_models.EvaluationCategoryCreate.model_validate(
+        vmxfp_db_models.EvaluationCategoryCreate.model_validate(
             {
                 "name": payload["name"],
                 "description": payload.get("description"),
@@ -288,7 +288,7 @@ async def create_evaluation_category(
     "/projects/{project_id}/evaluation-categories/{category_id}",
     operation_id="updateEvaluationCategory",
     description="Update an evaluation category for a project",
-    response_model=dm_db_models.EvaluationCategoryRead,
+    response_model=vmxfp_db_models.EvaluationCategoryRead,
     tags=["evaluation-categories"],
 )
 @inject
@@ -299,7 +299,7 @@ async def update_evaluation_category(
     evaluation_category_repository: EvaluationCategoryRepository = Depends(
         Provide[Container.evaluation_category_repository]
     ),
-) -> dm_db_models.EvaluationCategoryRead:
+) -> vmxfp_db_models.EvaluationCategoryRead:
     await evaluation_category_repository.update(
         category_id,
         {
@@ -331,7 +331,7 @@ async def delete_evaluation_category(
     "/projects/{project_id}/evaluation-categories/{category_id}/evaluations",
     operation_id="getEvaluationsByCategory",
     description="Get all evaluations for a specific category",
-    response_model=list[dm_db_models.EvaluationRead],
+    response_model=list[vmxfp_db_models.EvaluationRead],
     tags=["evaluation-categories"],
 )
 @inject
@@ -341,7 +341,7 @@ async def get_evaluations_by_category(
     evaluation_repository: EvaluationRepository = Depends(
         Provide[Container.evaluation_repository]
     ),
-) -> list[dm_db_models.EvaluationRead]:
+) -> list[vmxfp_db_models.EvaluationRead]:
     return await evaluation_repository.get_by_category_id(
         project_id=project_id,
         category_id=category_id,

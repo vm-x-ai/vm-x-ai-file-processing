@@ -3,10 +3,10 @@ import evaluation_workflow.activities as evaluation_activities
 import ingestion_workflow.activities as ingestion_activities
 import workflow_shared_actitivies
 from dependency_injector import providers
-from dm_db_repositories.containers import RepositoriesContainer
-from dm_services.containers import ServicesContainer
-from dm_temporal_utils.containers import TemporalContainer
 from vmxai import VMXClient
+from vmxfp_db_repositories.containers import RepositoriesContainer
+from vmxfp_services.containers import ServicesContainer
+from vmxfp_temporal_utils.containers import TemporalContainer
 
 from workflow_worker.settings import Settings
 

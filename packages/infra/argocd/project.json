@@ -1,0 +1,9 @@
+{
+  "name": "@vmxfp/infra-argocd",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/infra/argocd/src",
+  "projectType": "library",
+  "tags": ["infra", "k8s", "argocd"],
+  "// targets": "to see all targets run: nx show project @vmxfp/infra-argocd --web",
+  "targets": {}
+}

@@ -1,0 +1,20 @@
+image:
+  repository: XXXXXXXXXXXX.dkr.ecr.us-east-1.amazonaws.com/vmxfp-ui-ecr-shared
+  tag: dev-95b6e0f3190d1b434f6f3ea8c8b5b0d470397400
+  pullPolicy: IfNotPresent
+env:
+  vmxCredentialsSecret: vmx-credentials
+  apiUrl: >-
+    http://k8s-istiosys-ingressg-065d0fd4f6-83fc7667a3e2b2bd.elb.us-east-1.amazonaws.com/api
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 200m
+  limits:
+    memory: 512Mi
+    cpu: 500m
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+namespace: vmxfp-app

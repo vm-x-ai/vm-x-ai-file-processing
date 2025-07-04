@@ -11,7 +11,7 @@ export class EventsStack extends cdk.Stack {
     super(scope, id, props);
 
     new events.EventBus(this, 'EventBus', {
-      eventBusName: `dm-event-bus-${props.stage}`,
+      eventBusName: `vmxfp-event-bus-${props.stage}`,
     });
   }
 }

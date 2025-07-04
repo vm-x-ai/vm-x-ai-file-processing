@@ -5,7 +5,6 @@ import { LayoutTemplate, SquareTerminal } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
 import { NavProjects } from '@/components/nav-projects';
-import { DMLogo } from '@/components/ui/dm-logo';
 import {
   Sidebar,
   SidebarContent,
@@ -75,9 +74,7 @@ export function AppSidebar({
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        {/* DM Logo */}
         <div className="flex items-center gap-3 p-2">
-          <DMLogo size={32} />
           <span className="font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">
             VM-X AI
           </span>

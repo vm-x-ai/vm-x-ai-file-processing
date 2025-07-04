@@ -3,9 +3,14 @@
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/apps/ui",
   "projectType": "application",
-  "tags": [],
+  "tags": ["no-deploy:shared", "ui"],
   "// targets": "to see all targets run: nx show project ui --web",
   "targets": {
+    "cdk-bootstrap": {},
+    "cdk-deploy": {},
+    "build": {
+      "cache": false
+    },
     "dev": {
       "continuous": true,
       "command": "next dev --port 3002 --turbopack",
@@ -13,11 +18,80 @@
         "cwd": "{projectRoot}"
       }
     },
+    "self-hosted-build": {
+      "executor": "@vmxfp/workspace-plugins:self-hosted-nextjs-build",
+      "options": {},
+      "dependsOn": [],
+      "configurations": {
+        "dev": {},
+        "prd": {}
+      }
+    },
+    "docker-build": {
+      "options": {
+        "env": {}
+      },
+      "configurations": {
+        "dev": {
+          "env": {
+            "TAG_PREFIX": "dev-"
+          }
+        },
+        "prd": {
+          "env": {
+            "TAG_PREFIX": "prd-"
+          }
+        }
+      }
+    },
+    "docker-push": {
+      "options": {},
+      "configurations": {
+        "dev": {
+          "env": {
+            "ECR_REPO_NAME": "ui",
+            "TAG_PREFIX": "dev-"
+          }
+        },
+        "prd": {
+          "env": {
+            "ECR_REPO_NAME": "ui",
+            "TAG_PREFIX": "prd-"
+          }
+        }
+      }
+    },
+    "update-image-tag": {
+      "configurations": {
+        "dev": {
+          "filePath": "{projectRoot}/argocd/dev.values.yaml",
+          "valuePrefix": "dev-"
+        },
+        "prd": {
+          "filePath": "{projectRoot}/argocd/prd.values.yaml",
+          "valuePrefix": "prd-"
+        }
+      }
+    },
     "openapi-gen": {
       "command": "pnpm exec openapi typegen http://localhost:8000/openapi.json --client > src/file-classifier-api.d.ts",
       "options": {
         "cwd": "{projectRoot}"
       }
+    },
+    "deploy": {
+      "executor": "@vmxfp/workspace-plugins:proxy-executor",
+      "options": {
+        "target": "cdk-deploy"
+      },
+      "dependsOn": [
+        "^build",
+        {
+          "projects": "api",
+          "target": "deploy",
+          "params": "forward"
+        }
+      ]
     }
   }
 }

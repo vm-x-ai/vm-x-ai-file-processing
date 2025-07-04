@@ -1,0 +1,19 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: vmxfp-api
+  namespace: {{ .Values.namespace }}
+spec:
+  hosts:
+    - '*'
+  gateways:
+    - {{ .Values.namespace }}/vmxfp-api-gateway
+  http:
+    - match:
+        - uri:
+            prefix: /api
+      route:
+        - destination:
+            host: vmxfp-api
+            port:
+              number: 80 

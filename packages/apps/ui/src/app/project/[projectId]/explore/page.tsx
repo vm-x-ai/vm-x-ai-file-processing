@@ -2,7 +2,6 @@ import { fileClassifierApi } from '@/api';
 import { Explore } from '@/components/explore';
 import { FileSearchEvaluationGroup } from '@/file-classifier-api';
 import { parseAsString, parseAsJson } from 'nuqs/server';
-import { AI } from './actions';
 
 type PageProps = {
   params: Promise<{
@@ -49,17 +48,11 @@ export default async function Page({ params, searchParams }: PageProps) {
 
   return (
     <div className="grid grid-cols-12 gap-4">
-      <AI
-        initialAIState={{
-          messages: [],
-        }}
-      >
-        <Explore
-          projectId={projectId}
-          evaluations={evaluationsDef}
-          files={files}
-        />
-      </AI>
+      <Explore
+        projectId={projectId}
+        evaluations={evaluationsDef}
+        files={files}
+      />
     </div>
   );
 }

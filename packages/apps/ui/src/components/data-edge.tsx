@@ -71,6 +71,8 @@ export function DataEdge({
           return '';
       }
     }
+
+    return '';
   }, [data, nodeData]);
 
   const transform = `translate(${labelX}px,${labelY}px) translate(-50%, -50%)`;

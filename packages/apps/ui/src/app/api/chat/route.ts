@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
 
   const actionHeaders = await headers();
   const headerMetadata: Record<string, JSONValue> = {};
-  const baseURL = `${process.env.VMX_PROTOCOL}://${process.env.VMX_DOMAIN}/completion/${process.env.VMX_WORKSPACE_ID}/${process.env.VMX_ENVIRONMENT_ID}/${process.env.VMX_RESOURCE}/openai-adapter`;
+  const baseURL = `${process.env.VMX_PROTOCOL}://api.${process.env.VMX_DOMAIN}/completion/${process.env.VMX_WORKSPACE_ID}/${process.env.VMX_ENVIRONMENT_ID}/${process.env.VMX_RESOURCE}/openai-adapter`;
   const model = getLanguageModel(baseURL, actionHeaders, headerMetadata);
 
   const result = streamText({
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
           return files;
         },
       }),
-      lookup_files: tool({
+      similarity_search: tool({
         description: 'Lookup for information inside the selected files',
         parameters: z.object({
           search: z.string().describe('The search query'),
@@ -86,6 +86,69 @@ export async function POST(request: NextRequest) {
               error: `An error occurred while searching for the files: ${error}`,
             };
           }
+        },
+      }),
+      read_file: tool({
+        description: 'Read the selected file',
+        parameters: z.object({
+          fileId: z.string().describe('The file id to read'),
+          fromPage: z
+            .number()
+            .describe('The page to start reading from')
+            .optional()
+            .default(1),
+          toPage: z.number().describe('The page to stop reading at').optional(),
+        }),
+        execute: async ({ fileId, fromPage, toPage }) => {
+          const response = await fileClassifierApi.getFileContent({
+            project_id: projectId,
+            file_id: fileId,
+            from_page: fromPage,
+            to_page: toPage,
+          });
+
+          return response.data;
+        },
+      }),
+      read_file_evaluations: tool({
+        description: 'Read the evaluations for the selected file',
+        parameters: z.object({
+          fileId: z.string().describe('The file id to read'),
+        }),
+        execute: async ({ fileId }) => {
+          const response = await fileClassifierApi.getFileEvaluations({
+            project_id: projectId,
+            file_id: fileId,
+          });
+
+          return response.data;
+        },
+      }),
+      list_evaluations: tool({
+        description: 'List the evaluations',
+        parameters: z.object({}),
+        execute: async () => {
+          const response = await fileClassifierApi.getEvaluations({
+            project_id: projectId,
+          });
+
+          return response.data;
+        },
+      }),
+      list_files_by_evaluation: tool({
+        description: 'List the files by evaluation',
+        parameters: z.object({
+          evaluationId: z
+            .string()
+            .describe('The evaluation id to list the files'),
+        }),
+        execute: async ({ evaluationId }) => {
+          const response = await fileClassifierApi.getFilesByEvaluation({
+            project_id: projectId,
+            evaluation_id: evaluationId,
+          });
+
+          return response.data;
         },
       }),
     },

@@ -7,15 +7,15 @@ from io import BytesIO
 from uuid import UUID
 
 import aioboto3
-import dm_db_models
-from dm_db_repositories.file import FileRepository
-from dm_db_repositories.file_content import FileContentRepository
-from dm_db_repositories.project import ProjectRepository
-from dm_schemas.s3 import S3Event
+import vmxfp_db_models
 from langchain_community.document_loaders import PyPDFLoader
 from pdf2image import convert_from_path
 from pydantic import BaseModel
 from temporalio import activity
+from vmxfp_db_repositories.file import FileRepository
+from vmxfp_db_repositories.file_content import FileContentRepository
+from vmxfp_db_repositories.project import ProjectRepository
+from vmxfp_schemas.s3 import S3Event
 
 logger = logging.getLogger(__name__)
 
@@ -83,13 +83,13 @@ class LoadS3FileActivity:
                     if not file_id:
                         file_id = uuid.uuid4()
                         file = await self._file_repository.add(
-                            dm_db_models.FileCreate(
+                            vmxfp_db_models.FileCreate(
                                 id=file_id,
                                 name=file_name,
                                 type=mimetypes.guess_type(file_name)[0],
                                 project_id=project.id,
                                 size=record.s3.object.size,
-                                status=dm_db_models.FileStatus.CHUNKING,
+                                status=vmxfp_db_models.FileStatus.CHUNKING,
                                 url=f"s3://{record.s3.bucket.name}/{record.s3.object.key}",
                                 thumbnail_url=None,
                                 error=None,
@@ -112,7 +112,7 @@ class LoadS3FileActivity:
                             docs = await loader.aload()
                             contents = await self._file_content_repository.add_all(
                                 [
-                                    dm_db_models.FileContentCreate(
+                                    vmxfp_db_models.FileContentCreate(
                                         id=uuid.uuid4(),
                                         file_id=file.id,
                                         content_number=idx + 1,
@@ -130,14 +130,34 @@ class LoadS3FileActivity:
                                 project_id=project.id,
                                 file_content_ids=[content.id for content in contents],
                             )
+                        case ".txt":
+                            content = temp_file.read().decode("utf-8")
+
+                            file_content = await self._file_content_repository.add(
+                                vmxfp_db_models.FileContentCreate(
+                                    id=uuid.uuid4(),
+                                    file_id=file.id,
+                                    content=content,
+                                    content_number=1,
+                                    content_metadata={
+                                        "total_lines": len(content.splitlines()),
+                                    },
+                                )
+                            )
+
+                            return LoadS3FileOutput(
+                                file_id=file.id,
+                                project_id=project.id,
+                                file_content_ids=[file_content.id],
+                            )
                         case _:
                             raise ValueError(f"Unsupported file extension: {file_ext}")
 
     async def _generate_pdf_thumbnail(
         self,
-        project: dm_db_models.ProjectRead,
+        project: vmxfp_db_models.ProjectRead,
         temp_file: tempfile.NamedTemporaryFile,
-        file: dm_db_models.FileRead,
+        file: vmxfp_db_models.FileRead,
     ):
         images = convert_from_path(
             temp_file.name,

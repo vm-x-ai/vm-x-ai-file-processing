@@ -20,4 +20,24 @@ export default [
   {
     ignores: ['.next/**/*', 'src/file-classifier-api.d.ts'],
   },
+  {
+    files: ['**/*.json'],
+    rules: {
+      '@nx/dependency-checks': [
+        'error',
+        {
+          ignoredFiles: [
+            '{projectRoot}/eslint.config.{js,cjs,mjs}',
+            '{projectRoot}/next.config.{js,ts,mjs,mts}',
+            '{projectRoot}/vite.config.{js,ts,mjs,mts}',
+            '{projectRoot}/infra/**/*',
+            '{projectRoot}/infra/package.json',
+          ],
+        },
+      ],
+    },
+    languageOptions: {
+      parser: await import('jsonc-eslint-parser'),
+    },
+  },
 ];

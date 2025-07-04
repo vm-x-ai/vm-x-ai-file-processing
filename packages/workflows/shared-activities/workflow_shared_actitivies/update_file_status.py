@@ -1,9 +1,9 @@
 import logging
 from uuid import UUID
 
-import dm_db_models
-from dm_db_repositories.file import FileRepository
+import vmxfp_db_models
 from temporalio import activity
+from vmxfp_db_repositories.file import FileRepository
 
 logger = logging.getLogger(__name__)
 
@@ -13,5 +13,5 @@ class UpdateFileStatusActivity:
         self._file_repository = file_repository
 
     @activity.defn(name="UpdateFileStatusActivity")
-    async def run(self, file_id: UUID, status: dm_db_models.FileStatus):
+    async def run(self, file_id: UUID, status: vmxfp_db_models.FileStatus):
         await self._file_repository.update(file_id, {"status": status})

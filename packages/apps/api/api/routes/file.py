@@ -2,12 +2,13 @@ import asyncio
 import logging
 from uuid import UUID
 
-import dm_db_models
+import vmxfp_db_models
 from dependency_injector.wiring import Provide, inject
-from dm_db_repositories.file import FileRepository, FileSearchRequest
-from dm_db_repositories.file_evaluation import FileEvaluationRepository
-from dm_utils.s3 import generate_download_url
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
+from vmxfp_db_repositories.file import FileRepository, FileSearchRequest
+from vmxfp_db_repositories.file_content import FileContentRepository
+from vmxfp_db_repositories.file_evaluation import FileEvaluationRepository
+from vmxfp_utils.s3 import generate_download_url
 
 from api.containers import Container
 
@@ -15,7 +16,9 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-async def update_thumbnail_url(file: dm_db_models.FileRead) -> dm_db_models.FileRead:
+async def update_thumbnail_url(
+    file: vmxfp_db_models.FileRead,
+) -> vmxfp_db_models.FileRead:
     if file.thumbnail_url:
         file.thumbnail_url = await generate_download_url(
             file.thumbnail_url,
@@ -28,14 +31,14 @@ async def update_thumbnail_url(file: dm_db_models.FileRead) -> dm_db_models.File
     "/projects/{project_id}/files",
     operation_id="getFiles",
     description="Get all files for a project",
-    response_model=list[dm_db_models.FileRead],
+    response_model=list[vmxfp_db_models.FileRead],
     tags=["files"],
 )
 @inject
 async def get_files(
     project_id: UUID,
     file_repository: FileRepository = Depends(Provide[Container.file_repository]),
-) -> list[dm_db_models.FileRead]:
+) -> list[vmxfp_db_models.FileRead]:
     files = await file_repository.get_by_project_id(
         project_id=project_id,
     )
@@ -47,7 +50,7 @@ async def get_files(
     "/projects/{project_id}/files/search",
     operation_id="searchFiles",
     description="Search files for a project",
-    response_model=list[dm_db_models.FileReadWithEvaluations],
+    response_model=list[vmxfp_db_models.FileReadWithEvaluations],
     tags=["files"],
 )
 @inject
@@ -55,7 +58,7 @@ async def search_files(
     project_id: UUID,
     request: FileSearchRequest,
     file_repository: FileRepository = Depends(Provide[Container.file_repository]),
-) -> list[dm_db_models.FileReadWithEvaluations]:
+) -> list[vmxfp_db_models.FileReadWithEvaluations]:
     return await file_repository.search_files(project_id, request)
 
 
@@ -63,7 +66,7 @@ async def search_files(
     "/projects/{project_id}/file/{file_id}",
     operation_id="getFile",
     description="Get a file by project and file id",
-    response_model=dm_db_models.FileRead,
+    response_model=vmxfp_db_models.FileRead,
     tags=["files"],
 )
 @inject
@@ -71,7 +74,7 @@ async def get_file(
     project_id: UUID,
     file_id: UUID,
     file_repository: FileRepository = Depends(Provide[Container.file_repository]),
-) -> dm_db_models.FileRead:
+) -> vmxfp_db_models.FileRead:
     file = await file_repository.get(
         file_id,
     )
@@ -82,10 +85,38 @@ async def get_file(
 
 
 @router.get(
+    "/projects/{project_id}/file/{file_id}/content",
+    operation_id="getFileContent",
+    description="Get a file content by project and file id",
+    response_model=list[vmxfp_db_models.FileContentRead],
+    tags=["files"],
+)
+@inject
+async def get_file_content(
+    project_id: UUID,
+    file_id: UUID,
+    from_page: int = Query(default=1, ge=1),
+    to_page: int | None = Query(default=None, ge=1),
+    file_content_repository: FileContentRepository = Depends(
+        Provide[Container.file_content_repository]
+    ),
+) -> vmxfp_db_models.FileContentRead:
+    file_content = await file_content_repository.get_by_file_id_and_page(
+        file_id,
+        from_page,
+        to_page,
+    )
+    if not file_content:
+        raise HTTPException(status_code=404, detail="File not found")
+
+    return file_content
+
+
+@router.get(
     "/projects/{project_id}/file/{file_id}/evaluations",
     operation_id="getFileEvaluations",
     description="Get all evaluations for a file",
-    response_model=list[dm_db_models.FileEvaluationReadWithFile],
+    response_model=list[vmxfp_db_models.FileEvaluationReadWithFile],
     tags=["files"],
 )
 @inject
@@ -95,7 +126,7 @@ async def get_file_evaluations(
     file_evaluation_repository: FileEvaluationRepository = Depends(
         Provide[Container.file_evaluation_repository]
     ),
-) -> list[dm_db_models.FileEvaluationReadWithFile]:
+) -> list[vmxfp_db_models.FileEvaluationReadWithFile]:
     file_evaluations = await file_evaluation_repository.get_by_file_id(
         project_id=project_id,
         file_id=file_id,

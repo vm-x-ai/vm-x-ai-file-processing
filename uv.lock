@@ -11,14 +11,15 @@ resolution-markers = [
 [manifest]
 members = [
     "api",
-    "dm-py-db-models",
-    "dm-py-db-repositories",
-    "dm-py-db-services",
-    "dm-py-logger",
-    "dm-py-schemas",
-    "dm-py-services",
-    "dm-py-temporal-utils",
-    "dm-py-utils",
+    "vmxfp-py-aws-sqs-consumer",
+    "vmxfp-py-db-models",
+    "vmxfp-py-db-repositories",
+    "vmxfp-py-db-services",
+    "vmxfp-py-logger",
+    "vmxfp-py-schemas",
+    "vmxfp-py-services",
+    "vmxfp-py-temporal-utils",
+    "vmxfp-py-utils",
     "evaluation-workflow",
     "nx-workspace",
     "workflow-ingestion",
@@ -246,31 +247,39 @@ version = "1.0.0"
 source = { editable = "packages/apps/api" }
 dependencies = [
     { name = "dependency-injector" },
-    { name = "dm-py-db-models" },
-    { name = "dm-py-db-repositories" },
-    { name = "dm-py-db-services" },
-    { name = "dm-py-logger" },
-    { name = "dm-py-schemas" },
-    { name = "dm-py-services" },
-    { name = "dm-py-utils" },
+    { name = "vmxfp-py-db-models" },
+    { name = "vmxfp-py-db-repositories" },
+    { name = "vmxfp-py-db-services" },
+    { name = "vmxfp-py-logger" },
+    { name = "vmxfp-py-schemas" },
+    { name = "vmxfp-py-services" },
+    { name = "vmxfp-py-temporal-utils" },
+    { name = "vmxfp-py-utils" },
     { name = "fastapi" },
+    { name = "langchain-openai" },
+    { name = "pydantic-settings" },
     { name = "temporalio" },
     { name = "uvicorn" },
+    { name = "vm-x-ai-sdk" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "dependency-injector", specifier = ">=4.46.0" },
-    { name = "dm-py-db-models", editable = "packages/libs/py/db/models" },
-    { name = "dm-py-db-repositories", editable = "packages/libs/py/db/repositories" },
-    { name = "dm-py-db-services", editable = "packages/libs/py/db/services" },
-    { name = "dm-py-logger", editable = "packages/libs/py/logger" },
-    { name = "dm-py-schemas", editable = "packages/libs/py/schemas" },
-    { name = "dm-py-services", editable = "packages/libs/py/services" },
-    { name = "dm-py-utils", editable = "packages/libs/py/utils" },
+    { name = "vmxfp-py-db-models", editable = "packages/libs/py/db/models" },
+    { name = "vmxfp-py-db-repositories", editable = "packages/libs/py/db/repositories" },
+    { name = "vmxfp-py-db-services", editable = "packages/libs/py/db/services" },
+    { name = "vmxfp-py-logger", editable = "packages/libs/py/logger" },
+    { name = "vmxfp-py-schemas", editable = "packages/libs/py/schemas" },
+    { name = "vmxfp-py-services", editable = "packages/libs/py/services" },
+    { name = "vmxfp-py-temporal-utils", editable = "packages/libs/py/temporal/utils" },
+    { name = "vmxfp-py-utils", editable = "packages/libs/py/utils" },
     { name = "fastapi", specifier = ">=0.115.12" },
+    { name = "langchain-openai", specifier = ">=0.3.16" },
+    { name = "pydantic-settings", specifier = ">=2.9.1" },
     { name = "temporalio", specifier = ">=1.11.1" },
     { name = "uvicorn", specifier = ">=0.34.2" },
+    { name = "vm-x-ai-sdk", specifier = ">=1.6.2" },
 ]
 
 [[package]]
@@ -688,11 +697,28 @@ wheels = [
 ]
 
 [[package]]
-name = "dm-py-db-models"
+name = "vmxfp-py-aws-sqs-consumer"
+version = "1.0.0"
+source = { editable = "packages/libs/py/aws/sqs-consumer" }
+dependencies = [
+    { name = "aioboto3" },
+    { name = "pydantic-settings" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "aioboto3", specifier = ">=14.3.0" },
+    { name = "pydantic-settings", specifier = ">=2.9.1" },
+]
+
+[[package]]
+name = "vmxfp-py-db-models"
 version = "1.0.0"
 source = { editable = "packages/libs/py/db/models" }
 dependencies = [
     { name = "alembic" },
+    { name = "boto3" },
+    { name = "vmxfp-py-logger" },
     { name = "numpydantic" },
     { name = "pgvector" },
     { name = "psycopg", extra = ["binary"] },
@@ -703,6 +729,8 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "alembic", specifier = ">=1.15.2" },
+    { name = "boto3", specifier = ">=1.37.3" },
+    { name = "vmxfp-py-logger", editable = "packages/libs/py/logger" },
     { name = "numpydantic", specifier = ">=1.6.9" },
     { name = "pgvector", specifier = ">=0.4.1" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2.8" },
@@ -711,27 +739,28 @@ requires-dist = [
 ]
 
 [[package]]
-name = "dm-py-db-repositories"
+name = "vmxfp-py-db-repositories"
 version = "1.0.0"
 source = { editable = "packages/libs/py/db/repositories" }
 dependencies = [
-    { name = "dm-py-db-models" },
-    { name = "dm-py-db-services" },
-    { name = "dm-py-utils" },
+    { name = "vmxfp-py-db-models" },
+    { name = "vmxfp-py-db-services" },
+    { name = "vmxfp-py-utils" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "dm-py-db-models", editable = "packages/libs/py/db/models" },
-    { name = "dm-py-db-services", editable = "packages/libs/py/db/services" },
-    { name = "dm-py-utils", editable = "packages/libs/py/utils" },
+    { name = "vmxfp-py-db-models", editable = "packages/libs/py/db/models" },
+    { name = "vmxfp-py-db-services", editable = "packages/libs/py/db/services" },
+    { name = "vmxfp-py-utils", editable = "packages/libs/py/utils" },
 ]
 
 [[package]]
-name = "dm-py-db-services"
+name = "vmxfp-py-db-services"
 version = "1.0.0"
 source = { editable = "packages/libs/py/db/services" }
 dependencies = [
+    { name = "vmxfp-py-db-models" },
     { name = "psycopg", extra = ["binary"] },
     { name = "sqlalchemy", extra = ["asyncio"] },
     { name = "sqlmodel" },
@@ -739,50 +768,51 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "vmxfp-py-db-models", editable = "packages/libs/py/db/models" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2.8" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.40" },
     { name = "sqlmodel", specifier = ">=0.0.24" },
 ]
 
 [[package]]
-name = "dm-py-logger"
+name = "vmxfp-py-logger"
 version = "1.0.0"
 source = { editable = "packages/libs/py/logger" }
 
 [[package]]
-name = "dm-py-schemas"
+name = "vmxfp-py-schemas"
 version = "1.0.0"
 source = { editable = "packages/libs/py/schemas" }
 dependencies = [
-    { name = "dm-py-db-models" },
+    { name = "vmxfp-py-db-models" },
     { name = "pydantic" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "dm-py-db-models", editable = "packages/libs/py/db/models" },
+    { name = "vmxfp-py-db-models", editable = "packages/libs/py/db/models" },
     { name = "pydantic", specifier = ">=2.11.4" },
 ]
 
 [[package]]
-name = "dm-py-services"
+name = "vmxfp-py-services"
 version = "1.0.0"
 source = { editable = "packages/libs/py/services" }
 dependencies = [
-    { name = "dm-py-db-models" },
-    { name = "dm-py-db-repositories" },
+    { name = "vmxfp-py-db-models" },
+    { name = "vmxfp-py-db-repositories" },
     { name = "jinja2" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "dm-py-db-models", editable = "packages/libs/py/db/models" },
-    { name = "dm-py-db-repositories", editable = "packages/libs/py/db/repositories" },
+    { name = "vmxfp-py-db-models", editable = "packages/libs/py/db/models" },
+    { name = "vmxfp-py-db-repositories", editable = "packages/libs/py/db/repositories" },
     { name = "jinja2", specifier = ">=3.1.6" },
 ]
 
 [[package]]
-name = "dm-py-temporal-utils"
+name = "vmxfp-py-temporal-utils"
 version = "1.0.0"
 source = { editable = "packages/libs/py/temporal/utils" }
 dependencies = [
@@ -797,7 +827,7 @@ requires-dist = [
 ]
 
 [[package]]
-name = "dm-py-utils"
+name = "vmxfp-py-utils"
 version = "1.0.0"
 source = { editable = "packages/libs/py/utils" }
 dependencies = [
@@ -812,11 +842,23 @@ name = "evaluation-workflow"
 version = "1.0.0"
 source = { editable = "packages/workflows/evaluation" }
 dependencies = [
+    { name = "aioboto3" },
+    { name = "dependency-injector" },
+    { name = "vmxfp-py-aws-sqs-consumer" },
+    { name = "vmxfp-py-logger" },
+    { name = "vmxfp-py-temporal-utils" },
     { name = "workflow-shared-activities" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "workflow-shared-activities", editable = "packages/workflows/shared-activities" }]
+requires-dist = [
+    { name = "aioboto3", specifier = ">=14.3.0" },
+    { name = "dependency-injector", specifier = ">=4.46.0" },
+    { name = "vmxfp-py-aws-sqs-consumer", editable = "packages/libs/py/aws/sqs-consumer" },
+    { name = "vmxfp-py-logger", editable = "packages/libs/py/logger" },
+    { name = "vmxfp-py-temporal-utils", editable = "packages/libs/py/temporal/utils" },
+    { name = "workflow-shared-activities", editable = "packages/workflows/shared-activities" },
+]
 
 [[package]]
 name = "exceptiongroup"
@@ -1712,14 +1754,15 @@ version = "1.0.0"
 source = { virtual = "." }
 dependencies = [
     { name = "api" },
-    { name = "dm-py-db-models" },
-    { name = "dm-py-db-repositories" },
-    { name = "dm-py-db-services" },
-    { name = "dm-py-logger" },
-    { name = "dm-py-schemas" },
-    { name = "dm-py-services" },
-    { name = "dm-py-temporal-utils" },
-    { name = "dm-py-utils" },
+    { name = "vmxfp-py-aws-sqs-consumer" },
+    { name = "vmxfp-py-db-models" },
+    { name = "vmxfp-py-db-repositories" },
+    { name = "vmxfp-py-db-services" },
+    { name = "vmxfp-py-logger" },
+    { name = "vmxfp-py-schemas" },
+    { name = "vmxfp-py-services" },
+    { name = "vmxfp-py-temporal-utils" },
+    { name = "vmxfp-py-utils" },
     { name = "evaluation-workflow" },
     { name = "workflow-ingestion" },
     { name = "workflow-shared-activities" },
@@ -1742,14 +1785,15 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "api", editable = "packages/apps/api" },
-    { name = "dm-py-db-models", editable = "packages/libs/py/db/models" },
-    { name = "dm-py-db-repositories", editable = "packages/libs/py/db/repositories" },
-    { name = "dm-py-db-services", editable = "packages/libs/py/db/services" },
-    { name = "dm-py-logger", editable = "packages/libs/py/logger" },
-    { name = "dm-py-schemas", editable = "packages/libs/py/schemas" },
-    { name = "dm-py-services", editable = "packages/libs/py/services" },
-    { name = "dm-py-temporal-utils", editable = "packages/libs/py/temporal/utils" },
-    { name = "dm-py-utils", editable = "packages/libs/py/utils" },
+    { name = "vmxfp-py-aws-sqs-consumer", editable = "packages/libs/py/aws/sqs-consumer" },
+    { name = "vmxfp-py-db-models", editable = "packages/libs/py/db/models" },
+    { name = "vmxfp-py-db-repositories", editable = "packages/libs/py/db/repositories" },
+    { name = "vmxfp-py-db-services", editable = "packages/libs/py/db/services" },
+    { name = "vmxfp-py-logger", editable = "packages/libs/py/logger" },
+    { name = "vmxfp-py-schemas", editable = "packages/libs/py/schemas" },
+    { name = "vmxfp-py-services", editable = "packages/libs/py/services" },
+    { name = "vmxfp-py-temporal-utils", editable = "packages/libs/py/temporal/utils" },
+    { name = "vmxfp-py-utils", editable = "packages/libs/py/utils" },
     { name = "evaluation-workflow", editable = "packages/workflows/evaluation" },
     { name = "workflow-ingestion", editable = "packages/workflows/ingestion" },
     { name = "workflow-shared-activities", editable = "packages/workflows/shared-activities" },
@@ -3155,6 +3199,11 @@ version = "1.0.0"
 source = { editable = "packages/workflows/ingestion" }
 dependencies = [
     { name = "aioboto3" },
+    { name = "dependency-injector" },
+    { name = "vmxfp-py-aws-sqs-consumer" },
+    { name = "vmxfp-py-logger" },
+    { name = "vmxfp-py-schemas" },
+    { name = "vmxfp-py-temporal-utils" },
     { name = "langchain-community" },
     { name = "langchain-openai" },
     { name = "langchain-text-splitters" },
@@ -3168,6 +3217,11 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "aioboto3", specifier = ">=14.3.0" },
+    { name = "dependency-injector", specifier = ">=4.46.0" },
+    { name = "vmxfp-py-aws-sqs-consumer", editable = "packages/libs/py/aws/sqs-consumer" },
+    { name = "vmxfp-py-logger", editable = "packages/libs/py/logger" },
+    { name = "vmxfp-py-schemas", editable = "packages/libs/py/schemas" },
+    { name = "vmxfp-py-temporal-utils", editable = "packages/libs/py/temporal/utils" },
     { name = "langchain-community", specifier = ">=0.3.24" },
     { name = "langchain-openai", specifier = ">=0.3.16" },
     { name = "langchain-text-splitters", specifier = ">=0.3.8" },
@@ -3204,14 +3258,15 @@ source = { editable = "packages/workflows/worker" }
 dependencies = [
     { name = "aioboto3" },
     { name = "dependency-injector" },
-    { name = "dm-py-db-models" },
-    { name = "dm-py-db-repositories" },
-    { name = "dm-py-db-services" },
-    { name = "dm-py-logger" },
-    { name = "dm-py-schemas" },
-    { name = "dm-py-services" },
-    { name = "dm-py-temporal-utils" },
-    { name = "dm-py-utils" },
+    { name = "vmxfp-py-db-models" },
+    { name = "vmxfp-py-db-repositories" },
+    { name = "vmxfp-py-db-services" },
+    { name = "vmxfp-py-logger" },
+    { name = "vmxfp-py-schemas" },
+    { name = "vmxfp-py-services" },
+    { name = "vmxfp-py-temporal-utils" },
+    { name = "vmxfp-py-utils" },
+    { name = "evaluation-workflow" },
     { name = "langchain-community" },
     { name = "langchain-openai" },
     { name = "langchain-text-splitters" },
@@ -3227,14 +3282,15 @@ dependencies = [
 requires-dist = [
     { name = "aioboto3", specifier = ">=14.3.0" },
     { name = "dependency-injector", specifier = ">=4.46.0" },
-    { name = "dm-py-db-models", editable = "packages/libs/py/db/models" },
-    { name = "dm-py-db-repositories", editable = "packages/libs/py/db/repositories" },
-    { name = "dm-py-db-services", editable = "packages/libs/py/db/services" },
-    { name = "dm-py-logger", editable = "packages/libs/py/logger" },
-    { name = "dm-py-schemas", editable = "packages/libs/py/schemas" },
-    { name = "dm-py-services", editable = "packages/libs/py/services" },
-    { name = "dm-py-temporal-utils", editable = "packages/libs/py/temporal/utils" },
-    { name = "dm-py-utils", editable = "packages/libs/py/utils" },
+    { name = "vmxfp-py-db-models", editable = "packages/libs/py/db/models" },
+    { name = "vmxfp-py-db-repositories", editable = "packages/libs/py/db/repositories" },
+    { name = "vmxfp-py-db-services", editable = "packages/libs/py/db/services" },
+    { name = "vmxfp-py-logger", editable = "packages/libs/py/logger" },
+    { name = "vmxfp-py-schemas", editable = "packages/libs/py/schemas" },
+    { name = "vmxfp-py-services", editable = "packages/libs/py/services" },
+    { name = "vmxfp-py-temporal-utils", editable = "packages/libs/py/temporal/utils" },
+    { name = "vmxfp-py-utils", editable = "packages/libs/py/utils" },
+    { name = "evaluation-workflow", editable = "packages/workflows/evaluation" },
     { name = "langchain-community", specifier = ">=0.3.24" },
     { name = "langchain-openai", specifier = ">=0.3.16" },
     { name = "langchain-text-splitters", specifier = ">=0.3.8" },

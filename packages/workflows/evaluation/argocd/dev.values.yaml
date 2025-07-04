@@ -1,0 +1,17 @@
+image:
+  repository: >-
+    XXXXXXXXXXXX.dkr.ecr.us-east-1.amazonaws.com/vmxfp-evaluation-workflow-sqs-consumer-ecr-shared
+  tag: 95b6e0f3190d1b434f6f3ea8c8b5b0d470397400
+  pullPolicy: IfNotPresent
+env:
+  temporalHost: temporal-frontend.temporal:7233
+  queueUrl: >-
+    https://sqs.us-east-1.amazonaws.com/978398161683/vmxfp-evaluation-workflow-us-east-1-dev
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 200m
+  limits:
+    memory: 512Mi
+    cpu: 500m
+namespace: vmxfp-app

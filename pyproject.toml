@@ -3,18 +3,19 @@ name = "nx-workspace"
 version = "1.0.0"
 dependencies = [
   "workflow-worker",
-  "dm-py-utils",
+  "vmxfp-py-utils",
   "api",
-  "dm-py-db-models",
-  "dm-py-db-repositories",
-  "dm-py-services",
-  "dm-py-db-services",
-  "dm-py-temporal-utils",
-  "dm-py-logger",
-  "dm-py-schemas",
+  "vmxfp-py-db-models",
+  "vmxfp-py-db-repositories",
+  "vmxfp-py-services",
+  "vmxfp-py-db-services",
+  "vmxfp-py-temporal-utils",
+  "vmxfp-py-logger",
+  "vmxfp-py-schemas",
   "workflow-ingestion",
   "evaluation-workflow",
-  "workflow-shared-activities"
+  "workflow-shared-activities",
+  "vmxfp-py-aws-sqs-consumer"
 ]
 
 [tool.uv.workspace]
@@ -31,37 +32,38 @@ members = [
   "packages/libs/py/schemas",
   "packages/workflows/ingestion",
   "packages/workflows/evaluation",
-  "packages/workflows/shared-activities"
+  "packages/workflows/shared-activities",
+  "packages/libs/py/aws/sqs-consumer"
 ]
 
 [tool.uv.sources.workflow-worker]
 workspace = true
 
-[tool.uv.sources.dm-py-utils]
+[tool.uv.sources.vmxfp-py-utils]
 workspace = true
 
 [tool.uv.sources.api]
 workspace = true
 
-[tool.uv.sources.dm-py-db-models]
+[tool.uv.sources.vmxfp-py-db-models]
 workspace = true
 
-[tool.uv.sources.dm-py-db-repositories]
+[tool.uv.sources.vmxfp-py-db-repositories]
 workspace = true
 
-[tool.uv.sources.dm-py-services]
+[tool.uv.sources.vmxfp-py-services]
 workspace = true
 
-[tool.uv.sources.dm-py-db-services]
+[tool.uv.sources.vmxfp-py-db-services]
 workspace = true
 
-[tool.uv.sources.dm-py-temporal-utils]
+[tool.uv.sources.vmxfp-py-temporal-utils]
 workspace = true
 
-[tool.uv.sources.dm-py-logger]
+[tool.uv.sources.vmxfp-py-logger]
 workspace = true
 
-[tool.uv.sources.dm-py-schemas]
+[tool.uv.sources.vmxfp-py-schemas]
 workspace = true
 
 [tool.uv.sources.workflow-ingestion]
@@ -71,6 +73,9 @@ workspace = true
 workspace = true
 
 [tool.uv.sources.workflow-shared-activities]
+workspace = true
+
+[tool.uv.sources.vmxfp-py-aws-sqs-consumer]
 workspace = true
 
 [dependency-groups]

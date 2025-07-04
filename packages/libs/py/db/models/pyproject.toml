@@ -1,6 +1,6 @@
 [tool.coverage.run]
 branch = true
-source = [ "dm_db_models" ]
+source = [ "vmxfp_db_models" ]
 
 [tool.coverage.report]
 exclude_lines = ['if TYPE_CHECKING:']
@@ -16,13 +16,15 @@ addopts = """
 """
 
 [project]
-name = "dm-py-db-models"
+name = "vmxfp-py-db-models"
 version = "1.0.0"
 description = "Python Database Models"
 requires-python = ">=3.9,<4"
 readme = 'README.md'
 dependencies = [
  "alembic>=1.15.2",
+ "boto3>=1.37.3",
+ "vmxfp-py-logger",
  "numpydantic>=1.6.9",
  "pgvector>=0.4.1",
  "psycopg[binary]>=3.2.8",
@@ -31,7 +33,7 @@ dependencies = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["dm_db_models"]
+packages = ["vmxfp_db_models"]
 
 [tool.hatch.metadata]
 allow-direct-references = true
@@ -71,3 +73,6 @@ ignore = []
 
 fixable = ["ALL"]
 unfixable = []
+
+[tool.uv.sources]
+vmxfp-py-logger = { workspace = true }

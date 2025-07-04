@@ -1,8 +1,8 @@
-name: dm-app
-version: '3.5'
+name: vmxfp-app
+
 services:
-  app-postgresql:
-    container_name: app-postgresql
+  vmxfp-app-postgresql:
+    container_name: vmxfp-app-postgresql
     environment:
       POSTGRES_PASSWORD: app
       POSTGRES_USER: app

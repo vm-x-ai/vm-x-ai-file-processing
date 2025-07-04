@@ -2,7 +2,7 @@
   "name": "py-db-repositories",
   "$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
   "projectType": "library",
-  "sourceRoot": "packages/libs/py/db/repositories/dm_db_repositories",
+  "sourceRoot": "packages/libs/py/db/repositories/vmxfp_db_repositories",
   "targets": {
     "lock": {
       "executor": "@nxlv/python:lock",
@@ -41,7 +41,7 @@
       "executor": "@nxlv/python:ruff-check",
       "outputs": [],
       "options": {
-        "lintFilePatterns": ["dm_db_repositories", "tests"]
+        "lintFilePatterns": ["vmxfp_db_repositories", "tests"]
       },
       "cache": true
     },
@@ -49,7 +49,7 @@
       "executor": "@nxlv/python:ruff-format",
       "outputs": [],
       "options": {
-        "filePatterns": ["dm_db_repositories", "tests"]
+        "filePatterns": ["vmxfp_db_repositories", "tests"]
       },
       "cache": true
     },

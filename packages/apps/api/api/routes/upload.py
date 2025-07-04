@@ -4,12 +4,12 @@ import os
 import uuid
 from uuid import UUID
 
-import dm_db_models
+import vmxfp_db_models
 from dependency_injector.wiring import Provide, inject
-from dm_db_repositories.file import FileRepository
-from dm_utils.s3 import generate_upload_url
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from vmxfp_db_repositories.file import FileRepository
+from vmxfp_utils.s3 import generate_upload_url
 
 from api.containers import Container
 from api.settings import Settings
@@ -26,7 +26,7 @@ class UploadIntentRequest(BaseModel):
 class UploadIntentResponse(BaseModel):
     upload_url: str
     headers: dict[str, str]
-    file: dm_db_models.FileRead
+    file: vmxfp_db_models.FileRead
 
 
 @router.post(
@@ -57,7 +57,7 @@ async def upload_intent(
     )
 
     file = await file_repository.add(
-        dm_db_models.FileCreate(
+        vmxfp_db_models.FileCreate(
             project_id=project_id,
             name=request.file_name,
             type=mimetypes.guess_type(request.file_name)[0]
@@ -65,7 +65,7 @@ async def upload_intent(
             size=request.file_size,
             url=s3_path,
             thumbnail_url=None,
-            status=dm_db_models.FileStatus.PENDING,
+            status=vmxfp_db_models.FileStatus.PENDING,
             error=None,
             id=file_id,
         )

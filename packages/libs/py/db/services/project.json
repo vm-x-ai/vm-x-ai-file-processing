@@ -1,8 +1,8 @@
 {
-  "name": "dm-py-db-services",
+  "name": "py-db-services",
   "$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
   "projectType": "library",
-  "sourceRoot": "packages/libs/py/db/services/dm_db_services",
+  "sourceRoot": "packages/libs/py/db/services/vmxfp_db_services",
   "targets": {
     "lock": {
       "executor": "@nxlv/python:lock",
@@ -41,7 +41,7 @@
       "executor": "@nxlv/python:ruff-check",
       "outputs": [],
       "options": {
-        "lintFilePatterns": ["dm_db_services", "tests"]
+        "lintFilePatterns": ["vmxfp_db_services", "tests"]
       },
       "cache": true
     },
@@ -49,7 +49,7 @@
       "executor": "@nxlv/python:ruff-format",
       "outputs": [],
       "options": {
-        "filePatterns": ["dm_db_services", "tests"]
+        "filePatterns": ["vmxfp_db_services", "tests"]
       },
       "cache": true
     },

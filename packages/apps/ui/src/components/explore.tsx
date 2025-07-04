@@ -47,7 +47,7 @@ export function Explore({ projectId, evaluations, files }: ExploreProps) {
     isLoading,
     setMessages,
   } = useChat({
-    api: '/api/chat',
+    api: '/ui/api/chat',
     maxSteps: 10,
     body: {
       projectId,

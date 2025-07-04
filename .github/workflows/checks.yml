@@ -1,0 +1,16 @@
+name: Checks
+
+on:
+  workflow_call:
+
+jobs:
+  checks:
+    name: Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - run: pnpm nx format:check
+      - run: pnpm nx affected -t lint test build

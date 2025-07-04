@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vmxfp-api
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vmxfp-api
+  template:
+    metadata:
+      labels:
+        app: vmxfp-api
+    spec:
+      serviceAccountName: vmxfp-api-service-account
+      containers:
+        - name: vmxfp-api
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.dbSecret }}
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.dbSecret }}
+                  key: password
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.dbSecret }}
+                  key: host
+            - name: DB_RO_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.dbRoHost }}
+                  key: {{ .Values.env.dbRoHost }}
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.dbSecret }}
+                  key: port
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.dbSecret }}
+                  key: dbname
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.openaiApiKeySecret }}
+                  key: api_key
+            - name: LANDING_S3_BUCKET_NAME
+              value: {{ .Values.env.landingS3Bucket }}
+            - name: TEMPORAL_HOST
+              value: {{ .Values.env.temporalHost }}
+          resources:
+            requests:
+              memory: {{ .Values.resources.requests.memory }}
+              cpu: {{ .Values.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.resources.limits.memory }}
+              cpu: {{ .Values.resources.limits.cpu }}
+          volumeMounts:
+            - name: app-secrets-store-inline
+              mountPath: '/mnt/secrets-store'
+              readOnly: true
+      volumes:
+        - name: app-secrets-store-inline
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: vmxfp-app-secrets 

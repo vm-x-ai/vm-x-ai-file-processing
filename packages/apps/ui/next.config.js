@@ -21,6 +21,22 @@ const nextConfig = {
       },
     ],
   },
+  output: 'standalone',
+  compress: true,
+  basePath: '/ui',
+  async headers() {
+    return [
+      {
+        source: '/:path*{/}?',
+        headers: [
+          {
+            key: 'X-Accel-Buffering',
+            value: 'no',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 const plugins = [

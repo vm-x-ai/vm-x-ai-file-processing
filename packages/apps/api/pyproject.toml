@@ -24,15 +24,19 @@ readme = 'README.md'
 dependencies = [
     "dependency-injector>=4.46.0",
     "fastapi>=0.115.12",
-    "dm-py-db-models",
-    "dm-py-db-repositories",
-    "dm-py-db-services",
-    "dm-py-schemas",
-    "dm-py-logger",
-    "dm-py-services",
-    "dm-py-utils",
+    "vmxfp-py-db-models",
+    "vmxfp-py-db-repositories",
+    "vmxfp-py-db-services",
+    "vmxfp-py-schemas",
+    "vmxfp-py-logger",
+    "vmxfp-py-services",
+    "vmxfp-py-utils",
     "temporalio>=1.11.1",
     "uvicorn>=0.34.2",
+    "pydantic-settings>=2.9.1",
+    "vmxfp-py-temporal-utils",
+    "vm-x-ai-sdk>=1.6.2",
+    "langchain-openai>=0.3.16",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -78,10 +82,11 @@ fixable = ["ALL"]
 unfixable = []
 
 [tool.uv.sources]
-dm-py-utils = { workspace = true }
-dm-py-db-models = { workspace = true }
-dm-py-db-repositories = { workspace = true }
-dm-py-services = { workspace = true }
-dm-py-db-services = { workspace = true }
-dm-py-logger = { workspace = true }
-dm-py-schemas = { workspace = true }
+vmxfp-py-utils = { workspace = true }
+vmxfp-py-db-models = { workspace = true }
+vmxfp-py-db-repositories = { workspace = true }
+vmxfp-py-services = { workspace = true }
+vmxfp-py-db-services = { workspace = true }
+vmxfp-py-logger = { workspace = true }
+vmxfp-py-schemas = { workspace = true }
+vmxfp-py-temporal-utils = { workspace = true }

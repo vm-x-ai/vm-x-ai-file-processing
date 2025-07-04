@@ -1,3 +1,3 @@
-# dm-py-db-models
+# vmxfp-py-db-models
 
 Project description here.

@@ -33,6 +33,7 @@ export default function Page({ params }: PageProps) {
         <Dropzone
           accept={{
             'application/pdf': ['.pdf'],
+            'text/plain': ['.txt'],
           }}
           dropZoneClassName="border-2 border-dashed border-gray-300 rounded-md"
           onDrop={async (acceptedFiles: File[]) => {

@@ -27,25 +27,6 @@ Install the Python dependencies:
 uv sync
 ```
 
-### Configure AWS CLI Profile
-
-Add the following content to your `~/.aws/config` file:
-
-```text
-[profile dm-app-dev]
-sso_start_url = https://diligencemachines.awsapps.com/start
-sso_region = us-east-1
-sso_account_id = 978398161683
-sso_role_name = AWSAdministratorAccess
-region = us-east-1
-```
-
-Run the command below to login to the AWS SSO:
-
-```bash
-aws sso login --profile dm-app-dev
-```
-
 ### Local Development
 
 #### Docker Containers
@@ -99,7 +80,7 @@ Copy the content from the [1Password note](https://share.1password.com/s#u54oTXS
 #### Apply Database Migrations
 
 ```bash
-pnpm nx run py-db-models:alembic-upgrade
+pnpm nx run py-db-models:migrations-apply:local
 ```
 
 #### Start the Workflow Worker
@@ -134,10 +115,22 @@ pnpm nx run infra-events:cdk-deploy:local
 pnpm nx run workflow-ingestion:cdk-deploy:local
 ```
 
+##### Start Ingestion Workflow SQS Consumer
+
+```bash
+pnpm nx run workflow-ingestion:serve
+```
+
 ##### Deploy the Evaluation Workflow Infra
 
 ```bash
 pnpm nx run workflow-evaluation:cdk-deploy:local
+```
+
+##### Start Evaluation Workflow SQS Consumer
+
+```bash
+pnpm nx run workflow-evaluation:serve
 ```
 
 ### Start the UI
@@ -159,3 +152,32 @@ Local Database Details:
 - Database: `ingestion`
 - Username: `app`
 - Password: `app`
+
+## Aurora Database Tunnel
+
+Export the AWS profile:
+
+```bash
+export AWS_PROFILE=<your-profile>
+```
+
+Start the SSM session from the bastion host to the database:
+
+```bash
+aws ssm start-session \
+--target $(aws ssm get-parameter --name /vmxfp-app/dev/bastion-host/instance-id --query 'Parameter.Value' --output text) \
+--document-name AWS-StartPortForwardingSessionToRemoteHost \
+--parameters "{
+  \"host\": [\"$(aws ssm get-parameter --name /vmxfp-app/dev/database/endpoint --query 'Parameter.Value' --output text)\"],
+  \"portNumber\": [\"$(aws ssm get-parameter --name /vmxfp-app/dev/database/port --query 'Parameter.Value' --output text)\"],
+  \"localPortNumber\": [\"5433\"]
+}"
+```
+
+## ECR
+
+Docker Login:
+
+```bash
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin XXXXXXXXXXXX.dkr.ecr.us-east-1.amazonaws.com
+```

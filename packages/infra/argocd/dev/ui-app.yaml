@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vmxfp-app-ui
+  namespace: argocd
+spec:
+  destination:
+    namespace: vmxfp-app
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: packages/apps/ui/argocd
+    repoURL: https://github.com/vm-x-ai-file-classifier
+    targetRevision: network-dns
+    helm:
+      valueFiles:
+        - dev.values.yaml
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: true

@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vmxfp-temporal-worker
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vmxfp-temporal-worker
+  template:
+    metadata:
+      labels:
+        app: vmxfp-temporal-worker
+    spec:
+      serviceAccountName: vmxfp-temporal-worker-service-account
+      containers:
+        - name: vmxfp-temporal-worker
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.dbSecret }}
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.dbSecret }}
+                  key: password
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.dbSecret }}
+                  key: host
+            - name: DB_RO_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.dbRoHost }}
+                  key: {{ .Values.env.dbRoHost }}
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.dbSecret }}
+                  key: port
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.dbSecret }}
+                  key: dbname
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.openaiApiKeySecret }}
+                  key: api_key
+            - name: LANDING_S3_BUCKET_NAME
+              value: {{ .Values.env.landingS3Bucket }}
+            - name: THUMBNAIL_S3_BUCKET_NAME
+              value: {{ .Values.env.thumbnailS3Bucket }}
+            - name: TEMPORAL_HOST
+              value: {{ .Values.env.temporalHost }}
+            - name: VMX_DOMAIN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.vmxCredentialsSecret }}
+                  key: domain
+            - name: VMX_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.vmxCredentialsSecret }}
+                  key: api_key
+            - name: VMX_WORKSPACE_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.vmxCredentialsSecret }}
+                  key: workspace_id
+            - name: VMX_ENVIRONMENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.vmxCredentialsSecret }}
+                  key: environment_id
+            - name: VMX_RESOURCE_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.vmxCredentialsSecret }}
+                  key: resource_id
+            - name: EVENT_BUS_NAME
+              value: {{ .Values.env.eventBusName }}
+            - name: INGESTION_CALLBACK_URL
+              value: {{ .Values.env.ingestionCallbackUrl }}
+          resources:
+            requests:
+              memory: {{ .Values.resources.requests.memory }}
+              cpu: {{ .Values.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.resources.limits.memory }}
+              cpu: {{ .Values.resources.limits.cpu }}
+          volumeMounts:
+            - name: app-secrets-store-inline
+              mountPath: '/mnt/app-secrets-store'
+              readOnly: true
+            - name: vmx-secrets-store-inline
+              mountPath: '/mnt/vmx-secrets-store'
+              readOnly: true
+      volumes:
+        - name: app-secrets-store-inline
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: vmxfp-app-secrets 
+        - name: vmx-secrets-store-inline
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: vmxfp-vmx-secrets

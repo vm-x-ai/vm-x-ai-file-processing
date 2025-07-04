@@ -4,6 +4,8 @@
   "projectType": "application",
   "sourceRoot": "packages/apps/api/api",
   "targets": {
+    "cdk-bootstrap": {},
+    "cdk-deploy": {},
     "docker-compose-up": {},
     "lock": {
       "executor": "@nxlv/python:lock",
@@ -78,12 +80,46 @@
     "serve": {
       "executor": "@nxlv/python:run-commands",
       "options": {
-        "command": "python api/__init__.py",
+        "command": "python -m api",
         "cwd": "{projectRoot}"
       }
+    },
+    "docker-build": {
+      "options": {
+        "env": {
+          "ECR_REPO_NAME": "api"
+        }
+      }
+    },
+    "docker-push": {
+      "options": {
+        "env": {
+          "ECR_REPO_NAME": "api"
+        }
+      }
+    },
+    "update-image-tag": {},
+    "deploy": {
+      "executor": "@vmxfp/workspace-plugins:proxy-executor",
+      "options": {
+        "target": "cdk-deploy"
+      },
+      "dependsOn": [
+        "^build",
+        {
+          "projects": "infra-database",
+          "target": "deploy",
+          "params": "forward"
+        },
+        {
+          "projects": "infra-eks",
+          "target": "deploy",
+          "params": "forward"
+        }
+      ]
     }
   },
-  "tags": ["api"],
+  "tags": ["api", "no-deploy:shared"],
   "release": {
     "version": {
       "versionActions": "@nxlv/python/src/release/version-actions"

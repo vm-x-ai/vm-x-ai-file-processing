@@ -1,9 +1,8 @@
 import logging
 
-import uvicorn
-from dm_logger import setup_logger
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from vmxfp_logger import setup_logger
 
 from api.containers import Container
 from api.routes import (
@@ -14,7 +13,6 @@ from api.routes import (
     project,
     similarity_search,
     upload,
-    workflow_trigger,
 )
 
 setup_logger()
@@ -33,14 +31,18 @@ async def lifespan(app: FastAPI):
             evaluation.__name__,
             similarity_search.__name__,
             evaluation_template.__name__,
-            workflow_trigger.__name__,
         ]
     )
     app.container = container  # type: ignore
     yield
 
 
-app = FastAPI(title="Ingestion Workflow", version="0.1.0", lifespan=lifespan)
+app = FastAPI(
+    title="VM-X AI File Processing API",
+    version="0.1.0",
+    lifespan=lifespan,
+    root_path="/api",
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -59,7 +61,3 @@ app.include_router(file.router)
 app.include_router(evaluation.router)
 app.include_router(similarity_search.router)
 app.include_router(evaluation_template.router)
-app.include_router(workflow_trigger.router)
-
-if __name__ == "__main__":
-    uvicorn.run("api:app", host="0.0.0.0", port=8000, reload=True, workers=2)

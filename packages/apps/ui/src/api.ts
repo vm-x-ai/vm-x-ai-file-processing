@@ -2,9 +2,9 @@ import OpenAPIClientAxios from 'openapi-client-axios';
 import { Client as FileClassifierClient } from './file-classifier-api';
 
 const api = new OpenAPIClientAxios({
-  definition: 'http://localhost:8000/openapi.json',
+  definition: `${process.env.NEXT_PUBLIC_API_URL}/openapi.json`,
   withServer: {
-    url: 'http://localhost:8000',
+    url: `${process.env.NEXT_PUBLIC_API_URL}`,
   },
 });
 

@@ -2,11 +2,11 @@ import asyncio
 import logging
 from datetime import timedelta
 
-import dm_db_models
-from dm_schemas.s3 import S3Event
+import vmxfp_db_models
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 from temporalio.exceptions import ApplicationError
+from vmxfp_schemas.s3 import S3Event
 
 with workflow.unsafe.imports_passed_through():
     import workflow_shared_actitivies
@@ -24,6 +24,8 @@ DEFAULT_TIMEOUT = timedelta(seconds=300)
 class IngestionWorkflow:
     @workflow.run
     async def run(self, message: S3Event) -> dict:
+        load_output: activities.LoadS3FileOutput | None = None
+
         try:
             load_output = await workflow.execute_activity(
                 activities.LoadS3FileActivity.run,
@@ -68,7 +70,10 @@ class IngestionWorkflow:
 
             await workflow.execute_activity(
                 workflow_shared_actitivies.UpdateFileStatusActivity.run,
-                args=[load_output.file_id, dm_db_models.FileStatus.COMPLETED],
+                args=[
+                    load_output.file_id,
+                    vmxfp_db_models.FileStatus.COMPLETED,
+                ],
                 start_to_close_timeout=DEFAULT_TIMEOUT,
                 retry_policy=DEFAULT_RETRY_POLICY,
             )
@@ -91,7 +96,10 @@ class IngestionWorkflow:
             if load_output.file_id:
                 await workflow.execute_activity(
                     workflow_shared_actitivies.UpdateFileStatusActivity.run,
-                    args=[load_output.file_id, dm_db_models.FileStatus.FAILED],
+                    args=[
+                        load_output.file_id,
+                        vmxfp_db_models.FileStatus.FAILED,
+                    ],
                     start_to_close_timeout=DEFAULT_TIMEOUT,
                     retry_policy=DEFAULT_RETRY_POLICY,
                 )

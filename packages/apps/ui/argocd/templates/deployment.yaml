@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vmxfp-ui
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vmxfp-ui
+  template:
+    metadata:
+      labels:
+        app: vmxfp-ui
+    spec:
+      serviceAccountName: vmxfp-ui-service-account
+      containers:
+        - name: vmxfp-ui
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 3000
+          env:
+            - name: VMX_DOMAIN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.vmxCredentialsSecret }}
+                  key: domain
+            - name: VMX_PROTOCOL
+              value: https
+            - name: VMX_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.vmxCredentialsSecret }}
+                  key: api_key
+            - name: VMX_WORKSPACE_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.vmxCredentialsSecret }}
+                  key: workspace_id
+            - name: VMX_ENVIRONMENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.vmxCredentialsSecret }}
+                  key: environment_id
+            - name: VMX_RESOURCE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.vmxCredentialsSecret }}
+                  key: resource_id
+            - name: NEXT_PUBLIC_API_URL
+              value: {{ .Values.env.apiUrl }}
+          resources:
+            requests:
+              memory: {{ .Values.resources.requests.memory }}
+              cpu: {{ .Values.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.resources.limits.memory }}
+              cpu: {{ .Values.resources.limits.cpu }}
+          volumeMounts:
+            - name: vmx-secrets-store-inline
+              mountPath: '/mnt/vmx-secrets-store'
+              readOnly: true
+      volumes:
+        - name: vmx-secrets-store-inline
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: vmxfp-vmx-secrets 

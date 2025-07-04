@@ -1,5 +1,5 @@
 {
-  "name": "@dm/workspace-plugins",
+  "name": "@vmxfp/workspace-plugins",
   "version": "0.0.1",
   "private": true,
   "main": "./dist/index.js",
@@ -46,14 +46,20 @@
   },
   "dependencies": {
     "@nx/devkit": "21.0.3",
-    "tslib": "^2.3.0",
+    "@nx/esbuild": "21.0.3",
     "@nx/js": "21.0.3",
-    "@nx/esbuild": "21.0.3"
+    "js-yaml": "^4.1.0",
+    "lodash.set": "^4.3.2",
+    "tslib": "^2.3.0"
   },
   "executors": "./executors.json",
   "files": [
     "dist",
     "!**/*.tsbuildinfo",
     "executors.json"
-  ]
+  ],
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/lodash.set": "^4.3.9"
+  }
 }

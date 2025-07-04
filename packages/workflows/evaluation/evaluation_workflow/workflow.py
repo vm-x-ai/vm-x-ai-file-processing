@@ -4,7 +4,7 @@ from datetime import timedelta
 from typing import Optional
 from uuid import UUID
 
-import dm_db_models
+import vmxfp_db_models
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 from temporalio.exceptions import ApplicationError
@@ -32,7 +32,7 @@ class EvaluationWorkflow:
 
             await workflow.execute_activity(
                 workflow_shared_actitivies.UpdateFileStatusActivity.run,
-                args=[file_id, dm_db_models.FileStatus.COMPLETED],
+                args=[file_id, vmxfp_db_models.FileStatus.COMPLETED],
                 start_to_close_timeout=DEFAULT_TIMEOUT,
                 retry_policy=DEFAULT_RETRY_POLICY,
             )
@@ -43,7 +43,7 @@ class EvaluationWorkflow:
             workflow.logger.error(error_msg)
             await workflow.execute_activity(
                 workflow_shared_actitivies.UpdateFileStatusActivity.run,
-                args=[file_id, dm_db_models.FileStatus.FAILED],
+                args=[file_id, vmxfp_db_models.FileStatus.FAILED],
                 start_to_close_timeout=DEFAULT_TIMEOUT,
                 retry_policy=DEFAULT_RETRY_POLICY,
             )
@@ -117,8 +117,8 @@ class UpdateEvaluationWorkflow:
     @workflow.run
     async def run(
         self,
-        evaluation: dm_db_models.EvaluationRead,
-        old_evaluation: dm_db_models.EvaluationRead | None = None,
+        evaluation: vmxfp_db_models.EvaluationRead,
+        old_evaluation: vmxfp_db_models.EvaluationRead | None = None,
     ):
         try:
             files_to_evaluate = await workflow.execute_activity(
@@ -137,7 +137,10 @@ class UpdateEvaluationWorkflow:
                 *[
                     workflow.execute_activity(
                         workflow_shared_actitivies.UpdateFileStatusActivity.run,
-                        args=[file_id, dm_db_models.FileStatus.COMPLETED],
+                        args=[
+                            file_id,
+                            vmxfp_db_models.FileStatus.COMPLETED,
+                        ],
                         start_to_close_timeout=DEFAULT_TIMEOUT,
                         retry_policy=DEFAULT_RETRY_POLICY,
                     )

@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vmxfp-evaluation-workflow
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vmxfp-evaluation-workflow
+  template:
+    metadata:
+      labels:
+        app: vmxfp-evaluation-workflow
+    spec:
+      serviceAccountName: vmxfp-evaluation-workflow-service-account
+      containers:
+        - name: vmxfp-evaluation-workflow
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: TEMPORAL_HOST
+              value: {{ .Values.env.temporalHost }}
+            - name: SQS_CONSUMER_QUEUE_URL
+              value: {{ .Values.env.queueUrl }}
+          resources:
+            requests:
+              memory: {{ .Values.resources.requests.memory }}
+              cpu: {{ .Values.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.resources.limits.memory }}
+              cpu: {{ .Values.resources.limits.cpu }}

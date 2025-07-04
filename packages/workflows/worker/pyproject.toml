@@ -33,15 +33,16 @@ indent-width = 4
   unfixable = [ ]
 
 [tool.uv.sources]
-dm-py-utils = { workspace = true }
-dm-py-db-models = { workspace = true }
-dm-py-db-repositories = { workspace = true }
-dm-py-services = { workspace = true }
-dm-py-db-services = { workspace = true }
-dm-py-temporal-utils = { workspace = true }
-dm-py-logger = { workspace = true }
-dm-py-schemas = { workspace = true }
+vmxfp-py-utils = { workspace = true }
+vmxfp-py-db-models = { workspace = true }
+vmxfp-py-db-repositories = { workspace = true }
+vmxfp-py-services = { workspace = true }
+vmxfp-py-db-services = { workspace = true }
+vmxfp-py-temporal-utils = { workspace = true }
+vmxfp-py-logger = { workspace = true }
+vmxfp-py-schemas = { workspace = true }
 workflow-ingestion = { workspace = true }
+evaluation-workflow = { workspace = true }
 
 [project]
 name = "workflow-worker"
@@ -59,16 +60,17 @@ dependencies = [
  "pypdf>=5.5.0",
  "temporalio>=1.11.1",
  "tiktoken>=0.9.0",
- "dm-py-utils",
+ "vmxfp-py-utils",
  "vm-x-ai-sdk==1.6.2",
- "dm-py-db-models",
- "dm-py-db-repositories",
- "dm-py-services",
- "dm-py-db-services",
- "dm-py-temporal-utils",
- "dm-py-logger",
- "dm-py-schemas",
+ "vmxfp-py-db-models",
+ "vmxfp-py-db-repositories",
+ "vmxfp-py-services",
+ "vmxfp-py-db-services",
+ "vmxfp-py-temporal-utils",
+ "vmxfp-py-logger",
+ "vmxfp-py-schemas",
  "workflow-ingestion",
+ "evaluation-workflow",
 ]
 
 [build-system]

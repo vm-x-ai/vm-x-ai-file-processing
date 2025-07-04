@@ -103,6 +103,12 @@
         },
         "dev": {
           "command": "cdk bootstrap -c stage=dev"
+        },
+        "prd": {
+          "command": "cdk bootstrap -c stage=prd"
+        },
+        "shared": {
+          "command": "cdk bootstrap -c stage=shared"
         }
       }
     },
@@ -114,11 +120,34 @@
       },
       "configurations": {
         "local": {
-          "command": "cdklocal deploy -c stage=local --no-rollback"
+          "command": "cdklocal deploy -c stage=local --require-approval never --all"
         },
         "dev": {
-          "command": "cdk deploy -c stage=dev"
+          "command": "cdk deploy -c stage=dev --require-approval never --all"
+        },
+        "prd": {
+          "command": "cdk deploy -c stage=prd --require-approval never --all"
+        },
+        "shared": {
+          "command": "cdk deploy -c stage=shared --require-approval never --all"
         }
+      }
+    },
+    "docker-build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docker build -t \"XXXXXXXXXXXX.dkr.ecr.us-east-1.amazonaws.com/vmxfp-$ECR_REPO_NAME-ecr-shared:${TAG_PREFIX}{args.tag}\" .",
+        "cwd": "{projectRoot}",
+        "forwardAllArgs": false
+      },
+      "dependsOn": ["build"]
+    },
+    "docker-push": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docker push \"XXXXXXXXXXXX.dkr.ecr.us-east-1.amazonaws.com/vmxfp-$ECR_REPO_NAME-ecr-shared:${TAG_PREFIX}{args.tag}\"",
+        "cwd": "{projectRoot}",
+        "forwardAllArgs": false
       }
     },
     "docker-compose-up": {
@@ -126,6 +155,28 @@
       "options": {
         "command": "docker compose -f docker-compose.yml up -d",
         "cwd": "{projectRoot}"
+      }
+    },
+    "deploy": {
+      "configurations": {
+        "dev": {},
+        "prd": {},
+        "shared": {}
+      }
+    },
+    "update-image-tag": {
+      "executor": "@vmxfp/workspace-plugins:update-yaml",
+      "options": {
+        "keyPath": "image.tag",
+        "gitAdd": true
+      },
+      "configurations": {
+        "dev": {
+          "filePath": "{projectRoot}/argocd/dev.values.yaml"
+        },
+        "prd": {
+          "filePath": "{projectRoot}/argocd/prd.values.yaml"
+        }
       }
     },
     "test": {

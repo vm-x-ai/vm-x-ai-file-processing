@@ -16,6 +16,7 @@ import Breadcrumbs from '@/components/breadcrumbs';
 import { HeaderUser } from '@/components/header-user';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
 
 const roboto = Roboto({
   weight: ['300', '400', '500', '700'],
@@ -35,8 +36,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: 'VM-X AI RAG Example App',
-  description: 'VM-X AI RAG Example App',
+  title: 'VM-X AI File Processing',
+  description: 'VM-X AI File Processing',
 };
 
 type RootLayoutProps = {
@@ -81,7 +82,9 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                       orientation="vertical"
                       className="mr-2 data-[orientation=vertical]:h-4"
                     />
-                    <Breadcrumbs />
+                    <Suspense fallback={<div>Loading...</div>}>
+                      <Breadcrumbs />
+                    </Suspense>
                   </div>
                   {/* User profile moved to top right */}
                   <div className="px-4">

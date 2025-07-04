@@ -1,8 +1,8 @@
 {
-  "name": "dm-py-logger",
+  "name": "py-logger",
   "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
   "projectType": "library",
-  "sourceRoot": "packages/libs/py/logger/dm_logger",
+  "sourceRoot": "packages/libs/py/logger/vmxfp_logger",
   "targets": {
     "lock": {
       "executor": "@nxlv/python:lock",
@@ -41,7 +41,7 @@
       "executor": "@nxlv/python:ruff-check",
       "outputs": [],
       "options": {
-        "lintFilePatterns": ["dm_logger", "tests"]
+        "lintFilePatterns": ["vmxfp_logger", "tests"]
       },
       "cache": true
     },
@@ -49,7 +49,7 @@
       "executor": "@nxlv/python:ruff-format",
       "outputs": [],
       "options": {
-        "filePatterns": ["dm_logger", "tests"]
+        "filePatterns": ["vmxfp_logger", "tests"]
       },
       "cache": true
     },

@@ -1,5 +1,5 @@
-name: dm-temporal
-version: '3.5'
+name: vmxfp-temporal
+
 services:
   temporal-elasticsearch:
     container_name: temporal-elasticsearch

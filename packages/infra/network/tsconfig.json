@@ -4,6 +4,9 @@
   "include": [],
   "references": [
     {
+      "path": "../cdk/shared"
+    },
+    {
       "path": "./tsconfig.lib.json"
     },
     {

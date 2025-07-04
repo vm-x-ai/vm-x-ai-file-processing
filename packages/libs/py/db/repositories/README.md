@@ -1,3 +1,3 @@
-# dm-py-db-repositories
+# vmxfp-py-db-repositories
 
 Project description here.
