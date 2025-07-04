@@ -279,20 +279,17 @@ declare namespace Components {
        * Match Chunks
        */
       match_chunks?: /* Match Chunks */ /* FileEmbeddingRead */
-        | FileEmbeddingRead[]
-        | null;
+      FileEmbeddingRead[] | null;
       /**
        * Before Neighbors
        */
       before_neighbors?: /* Before Neighbors */ /* FileContentRead */
-        | FileContentRead[]
-        | null;
+      FileContentRead[] | null;
       /**
        * After Neighbors
        */
       after_neighbors?: /* After Neighbors */ /* FileContentRead */
-        | FileContentRead[]
-        | null;
+      FileContentRead[] | null;
     }
     /**
      * FileEmbeddingRead
@@ -341,14 +338,12 @@ declare namespace Components {
        * Before Neighbors
        */
       before_neighbors?: /* Before Neighbors */ /* FileEmbeddingRead */
-        | FileEmbeddingRead[]
-        | null;
+      FileEmbeddingRead[] | null;
       /**
        * After Neighbors
        */
       after_neighbors?: /* After Neighbors */ /* FileEmbeddingRead */
-        | FileEmbeddingRead[]
-        | null;
+      FileEmbeddingRead[] | null;
       /**
        * Created At
        */
@@ -1630,8 +1625,8 @@ declare namespace Paths {
        */
       export type $200 =
         /* Response Similaritysearch */ /* FileEmbeddingRead */
-          | Components.Schemas.FileEmbeddingRead[]
-          | /* FileContentReadWithChunkScore */ Components.Schemas.FileContentReadWithChunkScore[];
+        | Components.Schemas.FileEmbeddingRead[]
+        | /* FileContentReadWithChunkScore */ Components.Schemas.FileContentReadWithChunkScore[];
       export type $422 =
         /* HTTPValidationError */ Components.Schemas.HTTPValidationError;
     }
