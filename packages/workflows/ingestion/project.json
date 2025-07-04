@@ -113,7 +113,13 @@
       ]
     }
   },
-  "tags": ["workflow", "temporal", "python", "no-deploy:shared"],
+  "tags": [
+    "workflow",
+    "temporal",
+    "python",
+    "no-deploy:shared",
+    "local-workflow-infra"
+  ],
   "release": {
     "version": {
       "versionActions": "@nxlv/python/src/release/version-actions"

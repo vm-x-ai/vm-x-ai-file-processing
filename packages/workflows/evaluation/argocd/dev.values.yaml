@@ -1,6 +1,6 @@
 image:
   repository: >-
-    XXXXXXXXXXXX.dkr.ecr.us-east-1.amazonaws.com/vmxfp-evaluation-workflow-sqs-consumer-ecr-shared
+    "[SHARED_SERVICES_ACCOUNT_ID].dkr.ecr.us-east-1.amazonaws.com/vmxfp-evaluation-workflow-sqs-consumer-ecr-shared"
   tag: 95b6e0f3190d1b434f6f3ea8c8b5b0d470397400
   pullPolicy: IfNotPresent
 env:

@@ -11,29 +11,18 @@ export const stages = [
     cidr: '10.0.0.0/16',
   },
   {
-    accountId: 'XXXXXXXXXXXX',
+    accountId: '[DEV_ACCOUNT_ID]',
     stageName: 'dev',
     rootDomainName: 'dev.xxxxxx.com',
     apiRootDomainName: 'api.dev.xxxxxx.com',
     adminRoleArn:
-      'arn:aws:iam::XXXXXXXXXXXX:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AWSAdministratorAccess_xxxxxx',
+      'arn:aws:iam::[DEV_ACCOUNT_ID]:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AWSAdministratorAccess_xxxxxx',
     region: 'us-east-1',
     isProd: false,
     cidr: '10.0.0.0/16',
   },
   {
-    accountId: 'XXXXXXXXXXXX',
-    stageName: 'prd',
-    rootDomainName: 'xxxxxx.com',
-    apiRootDomainName: 'api.xxxxxx.com',
-    adminRoleArn:
-      'arn:aws:iam::XXXXXXXXXXXX:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AWSAdministratorAccess_xxxxxx',
-    region: 'us-east-1',
-    isProd: true,
-    cidr: '10.1.0.0/16',
-  },
-  {
-    accountId: 'XXXXXXXXXXXX',
+    accountId: '[SHARED_SERVICES_ACCOUNT_ID]',
     stageName: 'shared',
     region: 'us-east-1',
     isProd: false,
