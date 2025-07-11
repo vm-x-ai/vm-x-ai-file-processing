@@ -22,7 +22,7 @@ export class APIStack extends BaseStack {
     this.registerArgoCDApplication(
       eksCluster,
       props,
-      "api",
+      'api',
       `${this.resourcePrefix}-app`
     );
 
@@ -83,10 +83,10 @@ export class APIStack extends BaseStack {
           new iam.PolicyStatement({
             actions: ['s3:GetObject', 's3:ListBucket', 's3:PutObject'],
             resources: [
-              `arn:aws:s3:::${this.resourcePrefix}-ingestion-landing-${this.region}-${props.stage}`,
-              `arn:aws:s3:::${this.resourcePrefix}-ingestion-landing-${this.region}-${props.stage}/*`,
-              `arn:aws:s3:::${this.resourcePrefix}-file-thumbnail-${this.region}-${props.stage}`,
-              `arn:aws:s3:::${this.resourcePrefix}-file-thumbnail-${this.region}-${props.stage}/*`,
+              `arn:aws:s3:::${this.resourcePrefix}-ingestion-landing-${this.account}-${this.region}-${props.stage}`,
+              `arn:aws:s3:::${this.resourcePrefix}-ingestion-landing-${this.account}-${this.region}-${props.stage}/*`,
+              `arn:aws:s3:::${this.resourcePrefix}-file-thumbnail-${this.account}-${this.region}-${props.stage}`,
+              `arn:aws:s3:::${this.resourcePrefix}-file-thumbnail-${this.account}-${this.region}-${props.stage}/*`,
             ],
           }),
         ],

@@ -212,12 +212,12 @@ VMX_ENVIRONMENT_ID=$VMX_ENVIRONMENT_ID
 VMX_RESOURCE_ID=$VMX_RESOURCE_ID
 
 # S3 Buckets
-# <RESOURCE_PREFIX>-file-thumbnail-<REGION>-<STAGE>
+# <RESOURCE_PREFIX>-file-thumbnail-<ACCOUNT_ID>-<REGION>-<STAGE>
 # The Pydantic settings will resolve the Jinja templates
-THUMBNAIL_S3_BUCKET_NAME="{{ RESOURCE_PREFIX }}-file-thumbnail-us-east-1-local"
-# <RESOURCE_PREFIX>-ingestion-landing-<REGION>-<STAGE>
+THUMBNAIL_S3_BUCKET_NAME="{{ RESOURCE_PREFIX }}-file-thumbnail-000000000000-us-east-1-local"
+# <RESOURCE_PREFIX>-ingestion-landing-<ACCOUNT_ID>-<REGION>-<STAGE>
 # The Pydantic settings will resolve the Jinja templates
-LANDING_S3_BUCKET_NAME="{{ RESOURCE_PREFIX }}-ingestion-landing-us-east-1-local"
+LANDING_S3_BUCKET_NAME="{{ RESOURCE_PREFIX }}-ingestion-landing-000000000000-us-east-1-local"
 
 # Evaluation Callback URL
 INGESTION_CALLBACK_URL=$NGROK_URL/ingestion-callback
@@ -242,9 +242,9 @@ TEMPORAL_HOST=localhost:7233
 OPENAI_API_KEY=$OPENAI_API_KEY
 
 # S3 Buckets
-# <RESOURCE_PREFIX>-ingestion-landing-<REGION>-<STAGE>
+# <RESOURCE_PREFIX>-ingestion-landing-<ACCOUNT_ID>-<REGION>-<STAGE>
 # The Pydantic settings will resolve the Jinja templates
-LANDING_S3_BUCKET_NAME="{{ RESOURCE_PREFIX }}-ingestion-landing-us-east-1-local"
+LANDING_S3_BUCKET_NAME="{{ RESOURCE_PREFIX }}-ingestion-landing-000000000000-us-east-1-local"
 
 # Localstack S3 Endpoint
 AWS_ENDPOINT_URL_S3=http://localhost.localstack.cloud:4566

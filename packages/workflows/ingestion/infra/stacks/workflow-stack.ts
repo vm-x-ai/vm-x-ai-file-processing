@@ -15,11 +15,7 @@ export class IngestionWorkflowStack extends BaseStack {
   public readonly landingBucket: s3.Bucket;
   public readonly thumbnailBucket: s3.Bucket;
 
-  constructor(
-    scope: Construct,
-    id: string,
-    props: BaseStackProps
-  ) {
+  constructor(scope: Construct, id: string, props: BaseStackProps) {
     super(scope, id, props);
 
     const workflowTopic = new sns.Topic(this, 'IngestionWorkflowTopic', {
@@ -41,7 +37,7 @@ export class IngestionWorkflowStack extends BaseStack {
       },
     ];
 
-    const bucketName = `${this.resourcePrefix}-ingestion-landing-${this.region}-${props.stage}`;
+    const bucketName = `${this.resourcePrefix}-ingestion-landing-${this.account}-${this.region}-${props.stage}`;
 
     this.landingBucket = new s3.Bucket(this, 'IngestionWorkflowStorageBucket', {
       bucketName,
@@ -92,7 +88,7 @@ export class IngestionWorkflowStack extends BaseStack {
       this,
       'IngestionWorkflowStorageThumbnailBucket',
       {
-        bucketName: `${this.resourcePrefix}-file-thumbnail-${this.region}-${props.stage}`,
+        bucketName: `${this.resourcePrefix}-file-thumbnail-${this.account}-${this.region}-${props.stage}`,
         cors,
         versioned: true,
       }
@@ -127,7 +123,7 @@ export class IngestionWorkflowStack extends BaseStack {
       this.registerArgoCDApplication(
         eksCluster,
         props,
-        "ingestion-workflow-sqs-consumer",
+        'ingestion-workflow-sqs-consumer',
         `${this.resourcePrefix}-app`
       );
 

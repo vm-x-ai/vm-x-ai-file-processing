@@ -8,7 +8,6 @@ import {
   importEksCluster,
 } from '@workspace/infra-cdk-shared';
 
-
 export class TemporalWorkerStack extends BaseStack {
   constructor(scope: Construct, id: string, props: BaseStackProps) {
     super(scope, id, props);
@@ -23,7 +22,7 @@ export class TemporalWorkerStack extends BaseStack {
     this.registerArgoCDApplication(
       eksCluster,
       props,
-      "temporal-worker",
+      'temporal-worker',
       `${this.resourcePrefix}-app`
     );
 
@@ -84,10 +83,10 @@ export class TemporalWorkerStack extends BaseStack {
           new iam.PolicyStatement({
             actions: ['s3:GetObject', 's3:ListBucket', 's3:PutObject'],
             resources: [
-              `arn:aws:s3:::${this.resourcePrefix}-ingestion-landing-${this.region}-${props.stage}`,
-              `arn:aws:s3:::${this.resourcePrefix}-ingestion-landing-${this.region}-${props.stage}/*`,
-              `arn:aws:s3:::${this.resourcePrefix}-file-thumbnail-${this.region}-${props.stage}`,
-              `arn:aws:s3:::${this.resourcePrefix}-file-thumbnail-${this.region}-${props.stage}/*`,
+              `arn:aws:s3:::${this.resourcePrefix}-ingestion-landing-${this.account}-${this.region}-${props.stage}`,
+              `arn:aws:s3:::${this.resourcePrefix}-ingestion-landing-${this.account}-${this.region}-${props.stage}/*`,
+              `arn:aws:s3:::${this.resourcePrefix}-file-thumbnail-${this.account}-${this.region}-${props.stage}`,
+              `arn:aws:s3:::${this.resourcePrefix}-file-thumbnail-${this.account}-${this.region}-${props.stage}/*`,
             ],
           }),
         ],

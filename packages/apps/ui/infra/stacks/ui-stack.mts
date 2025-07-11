@@ -22,7 +22,7 @@ export class UIStack extends BaseStack {
     this.registerArgoCDApplication(
       eksCluster,
       props,
-      "ui",
+      'ui',
       `${this.resourcePrefix}-app`
     );
 

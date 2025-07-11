@@ -37,7 +37,7 @@ export class DatabaseStack extends cdk.Stack {
       encryptionKey,
       secretName: `${this.resourcePrefix}-app-database-secret-${props.stage}`,
       // Same as default, but adding the `,` character to the exclude list
-      excludeCharacters: " ,%+~`#$&*()|[]{}:;<>?!'/@\"\\",
+      excludeCharacters: ' ,%+~`#$&*()|[]{}:;<>?!\'/@"\\',
     });
 
     const subnetGroup = new rds.SubnetGroup(this, 'DatabaseSubnetGroup', {

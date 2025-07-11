@@ -9,11 +9,7 @@ import {
 } from '@workspace/infra-cdk-shared';
 
 export class EvaluationWorkflowStack extends BaseStack {
-  constructor(
-    scope: Construct,
-    id: string,
-    props: BaseStackProps
-  ) {
+  constructor(scope: Construct, id: string, props: BaseStackProps) {
     super(scope, id, props);
 
     const eventBus = events.EventBus.fromEventBusName(
@@ -50,7 +46,7 @@ export class EvaluationWorkflowStack extends BaseStack {
       this.registerArgoCDApplication(
         eksCluster,
         props,
-        "evaluation-workflow-sqs-consumer",
+        'evaluation-workflow-sqs-consumer',
         `${this.resourcePrefix}-app`
       );
 

@@ -57,7 +57,7 @@ spec:
                   name: "openai-credentials"
                   key: api_key
             - name: LANDING_S3_BUCKET_NAME
-              value: "{{ .Values.resourcePrefix }}-ingestion-landing-{{ .Values.awsRegion }}-{{ .Values.stage }}"
+              value: "{{ .Values.resourcePrefix }}-ingestion-landing-{{ .Values.awsAccountId }}-{{ .Values.awsRegion }}-{{ .Values.stage }}"
             - name: TEMPORAL_HOST
               value: "temporal-frontend.temporal:7233"
           resources:
