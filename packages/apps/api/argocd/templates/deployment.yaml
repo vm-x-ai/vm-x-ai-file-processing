@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.resourcePrefix }}-api
-  namespace: {{ .Values.namespace }}
+  name: "{{ .Values.resourcePrefix }}-api"
+  namespace: "{{ .Values.namespace }}"
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .Values.resourcePrefix }}-api
+      app: "{{ .Values.resourcePrefix }}-api"
   template:
     metadata:
       labels:
-        app: {{ .Values.resourcePrefix }}-api
+        app: "{{ .Values.resourcePrefix }}-api"
     spec:
-      serviceAccountName: {{ .Values.resourcePrefix }}-api-service-account
+      serviceAccountName: "{{ .Values.resourcePrefix }}-api-service-account"
       containers:
-        - name: {{ .Values.resourcePrefix }}-api
-          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        - name: "{{ .Values.resourcePrefix }}-api"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 8000
@@ -24,42 +24,42 @@ spec:
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.env.dbSecret }}
+                  name: "{{ .Values.env.dbSecret }}"
                   key: username
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.env.dbSecret }}
+                  name: "{{ .Values.env.dbSecret }}"
                   key: password
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.env.dbSecret }}
+                  name: "{{ .Values.env.dbSecret }}"
                   key: host
             - name: DB_RO_HOST
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.env.dbRoHost }}
-                  key: {{ .Values.env.dbRoHost }}
+                  name: "{{ .Values.env.dbRoHost }}"
+                  key: "{{ .Values.env.dbRoHost }}"
             - name: DB_PORT
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.env.dbSecret }}
+                  name: "{{ .Values.env.dbSecret }}"
                   key: port
             - name: DB_NAME
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.env.dbSecret }}
+                  name: "{{ .Values.env.dbSecret }}"
                   key: dbname
             - name: OPENAI_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.env.openaiApiKeySecret }}
+                  name: "{{ .Values.env.openaiApiKeySecret }}"
                   key: api_key
             - name: LANDING_S3_BUCKET_NAME
-              value: {{ .Values.env.landingS3Bucket }}
+              value: "{{ .Values.env.landingS3Bucket }}"
             - name: TEMPORAL_HOST
-              value: {{ .Values.env.temporalHost }}
+              value: "{{ .Values.env.temporalHost }}"
           resources:
             requests:
               memory: {{ .Values.resources.requests.memory }}
@@ -77,4 +77,4 @@ spec:
             driver: secrets-store.csi.k8s.io
             readOnly: true
             volumeAttributes:
-              secretProviderClass: {{ .Values.resourcePrefix }}-app-secrets 
+              secretProviderClass: "{{ .Values.resourcePrefix }}-app-secrets "

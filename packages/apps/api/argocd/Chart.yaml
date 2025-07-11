@@ -1,4 +1,4 @@
 apiVersion: v2
-name: vmxfp-api
+name: api
 version: 0.1.0
-description: Helm chart for vmxfp-api deployment
+description: Helm chart for api deployment
