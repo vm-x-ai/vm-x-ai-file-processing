@@ -7,7 +7,7 @@ spec:
   hosts:
     - '*'
   gateways:
-    - "{{ .Values.namespace }}/{{ .Values.resourcePrefix }}-api-gateway"
+    - {{ .Values.namespace }}/{{ .Values.resourcePrefix }}-api-gateway
   http:
     - match:
         - uri:
