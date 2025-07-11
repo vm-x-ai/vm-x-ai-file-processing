@@ -3,10 +3,13 @@ import { Construct } from 'constructs';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
-import { importEksCluster, RESOURCE_PREFIX } from '@workspace/infra-cdk-shared';
+import { GitOps, importEksCluster, RESOURCE_PREFIX } from '@workspace/infra-cdk-shared';
 
 export interface EvaluationWorkflowStackProps extends cdk.StackProps {
   stage: string;
+  gitOps: GitOps & {
+    path: string;
+  }
 }
 
 export class EvaluationWorkflowStack extends cdk.Stack {
@@ -49,6 +52,39 @@ export class EvaluationWorkflowStack extends cdk.Stack {
         props.stage,
         this.resourcePrefix
       );
+
+      eksCluster.addManifest("ArgoCDApp", {
+        apiVersion: 'argoproj.io/v1alpha1',
+        kind: 'Application',
+        metadata: {
+          name: `${this.resourcePrefix}-app-evaluation-workflow`,
+          namespace: 'argocd',
+        },
+        spec: {
+          destination: {
+            namespace: `${this.resourcePrefix}-app`,
+            server: 'https://kubernetes.default.svc',
+          },
+          project: 'default',
+          source: {
+            path: props.gitOps.path,
+            repoURL: props.gitOps.repoUrl,
+            targetRevision: props.gitOps.targetRevision,
+            helm: {
+              valueFiles: [
+                `${props.stage}.values.yaml`,
+              ],
+            },
+          },
+          syncPolicy: {
+            automated: {
+              prune: true,
+              selfHeal: true,
+              allowEmpty: true,
+            },
+          },
+        },
+      })
 
       const serviceAccount = eksCluster.addServiceAccount(
         'EksEvaluationWorkflowServiceAccount',

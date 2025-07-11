@@ -55,24 +55,24 @@ You may notice `argocd` folders both at the root of individual projects (such as
 
   - Contains ArgoCD application manifests and supporting resources that are shared across the platform or critical for cross-project orchestration and infrastructure.
   - **Core platform applications:**
-    - Files like `api-app.yaml`, `ui-app.yaml`, `ingestion-workflow-app.yaml`, `evaluation-workflow-app.yaml`, and `temporal-worker-app.yaml` define ArgoCD `Application` resources for each major app or workflow, referencing their own project-level `argocd` folders. This enables GitOps-driven deployment and management of all major platform components from a single, central location.
+    - Each project's CDK stack is responsible for dynamically creating its own ArgoCD `Application` resource during deployment. This means the definition and lifecycle of each core app's ArgoCD application is managed as part of that app's infrastructure code, not as static YAMLs in this shared module.
+    - The shared module may still provide supporting manifests and resources that are platform-wide or cross-cutting, but the responsibility for core app ArgoCD applications is now decentralized to each app's stack.
   - **Shared infrastructure and services:**
-    - `temporal-app.yaml` deploys the Temporal orchestration platform (including its UI and backend) for use by all workflows and services.
-    - `temporal-gateway.yaml` and `argocd-gateway.yaml` define Istio `Gateway` and `VirtualService` resources for routing traffic to shared services like Temporal UI and ArgoCD UI.
+    - Resources like `temporal-app.yaml`, `temporal-gateway.yaml`, and `argocd-gateway.yaml` may still be defined here to deploy shared services and ingress/gateway resources.
   - **Centralized secrets management:**
-    - `app-secrets.yaml` and `app-vmx-secrets.yaml` use the Secrets Store CSI driver to provision and sync secrets from AWS Secrets Manager and SSM into Kubernetes, making them available to all platform components that need them.
+    - Files like `app-secrets.yaml` and `app-vmx-secrets.yaml` use the Secrets Store CSI driver to provision and sync secrets from AWS Secrets Manager and SSM into Kubernetes, making them available to all platform components that need them.
   - This approach ensures:
     - **Consistency:** All environments and projects use the same configuration for core services, secrets, and ingress.
     - **Reusability:** Shared resources (like Grafana, Temporal, or global secrets) are defined once and reused by all apps and workflows.
     - **Separation of concerns:** App-specific deployment logic stays in each project, while platform-wide or cross-cutting resources are managed centrally.
-    - **Scalability:** New apps or workflows can be added by simply creating a new ArgoCD `Application` manifest here, referencing their own repo/folder.
+    - **Scalability:** New apps or workflows can be added by updating their own CDK stack to create the necessary ArgoCD `Application` resource, referencing their own repo/folder.
 
   **Example:**
 
-  - `api-app.yaml` defines an ArgoCD Application that deploys the API service by referencing its own `argocd` folder.
-  - `temporal-app.yaml` deploys the Temporal orchestration platform, which is used by all workflows.
+  - The API service's CDK stack creates an ArgoCD Application resource dynamically, referencing its own `argocd` folder and configuration.
+  - `temporal-app.yaml` (if present) deploys the Temporal orchestration platform, which is used by all workflows.
   - `app-secrets.yaml` and `app-vmx-secrets.yaml` ensure that all platform components have access to the secrets they need, managed securely and consistently.
 
-  In summary: This shared ArgoCD module is the central hub for deploying, configuring, and securing all major platform services and shared infrastructure, while project-level `argocd` folders remain focused on app-specific logic.
+  In summary: This shared ArgoCD module is the central hub for deploying, configuring, and securing all major platform shared services and infrastructure, while project-level `argocd` folders and CDK stacks are now responsible for defining and managing their own ArgoCD Application resources for deployment.
 
 ---

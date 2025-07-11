@@ -122,6 +122,27 @@ sequenceDiagram
 | `api/containers.py` | DI container setup          |
 | `tests/`            | (Placeholder) for tests     |
 
+## ArgoCD & CDK Infrastructure
+
+This API application leverages a modern GitOps and Infrastructure-as-Code (IaC) approach for deployment and lifecycle management:
+
+- **CDK Stack Integration:**
+  - The application's infrastructure is defined using AWS CDK (Cloud Development Kit).
+  - The CDK stack is responsible for provisioning all required cloud resources, including the creation of an ArgoCD `Application` resource for this API.
+  - The ArgoCD `Application` resource is created dynamically by the CDK stack, ensuring that deployment configuration is always in sync with the application's infrastructure code.
+
+- **ArgoCD Application & GitOps:**
+  - The app includes an `argocd/` folder containing ArgoCD manifests and configuration specific to this service.
+  - The ArgoCD `Application` resource (created by the CDK stack) points to this folder in the repository, enabling ArgoCD to manage the deployment of the API via GitOps.
+  - This approach ensures that any changes to the application's Kubernetes manifests or configuration are automatically deployed and reconciled by ArgoCD, providing a robust, auditable, and automated deployment pipeline.
+
+- **Benefits:**
+  - **Declarative Deployments:** All infrastructure and deployment configuration is version-controlled and reproducible.
+  - **Separation of Concerns:** Application code, deployment manifests, and infrastructure provisioning are managed in a modular, maintainable way.
+  - **Scalability:** New environments or changes can be rolled out by updating the CDK stack and/or ArgoCD configuration, with minimal manual intervention.
+
+See the `infra/` directory and the `argocd/` folder for more details on infrastructure and deployment configuration.
+
 ## Main Endpoints Overview
 
 | Path/Route                                                               | Method(s)        | Description                       |

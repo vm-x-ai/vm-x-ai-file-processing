@@ -111,7 +111,8 @@
         "shared": {
           "command": "cdk bootstrap -c stage=shared"
         }
-      }
+      },
+      "dependsOn": ["^build"]
     },
     "cdk-deploy": {
       "executor": "nx:run-commands",

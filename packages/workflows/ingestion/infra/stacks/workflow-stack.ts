@@ -6,10 +6,13 @@ import * as snsSubscriptions from 'aws-cdk-lib/aws-sns-subscriptions';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
-import { importEksCluster, RESOURCE_PREFIX } from '@workspace/infra-cdk-shared';
+import { GitOps, importEksCluster, RESOURCE_PREFIX } from '@workspace/infra-cdk-shared';
 
 export interface IngestionWorkflowStackProps extends cdk.StackProps {
   stage: string;
+  gitOps: GitOps & {
+    path: string;
+  }
 }
 
 export class IngestionWorkflowStack extends cdk.Stack {
@@ -125,6 +128,39 @@ export class IngestionWorkflowStack extends cdk.Stack {
         props.stage,
         this.resourcePrefix
       );
+
+      eksCluster.addManifest("ArgoCDApp", {
+        apiVersion: 'argoproj.io/v1alpha1',
+        kind: 'Application',
+        metadata: {
+          name: `${this.resourcePrefix}-app-ingestion-workflow`,
+          namespace: 'argocd',
+        },
+        spec: {
+          destination: {
+            namespace: `${this.resourcePrefix}-app`,
+            server: 'https://kubernetes.default.svc',
+          },
+          project: 'default',
+          source: {
+            path: props.gitOps.path,
+            repoURL: props.gitOps.repoUrl,
+            targetRevision: props.gitOps.targetRevision,
+            helm: {
+              valueFiles: [
+                `${props.stage}.values.yaml`,
+              ],
+            },
+          },
+          syncPolicy: {
+            automated: {
+              prune: true,
+              selfHeal: true,
+              allowEmpty: true,
+            },
+          },
+        },
+      })
 
       const serviceAccount = eksCluster.addServiceAccount(
         'EksIngestionWorkflowServiceAccount',
