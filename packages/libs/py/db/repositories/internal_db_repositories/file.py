@@ -2,7 +2,7 @@ from contextlib import AbstractAsyncContextManager
 from typing import Callable, Literal, cast
 from uuid import UUID
 
-import vmxfp_db_models
+import internal_db_models
 from pydantic import BaseModel
 from sqlalchemy import (
     Column,
@@ -43,9 +43,9 @@ class FileSearchRequest(BaseModel):
 class FileRepository(
     BaseRepository[
         UUID,
-        vmxfp_db_models.File,
-        vmxfp_db_models.FileRead,
-        vmxfp_db_models.FileCreate,
+        internal_db_models.File,
+        internal_db_models.FileRead,
+        internal_db_models.FileCreate,
     ]
 ):
     def __init__(
@@ -56,65 +56,66 @@ class FileRepository(
         super().__init__(
             session_factory,
             write_session_factory,
-            vmxfp_db_models.File,
-            vmxfp_db_models.FileRead,
-            vmxfp_db_models.FileCreate,
+            internal_db_models.File,
+            internal_db_models.FileRead,
+            internal_db_models.FileCreate,
         )
 
     @property
     def _id_fields(self) -> tuple[Column[UUID]]:
-        return (cast(Column[UUID], vmxfp_db_models.File.id),)
+        return (cast(Column[UUID], internal_db_models.File.id),)
 
     def _id_predicate(self, id: UUID) -> ColumnExpressionArgument[bool]:
-        return col(vmxfp_db_models.File.id) == id
+        return col(internal_db_models.File.id) == id
 
     async def get_by_project_id(
         self,
         project_id: UUID,
-    ) -> list[vmxfp_db_models.FileRead]:
+    ) -> list[internal_db_models.FileRead]:
         async with self._session_factory() as session:
             query = (
-                select(vmxfp_db_models.File)
-                .where(vmxfp_db_models.File.project_id == project_id)
-                .order_by(col(vmxfp_db_models.File.created_at).desc())
+                select(internal_db_models.File)
+                .where(internal_db_models.File.project_id == project_id)
+                .order_by(col(internal_db_models.File.created_at).desc())
             )
             result = await session.scalars(query)
             return [
-                vmxfp_db_models.FileRead.model_validate(file) for file in result.all()
+                internal_db_models.FileRead.model_validate(file)
+                for file in result.all()
             ]
 
     async def search_files(
         self,
         project_id: UUID,
         request: FileSearchRequest,
-    ) -> list[vmxfp_db_models.FileReadWithEvaluations]:
+    ) -> list[internal_db_models.FileReadWithEvaluations]:
         async with self._session_factory() as session:
             query = (
                 select(
-                    vmxfp_db_models.File,
-                    vmxfp_db_models.FileEvaluation,
-                    vmxfp_db_models.Evaluation,
-                    vmxfp_db_models.FileContent,
+                    internal_db_models.File,
+                    internal_db_models.FileEvaluation,
+                    internal_db_models.Evaluation,
+                    internal_db_models.FileContent,
                 )
-                .select_from(vmxfp_db_models.File)
-                .join(vmxfp_db_models.FileEvaluation)
+                .select_from(internal_db_models.File)
+                .join(internal_db_models.FileEvaluation)
                 .join(
-                    vmxfp_db_models.Evaluation,
-                    vmxfp_db_models.FileEvaluation.evaluation_id
-                    == vmxfp_db_models.Evaluation.id,
+                    internal_db_models.Evaluation,
+                    internal_db_models.FileEvaluation.evaluation_id
+                    == internal_db_models.Evaluation.id,
                 )
                 .join(
-                    vmxfp_db_models.FileContent,
-                    vmxfp_db_models.FileEvaluation.content_id
-                    == vmxfp_db_models.FileContent.id,
+                    internal_db_models.FileContent,
+                    internal_db_models.FileEvaluation.content_id
+                    == internal_db_models.FileContent.id,
                 )
-                .where(vmxfp_db_models.File.project_id == project_id)
-                .order_by(col(vmxfp_db_models.File.created_at).desc())
+                .where(internal_db_models.File.project_id == project_id)
+                .order_by(col(internal_db_models.File.created_at).desc())
             )
 
             if request.search_query:
                 query = query.where(
-                    vmxfp_db_models.File.name.ilike(f"%{request.search_query}%"),
+                    internal_db_models.File.name.ilike(f"%{request.search_query}%"),
                 )
 
             if request.evaluations:
@@ -124,30 +125,30 @@ class FileRepository(
 
             result: TupleResult[
                 tuple[
-                    vmxfp_db_models.File,
-                    vmxfp_db_models.FileEvaluation,
-                    vmxfp_db_models.Evaluation,
-                    vmxfp_db_models.FileContent,
+                    internal_db_models.File,
+                    internal_db_models.FileEvaluation,
+                    internal_db_models.Evaluation,
+                    internal_db_models.FileContent,
                 ]
             ] = await session.exec(query)
 
-            files: list[vmxfp_db_models.FileReadWithEvaluations] = []
-            file_map: dict[UUID, vmxfp_db_models.FileReadWithEvaluations] = {}
+            files: list[internal_db_models.FileReadWithEvaluations] = []
+            file_map: dict[UUID, internal_db_models.FileReadWithEvaluations] = {}
             for file, file_evaluation, evaluation, content in result.all():
                 if file.id not in file_map:
-                    file_map[file.id] = vmxfp_db_models.FileReadWithEvaluations(
+                    file_map[file.id] = internal_db_models.FileReadWithEvaluations(
                         **file.model_dump(),
                         evaluations=[],
                     )
                     files.append(file_map[file.id])
 
                 file_map[file.id].evaluations.append(
-                    vmxfp_db_models.FileEvaluationReadWithEvaluation(
+                    internal_db_models.FileEvaluationReadWithEvaluation(
                         **file_evaluation.model_dump(),
-                        evaluation=vmxfp_db_models.EvaluationRead.model_validate(
+                        evaluation=internal_db_models.EvaluationRead.model_validate(
                             evaluation.model_dump()
                         ),
-                        content=vmxfp_db_models.FileContentRead.model_validate(
+                        content=internal_db_models.FileContentRead.model_validate(
                             content.model_dump()
                         ),
                     )
@@ -166,15 +167,15 @@ class FileRepository(
                 condition = self._build_evaluation_operation_query(item)
                 subquery = (
                     select(literal(1))
-                    .select_from(vmxfp_db_models.FileEvaluation)
+                    .select_from(internal_db_models.FileEvaluation)
                     .where(
                         and_(
-                            vmxfp_db_models.FileEvaluation.file_id
-                            == vmxfp_db_models.File.id,
+                            internal_db_models.FileEvaluation.file_id
+                            == internal_db_models.File.id,
                             condition,
                         )
                     )
-                    .correlate(vmxfp_db_models.File)
+                    .correlate(internal_db_models.File)
                 )
                 clauses.append(exists(subquery))
 
@@ -199,15 +200,15 @@ class FileRepository(
                 return (
                     (
                         and_(
-                            col(vmxfp_db_models.FileEvaluation.evaluation_id)
+                            col(internal_db_models.FileEvaluation.evaluation_id)
                             == evaluation.value.evaluation_id,
-                            col(vmxfp_db_models.FileEvaluation.response)
+                            col(internal_db_models.FileEvaluation.response)
                             == evaluation.value.response_value,
                         )
                     )
                     if evaluation.value.response_value
                     else (
-                        col(vmxfp_db_models.FileEvaluation.evaluation_id)
+                        col(internal_db_models.FileEvaluation.evaluation_id)
                         == evaluation.value.evaluation_id
                     )
                 ).self_group()
@@ -215,15 +216,15 @@ class FileRepository(
                 return (
                     (
                         and_(
-                            col(vmxfp_db_models.FileEvaluation.evaluation_id)
+                            col(internal_db_models.FileEvaluation.evaluation_id)
                             == evaluation.value.evaluation_id,
-                            col(vmxfp_db_models.FileEvaluation.response)
+                            col(internal_db_models.FileEvaluation.response)
                             == evaluation.value.response_value,
                         )
                     )
                     if evaluation.value.response_value
                     else (
-                        col(vmxfp_db_models.FileEvaluation.evaluation_id)
+                        col(internal_db_models.FileEvaluation.evaluation_id)
                         == evaluation.value.evaluation_id
                     )
                 ).self_group()

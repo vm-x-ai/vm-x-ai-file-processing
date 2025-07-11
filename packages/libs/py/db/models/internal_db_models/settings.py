@@ -1,6 +1,6 @@
 from os import environ
 
-from pydantic import PostgresDsn, computed_field
+from pydantic import Field, PostgresDsn, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 env_file = f".env.{environ.get('ENV', 'local')}"
@@ -13,7 +13,12 @@ class BastionSettings(BaseSettings):
         extra="ignore",
         env_prefix="BASTION_",
     )
-    instance_id_ssm_name: str | None = None
+    instance_id_ssm_name: str = Field(
+        default_factory=lambda: (
+            f"/{environ.get('RESOURCE_PREFIX')}-app/"
+            f"{environ.get('ENV', 'local')}/bastion-host/instance-id"
+        )
+    )
 
 
 class RemoteDBSettings(BaseSettings):
@@ -23,7 +28,12 @@ class RemoteDBSettings(BaseSettings):
         extra="ignore",
         env_prefix="REMOTE_DB_",
     )
-    secret_name: str | None = None
+    secret_name: str = Field(
+        default_factory=lambda: (
+            f"{environ.get('RESOURCE_PREFIX')}-app-"
+            f"database-secret-{environ.get('ENV', 'local')}"
+        )
+    )
 
 
 class DatabaseSettings(BaseSettings):

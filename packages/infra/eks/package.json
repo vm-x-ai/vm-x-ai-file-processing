@@ -1,5 +1,5 @@
 {
-  "name": "@vmxfp/infra-eks",
+  "name": "@workspace/infra-eks",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -18,7 +18,7 @@
   "dependencies": {
     "@aws-cdk/aws-eks-v2-alpha": "2.200.2-alpha.0",
     "@aws-cdk/lambda-layer-kubectl-v33": "^2.0.0",
-    "@vmxfp/infra-cdk-shared": "workspace:*",
+    "@workspace/infra-cdk-shared": "workspace:*",
     "aws-cdk-lib": "^2.200.1",
     "constructs": "^10.4.2",
     "js-yaml": "^4.1.0",

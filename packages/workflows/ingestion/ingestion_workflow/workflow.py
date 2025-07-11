@@ -2,11 +2,11 @@ import asyncio
 import logging
 from datetime import timedelta
 
-import vmxfp_db_models
+import internal_db_models
+from internal_schemas.s3 import S3Event
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 from temporalio.exceptions import ApplicationError
-from vmxfp_schemas.s3 import S3Event
 
 with workflow.unsafe.imports_passed_through():
     import workflow_shared_actitivies
@@ -72,7 +72,7 @@ class IngestionWorkflow:
                 workflow_shared_actitivies.UpdateFileStatusActivity.run,
                 args=[
                     load_output.file_id,
-                    vmxfp_db_models.FileStatus.COMPLETED,
+                    internal_db_models.FileStatus.COMPLETED,
                 ],
                 start_to_close_timeout=DEFAULT_TIMEOUT,
                 retry_policy=DEFAULT_RETRY_POLICY,
@@ -98,7 +98,7 @@ class IngestionWorkflow:
                     workflow_shared_actitivies.UpdateFileStatusActivity.run,
                     args=[
                         load_output.file_id,
-                        vmxfp_db_models.FileStatus.FAILED,
+                        internal_db_models.FileStatus.FAILED,
                     ],
                     start_to_close_timeout=DEFAULT_TIMEOUT,
                     retry_policy=DEFAULT_RETRY_POLICY,

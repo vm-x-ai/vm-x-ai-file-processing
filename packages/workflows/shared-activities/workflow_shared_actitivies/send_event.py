@@ -24,7 +24,7 @@ class SendEventActivity:
             await client.put_events(
                 Entries=[
                     {
-                        "Source": f"vmxfp-temporal-workflow.{source}",
+                        "Source": f"temporal-workflow.{source}",
                         "Detail": json.dumps(data),
                         "Time": datetime.now(timezone.utc).isoformat(),
                         "EventBusName": self._event_bus_name,

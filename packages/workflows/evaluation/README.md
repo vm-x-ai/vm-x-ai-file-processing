@@ -6,9 +6,9 @@ This package implements a sophisticated, multi-step evaluation pipeline using Te
 
 - **Event-Driven Trigger:** The evaluation workflow is triggered by the `file_ingested_successfully` event, which is emitted by the ingestion workflow after a file has been successfully processed.
 - **Infrastructure Pattern:**
-  1. **EventBridge Event Bus:** A shared AWS EventBridge event bus (`vmxfp-event-bus-<stage>`) receives events from the ingestion workflow.
+  1. **EventBridge Event Bus:** A shared AWS EventBridge event bus (`<resource-prefix>-event-bus-<stage>`) receives events from the ingestion workflow.
   2. **EventBridge Rule:** A rule listens for events with `detailType: 'file_ingested_successfully'` and targets the evaluation SQS queue.
-  3. **SQS Queue:** The rule delivers the event's detail payload to the SQS queue (`vmxfp-evaluation-workflow-<region>-<stage>`).
+  3. **SQS Queue:** The rule delivers the event's detail payload to the SQS queue (`<resource-prefix>-evaluation-workflow-<region>-<stage>`).
   4. **EKS Service Account:** The evaluation workflow container runs in EKS with a service account that has permission to consume messages from the SQS queue.
   5. **Long Polling:** The evaluation container long-polls the SQS queue for new messages.
   6. **Workflow Start:** When a message is received, the container starts the `EvaluationWorkflow` via the Temporal API, passing the event payload.

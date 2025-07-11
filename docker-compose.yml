@@ -1,4 +1,4 @@
-name: vmxfp-app
+name: file-processing
 
 services:
   localstack:
@@ -95,7 +95,6 @@ services:
       - 8080:8080
 
   app-postgresql:
-    container_name: vmxfp-app-postgresql
     environment:
       POSTGRES_PASSWORD: app
       POSTGRES_USER: app

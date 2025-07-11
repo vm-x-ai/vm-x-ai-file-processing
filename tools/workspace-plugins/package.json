@@ -1,5 +1,5 @@
 {
-  "name": "@vmxfp/workspace-plugins",
+  "name": "@workspace/workspace-plugins",
   "version": "0.0.1",
   "private": true,
   "main": "./dist/index.js",

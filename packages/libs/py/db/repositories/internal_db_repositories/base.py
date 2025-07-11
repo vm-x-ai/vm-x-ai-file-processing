@@ -2,11 +2,11 @@ from abc import ABC, abstractmethod
 from contextlib import AbstractAsyncContextManager
 from typing import Any, Callable, Generic, Literal, TypeVar, Union, overload
 
+from internal_utils.chunk import chunk
 from sqlalchemy import Column, insert, tuple_
 from sqlalchemy.sql import ColumnExpressionArgument
 from sqlmodel import SQLModel, delete, select, update
 from sqlmodel.ext.asyncio.session import AsyncSession
-from vmxfp_utils.chunk import chunk
 
 TModel = TypeVar("TModel", bound=SQLModel)
 TReadModel = TypeVar("TReadModel", bound=SQLModel)

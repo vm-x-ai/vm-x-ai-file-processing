@@ -2,7 +2,10 @@ import logging
 from typing import Optional
 from uuid import UUID
 
-import vmxfp_db_models
+import internal_db_models
+from internal_db_repositories.file import FileRepository
+from internal_db_repositories.file_content import FileContentRepository
+from internal_services.evaluation import EvaluationService
 from pydantic import BaseModel
 from temporalio import activity
 from vmxai import (
@@ -17,9 +20,6 @@ from vmxai.types import (
     CompletionRequest,
     RequestMessage,
 )
-from vmxfp_db_repositories.file import FileRepository
-from vmxfp_db_repositories.file_content import FileContentRepository
-from vmxfp_services.evaluation import EvaluationService
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +95,7 @@ class StartEvaluationsActivity:
             raise ValueError(f"File {file_id} not found")
 
         await self._file_repository.update(
-            file_id, {"status": vmxfp_db_models.FileStatus.EVALUATING}
+            file_id, {"status": internal_db_models.FileStatus.EVALUATING}
         )
 
         logger.info(f"Starting evaluations for file {file_id}")
@@ -168,7 +168,7 @@ class StartEvaluationsActivity:
                 )
 
                 match evaluation.evaluation_type:
-                    case vmxfp_db_models.EvaluationType.BOOLEAN:
+                    case internal_db_models.EvaluationType.BOOLEAN:
                         request.tools = [
                             RequestTools(
                                 type="function",
@@ -181,7 +181,7 @@ class StartEvaluationsActivity:
                                 name="boolean_answer",
                             ),
                         )
-                    case vmxfp_db_models.EvaluationType.ENUM_CHOICE:
+                    case internal_db_models.EvaluationType.ENUM_CHOICE:
                         request.tools = [
                             RequestTools(
                                 type="function",

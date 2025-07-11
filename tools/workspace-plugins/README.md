@@ -51,7 +51,7 @@ graph TD
 {
   "targets": {
     "build": {
-      "executor": "@vmxfp/workspace-plugins:nest-build",
+      "executor": "@workspace/workspace-plugins:nest-build",
       "options": {
         /* ... */
       }

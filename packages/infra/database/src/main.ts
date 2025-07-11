@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { getStages } from '@vmxfp/infra-cdk-shared';
+import { getStages, RESOURCE_PREFIX } from '@workspace/infra-cdk-shared';
 import * as cdk from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { DatabaseStack } from './stacks/database-stack.js';
@@ -29,7 +29,7 @@ for (const stage of getStages(app.node.tryGetContext('stage') ?? 'dev')) {
     },
   };
 
-  new DatabaseStack(app, `vmxfp-database-${stage.stageName}`, {
+  new DatabaseStack(app, `${RESOURCE_PREFIX}-database-${stage.stageName}`, {
     ...baseParams,
     instanceType: configMap[stage.stageName].instanceType,
   });

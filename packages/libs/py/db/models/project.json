@@ -2,7 +2,7 @@
   "name": "py-db-models",
   "$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
   "projectType": "library",
-  "sourceRoot": "packages/libs/py/db/models/vmxfp_db_models",
+  "sourceRoot": "packages/libs/py/db/models/internal_db_models",
   "targets": {
     "lock": {
       "executor": "@nxlv/python:lock",
@@ -41,7 +41,7 @@
       "executor": "@nxlv/python:ruff-check",
       "outputs": [],
       "options": {
-        "lintFilePatterns": ["vmxfp_db_models", "tests"]
+        "lintFilePatterns": ["internal_db_models", "tests"]
       },
       "cache": true
     },
@@ -49,7 +49,7 @@
       "executor": "@nxlv/python:ruff-format",
       "outputs": [],
       "options": {
-        "filePatterns": ["vmxfp_db_models", "tests", "alembic"]
+        "filePatterns": ["internal_db_models", "tests", "alembic"]
       },
       "cache": true
     },
@@ -118,7 +118,7 @@
       }
     },
     "deploy": {
-      "executor": "@vmxfp/workspace-plugins:proxy-executor",
+      "executor": "@workspace/workspace-plugins:proxy-executor",
       "options": {
         "target": "migrations-apply"
       },

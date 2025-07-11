@@ -2,11 +2,11 @@ import asyncio
 
 import aioboto3
 from dependency_injector.wiring import Provide, inject
+from internal_aws_sqs_consumer import BaseMessageHandler, SQSConsumer
+from internal_logger import setup_logger
+from internal_schemas.s3 import S3Event
+from internal_schemas.sns import SnsMessage
 from temporalio.client import Client
-from vmxfp_aws_sqs_consumer import BaseMessageHandler, SQSConsumer
-from vmxfp_logger import setup_logger
-from vmxfp_schemas.s3 import S3Event
-from vmxfp_schemas.sns import SnsMessage
 
 from .containers import Container
 

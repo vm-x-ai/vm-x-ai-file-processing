@@ -1,7 +1,7 @@
 from dependency_injector import containers, providers
-from vmxfp_db_models.settings import DatabaseSettings
+from internal_db_models.settings import DatabaseSettings
 
-from vmxfp_db_services import Database
+from internal_db_services import Database
 
 
 class DatabaseContainer(containers.DeclarativeContainer):

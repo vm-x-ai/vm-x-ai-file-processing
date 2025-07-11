@@ -2,7 +2,7 @@
   "name": "py-logger",
   "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
   "projectType": "library",
-  "sourceRoot": "packages/libs/py/logger/vmxfp_logger",
+  "sourceRoot": "packages/libs/py/logger/internal_logger",
   "targets": {
     "lock": {
       "executor": "@nxlv/python:lock",
@@ -41,7 +41,7 @@
       "executor": "@nxlv/python:ruff-check",
       "outputs": [],
       "options": {
-        "lintFilePatterns": ["vmxfp_logger", "tests"]
+        "lintFilePatterns": ["internal_logger", "tests"]
       },
       "cache": true
     },
@@ -49,7 +49,7 @@
       "executor": "@nxlv/python:ruff-format",
       "outputs": [],
       "options": {
-        "filePatterns": ["vmxfp_logger", "tests"]
+        "filePatterns": ["internal_logger", "tests"]
       },
       "cache": true
     },

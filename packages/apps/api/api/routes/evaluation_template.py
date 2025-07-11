@@ -3,16 +3,16 @@ import logging
 import uuid
 from uuid import UUID
 
-import vmxfp_db_models
+import internal_db_models
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends
-from vmxfp_db_repositories.evaluation_category import (
+from internal_db_repositories.evaluation_category import (
     EvaluationCategoryRepository,
 )
-from vmxfp_db_repositories.evaluation_template import (
+from internal_db_repositories.evaluation_template import (
     EvaluationTemplateRepository,
 )
-from vmxfp_schemas.evaluation_template import (
+from internal_schemas.evaluation_template import (
     HttpEvaluationTemplateCreate,
     HttpEvaluationTemplateUpdate,
 )
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
     "/projects/{project_id}/evaluation-templates",
     operation_id="getEvaluationTemplates",
     description="Get all evaluation templates for a project",
-    response_model=list[vmxfp_db_models.EvaluationTemplateRead],
+    response_model=list[internal_db_models.EvaluationTemplateRead],
     tags=["evaluation-templates"],
 )
 @inject
@@ -36,7 +36,7 @@ async def get_evaluation_templates(
     evaluation_template_repository: EvaluationTemplateRepository = Depends(
         Provide[Container.evaluation_template_repository]
     ),
-) -> list[vmxfp_db_models.EvaluationTemplateRead]:
+) -> list[internal_db_models.EvaluationTemplateRead]:
     return await evaluation_template_repository.get_by_project_id(
         project_id=project_id,
     )
@@ -46,7 +46,7 @@ async def get_evaluation_templates(
     "/projects/{project_id}/evaluation-templates",
     operation_id="createEvaluationTemplate",
     description="Create an evaluation template for a project",
-    response_model=vmxfp_db_models.EvaluationTemplateRead,
+    response_model=internal_db_models.EvaluationTemplateRead,
     tags=["evaluation-templates"],
 )
 @inject
@@ -59,7 +59,7 @@ async def create_evaluation_template(
     evaluation_category_repository: EvaluationCategoryRepository = Depends(
         Provide[Container.evaluation_category_repository]
     ),
-) -> vmxfp_db_models.EvaluationTemplateRead:
+) -> internal_db_models.EvaluationTemplateRead:
     # Handle category creation/assignment
     category_id = payload.category_id
     if payload.category_name:
@@ -83,7 +83,7 @@ async def create_evaluation_template(
         await _reset_category_default(payload, category_id)
 
     return await evaluation_template_repository.add(
-        vmxfp_db_models.EvaluationTemplateCreate.model_validate(
+        internal_db_models.EvaluationTemplateCreate.model_validate(
             {
                 **payload.model_dump(),
                 "project_id": project_id,
@@ -121,7 +121,7 @@ async def _reset_category_default(
     "/projects/{project_id}/evaluation-templates/{evaluation_template_id}",
     operation_id="updateEvaluationTemplate",
     description="Update an evaluation template for a project",
-    response_model=vmxfp_db_models.EvaluationTemplateRead,
+    response_model=internal_db_models.EvaluationTemplateRead,
     tags=["evaluation-templates"],
 )
 @inject
@@ -132,7 +132,7 @@ async def update_evaluation_template(
     evaluation_template_repository: EvaluationTemplateRepository = Depends(
         Provide[Container.evaluation_template_repository]
     ),
-) -> vmxfp_db_models.EvaluationTemplateRead:
+) -> internal_db_models.EvaluationTemplateRead:
     if payload.default and payload.category_id:
         await _reset_category_default(payload, payload.category_id)
 

@@ -1,5 +1,6 @@
 from os import environ
 
+from internal_utils.pydantic_settings_jinja import jinja_template_validator
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -26,6 +27,11 @@ class Landing(BaseSettings):
     )
 
     s3_bucket_name: str
+
+    @jinja_template_validator("s3_bucket_name")
+    @classmethod
+    def resolve_jinja_templates(cls, value):
+        ...
 
 
 class Settings(BaseSettings):

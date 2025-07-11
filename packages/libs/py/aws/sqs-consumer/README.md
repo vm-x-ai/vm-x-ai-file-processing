@@ -28,17 +28,17 @@ graph TD
 
 ## Directory Structure
 
-| Path                                 | Purpose                       |
-| ------------------------------------ | ----------------------------- |
-| `vmxfp_aws_sqs_consumer/__init__.py` | Main consumer and handler API |
-| `vmxfp_aws_sqs_consumer/event.py`    | Event system and types        |
-| `vmxfp_aws_sqs_consumer/settings.py` | Pydantic-based config         |
-| `tests/`                             | (Placeholder) for tests       |
+| Path                                    | Purpose                       |
+| --------------------------------------- | ----------------------------- |
+| `internal_aws_sqs_consumer/__init__.py` | Main consumer and handler API |
+| `internal_aws_sqs_consumer/event.py`    | Event system and types        |
+| `internal_aws_sqs_consumer/settings.py` | Pydantic-based config         |
+| `tests/`                                | (Placeholder) for tests       |
 
 ## Installation
 
 ```bash
-pnpm nx run <target_project>:add vmxfp-py-aws-sqs-consumer --local
+pnpm nx run <target_project>:add py-aws-sqs-consumer --local
 ```
 
 **Requirements:**
@@ -68,7 +68,7 @@ import asyncio
 import aioboto3
 from dependency_injector.wiring import Provide, inject
 from temporalio.client import Client
-from vmxfp_aws_sqs_consumer import BaseMessageHandler, SQSConsumer
+from internal_aws_sqs_consumer import BaseMessageHandler, SQSConsumer
 from .containers import Container
 
 class IncomingMessageHandler(BaseMessageHandler):

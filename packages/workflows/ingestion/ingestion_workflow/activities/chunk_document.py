@@ -2,14 +2,14 @@ import logging
 import uuid
 from uuid import UUID
 
-import vmxfp_db_models
+import internal_db_models
+from internal_db_repositories.file import FileRepository
+from internal_db_repositories.file_content import FileContentRepository
+from internal_db_repositories.file_embedding import FileEmbeddingRepository
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pydantic import BaseModel
 from temporalio import activity
-from vmxfp_db_repositories.file import FileRepository
-from vmxfp_db_repositories.file_content import FileContentRepository
-from vmxfp_db_repositories.file_embedding import FileEmbeddingRepository
 
 logger = logging.getLogger(__name__)
 
@@ -55,13 +55,13 @@ class ChunkDocumentActivity:
         logger.info(f"Split {len(result)} chunks")
 
         await self._file_repository.update(
-            file_id, {"status": vmxfp_db_models.FileStatus.CHUNKED}
+            file_id, {"status": internal_db_models.FileStatus.CHUNKED}
         )
 
         logger.info("Adding chunks to database")
         chunks = await self._file_embedding_repository.add_all(
             [
-                vmxfp_db_models.FileEmbeddingCreate(
+                internal_db_models.FileEmbeddingCreate(
                     id=uuid.uuid4(),
                     file_id=file_id,
                     chunk_number=chunk_number + 1,
@@ -70,7 +70,7 @@ class ChunkDocumentActivity:
                     content=chunk.page_content,
                     project_id=project_id,
                     embedding=None,
-                    status=vmxfp_db_models.FileEmbeddingStatus.CHUNKED,
+                    status=internal_db_models.FileEmbeddingStatus.CHUNKED,
                 )
                 for chunk_number, chunk in enumerate(result)
             ],

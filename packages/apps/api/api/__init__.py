@@ -2,7 +2,7 @@ import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from vmxfp_logger import setup_logger
+from internal_logger import setup_logger
 
 from api.containers import Container
 from api.routes import (

@@ -33,14 +33,14 @@ indent-width = 4
   unfixable = [ ]
 
 [tool.uv.sources]
-vmxfp-py-utils = { workspace = true }
-vmxfp-py-db-models = { workspace = true }
-vmxfp-py-db-repositories = { workspace = true }
-vmxfp-py-services = { workspace = true }
-vmxfp-py-db-services = { workspace = true }
-vmxfp-py-temporal-utils = { workspace = true }
-vmxfp-py-logger = { workspace = true }
-vmxfp-py-schemas = { workspace = true }
+py-utils = { workspace = true }
+py-db-models = { workspace = true }
+py-db-repositories = { workspace = true }
+py-services = { workspace = true }
+py-db-services = { workspace = true }
+py-temporal-utils = { workspace = true }
+py-logger = { workspace = true }
+py-schemas = { workspace = true }
 workflow-ingestion = { workspace = true }
 evaluation-workflow = { workspace = true }
 
@@ -60,15 +60,15 @@ dependencies = [
  "pypdf>=5.5.0",
  "temporalio>=1.11.1",
  "tiktoken>=0.9.0",
- "vmxfp-py-utils",
+ "py-utils",
  "vm-x-ai-sdk==1.6.2",
- "vmxfp-py-db-models",
- "vmxfp-py-db-repositories",
- "vmxfp-py-services",
- "vmxfp-py-db-services",
- "vmxfp-py-temporal-utils",
- "vmxfp-py-logger",
- "vmxfp-py-schemas",
+ "py-db-models",
+ "py-db-repositories",
+ "py-services",
+ "py-db-services",
+ "py-temporal-utils",
+ "py-logger",
+ "py-schemas",
  "workflow-ingestion",
  "evaluation-workflow",
 ]

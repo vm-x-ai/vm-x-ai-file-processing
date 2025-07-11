@@ -24,17 +24,17 @@ readme = 'README.md'
 dependencies = [
     "dependency-injector>=4.46.0",
     "fastapi>=0.115.12",
-    "vmxfp-py-db-models",
-    "vmxfp-py-db-repositories",
-    "vmxfp-py-db-services",
-    "vmxfp-py-schemas",
-    "vmxfp-py-logger",
-    "vmxfp-py-services",
-    "vmxfp-py-utils",
+    "py-db-models",
+    "py-db-repositories",
+    "py-db-services",
+    "py-schemas",
+    "py-logger",
+    "py-services",
+    "py-utils",
     "temporalio>=1.11.1",
     "uvicorn>=0.34.2",
     "pydantic-settings>=2.9.1",
-    "vmxfp-py-temporal-utils",
+    "py-temporal-utils",
     "vm-x-ai-sdk>=1.6.2",
     "langchain-openai>=0.3.16",
 ]
@@ -82,11 +82,11 @@ fixable = ["ALL"]
 unfixable = []
 
 [tool.uv.sources]
-vmxfp-py-utils = { workspace = true }
-vmxfp-py-db-models = { workspace = true }
-vmxfp-py-db-repositories = { workspace = true }
-vmxfp-py-services = { workspace = true }
-vmxfp-py-db-services = { workspace = true }
-vmxfp-py-logger = { workspace = true }
-vmxfp-py-schemas = { workspace = true }
-vmxfp-py-temporal-utils = { workspace = true }
+py-utils = { workspace = true }
+py-db-models = { workspace = true }
+py-db-repositories = { workspace = true }
+py-services = { workspace = true }
+py-db-services = { workspace = true }
+py-logger = { workspace = true }
+py-schemas = { workspace = true }
+py-temporal-utils = { workspace = true }

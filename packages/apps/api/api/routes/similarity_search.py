@@ -1,15 +1,15 @@
 import uuid
 
-import vmxfp_db_models
+import internal_db_models
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends
-from langchain_openai import OpenAIEmbeddings
-from pydantic import BaseModel
-from vmxfp_db_repositories.file_embedding import (
+from internal_db_repositories.file_embedding import (
     FileEmbeddingRepository,
     SimilaritySearchRequest,
 )
-from vmxfp_db_repositories.project import ProjectRepository
+from internal_db_repositories.project import ProjectRepository
+from langchain_openai import OpenAIEmbeddings
+from pydantic import BaseModel
 
 from api.containers import Container
 from api.settings import Settings
@@ -21,8 +21,8 @@ router = APIRouter()
     "/projects/{project_id}/similarity-search",
     operation_id="similaritySearch",
     description="Perform a similarity search",
-    response_model=list[vmxfp_db_models.FileEmbeddingRead]
-    | list[vmxfp_db_models.FileContentReadWithChunkScore],
+    response_model=list[internal_db_models.FileEmbeddingRead]
+    | list[internal_db_models.FileContentReadWithChunkScore],
     tags=["similarity-search"],
 )
 @inject
@@ -34,8 +34,8 @@ async def similarity_search(
     ),
     settings: Settings = Depends(Provide[Container.settings]),
 ) -> (
-    list[vmxfp_db_models.FileEmbeddingRead]
-    | list[vmxfp_db_models.FileContentReadWithChunkScore]
+    list[internal_db_models.FileEmbeddingRead]
+    | list[internal_db_models.FileContentReadWithChunkScore]
 ):
     embeddings = OpenAIEmbeddings(
         model="text-embedding-3-small", api_key=settings.openai.api_key
@@ -58,7 +58,7 @@ class ProjectCreateRequest(BaseModel):
     "/projects",
     operation_id="createProject",
     description="Create a project",
-    response_model=vmxfp_db_models.ProjectRead,
+    response_model=internal_db_models.ProjectRead,
     tags=["projects"],
 )
 @inject
@@ -67,9 +67,9 @@ async def create_project(
     project_repository: ProjectRepository = Depends(
         Provide[Container.project_repository]
     ),
-) -> vmxfp_db_models.ProjectRead:
+) -> internal_db_models.ProjectRead:
     return await project_repository.create(
-        vmxfp_db_models.ProjectCreate(
+        internal_db_models.ProjectCreate(
             id=uuid.uuid4(),
             name=request.name,
             description=request.description,
@@ -81,7 +81,7 @@ async def create_project(
     "/projects/{project_id}",
     operation_id="getProject",
     description="Get a project by id",
-    response_model=vmxfp_db_models.ProjectRead,
+    response_model=internal_db_models.ProjectRead,
     tags=["projects"],
 )
 @inject
@@ -90,7 +90,7 @@ async def get_project(
     project_repository: ProjectRepository = Depends(
         Provide[Container.project_repository]
     ),
-) -> vmxfp_db_models.ProjectRead:
+) -> internal_db_models.ProjectRead:
     return await project_repository.get(project_id)
 
 
@@ -103,7 +103,7 @@ class ProjectUpdateRequest(BaseModel):
     "/projects/{project_id}",
     operation_id="updateProject",
     description="Update a project by id",
-    response_model=vmxfp_db_models.ProjectRead,
+    response_model=internal_db_models.ProjectRead,
     tags=["projects"],
 )
 @inject
@@ -113,7 +113,7 @@ async def update_project(
     project_repository: ProjectRepository = Depends(
         Provide[Container.project_repository]
     ),
-) -> vmxfp_db_models.ProjectRead:
+) -> internal_db_models.ProjectRead:
     return await project_repository.update(
         project_id,
         request.model_dump(mode="json"),

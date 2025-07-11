@@ -4,12 +4,12 @@
   "sourceRoot": "packages/infra/eks/src",
   "projectType": "library",
   "tags": ["typescript", "infra", "cdk", "shared", "no-deploy:shared"],
-  "// targets": "to see all targets run: nx show project @vmxfp/infra-eks --web",
+  "// targets": "to see all targets run: nx show project @workspace/infra-eks --web",
   "targets": {
     "cdk-bootstrap": {},
     "cdk-deploy": {},
     "deploy": {
-      "executor": "@vmxfp/workspace-plugins:proxy-executor",
+      "executor": "@workspace/workspace-plugins:proxy-executor",
       "options": {
         "target": "cdk-deploy"
       },

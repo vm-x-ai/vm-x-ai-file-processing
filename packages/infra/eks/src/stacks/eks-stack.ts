@@ -10,12 +10,19 @@ import type { Construct } from 'constructs';
 import { KubectlV33Layer } from '@aws-cdk/lambda-layer-kubectl-v33';
 import * as yaml from 'js-yaml';
 import request, { Response, HttpVerb } from 'sync-request';
+import { RESOURCE_PREFIX } from '@workspace/infra-cdk-shared';
 
 interface EKSStackProps extends cdk.StackProps {
   stage: string;
   adminRoleArn: string;
   ecrAccountId: string;
   ecrRepositoryPrefix: string;
+  gitOps: {
+    repoUrl: string;
+    path: string;
+    targetRevision: string;
+    secretName: string;
+  };
 }
 
 export enum KubernetesSecretType {
@@ -36,6 +43,7 @@ enum AwsSecretType {
 
 export class EKSStack extends cdk.Stack {
   private readonly stage: string;
+  private readonly resourcePrefix: string = RESOURCE_PREFIX;
   private readonly cluster: eks.Cluster;
   private readonly nodeRole: iam.Role;
   private readonly vpc: cdk.aws_ec2.IVpc;
@@ -49,17 +57,17 @@ export class EKSStack extends cdk.Stack {
 
     this.stage = props.stage;
     this.vpc = Vpc.fromLookup(this, 'Vpc', {
-      vpcName: `vmxfp-app-${props.stage}-vpc`,
+      vpcName: `${this.resourcePrefix}-app-vpc-${props.stage}`,
     });
 
     const mastersRole = new iam.Role(this, 'MastersRole', {
       assumedBy: new iam.AccountRootPrincipal(),
-      roleName: `vmxfp-eks-cluster-${props.stage}-masters-role`,
+      roleName: `${this.resourcePrefix}-eks-cluster-masters-role-${props.stage}`,
     });
 
     const clusterRole = new iam.Role(this, 'ClusterRole', {
       assumedBy: new iam.ServicePrincipal('eks.amazonaws.com'),
-      roleName: `vmxfp-eks-cluster-${props.stage}-cluster-role`,
+      roleName: `${this.resourcePrefix}-eks-cluster-role-${props.stage}`,
     });
 
     clusterRole.addManagedPolicy(
@@ -69,11 +77,11 @@ export class EKSStack extends cdk.Stack {
     this.securityGroup = new ec2.SecurityGroup(this, 'SecurityGroup', {
       vpc: this.vpc,
       description: 'Security group for EKS cluster',
-      securityGroupName: `vmxfp-eks-cluster-${props.stage}-security-group`,
+      securityGroupName: `${this.resourcePrefix}-eks-cluster-security-group-${props.stage}`,
     });
 
     const secretsEncryptionKey = new kms.Key(this, 'SecretsEncryptionKey', {
-      alias: `vmxfp-eks-cluster-${props.stage}-secrets-encryption-key`,
+      alias: `${this.resourcePrefix}-eks-cluster-secrets-encryption-key-${props.stage}`,
     });
 
     secretsEncryptionKey.grant(clusterRole, 'kms:DescribeKey');
@@ -89,7 +97,7 @@ export class EKSStack extends cdk.Stack {
 
     this.nodeRole = new iam.Role(this, 'NodeRole', {
       assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
-      roleName: `vmxfp-eks-cluster-${props.stage}-node-role`,
+      roleName: `${this.resourcePrefix}-eks-cluster-node-role-${props.stage}`,
       managedPolicies: [
         iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonEKS_CNI_Policy'),
         iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonEKSWorkerNodePolicy'),
@@ -131,14 +139,14 @@ export class EKSStack extends cdk.Stack {
         service: 'SSM',
         action: 'getParameter',
         parameters: {
-          Name: '/vmxfp-app/shared/ecr/kms-key',
+          Name: `/${this.resourcePrefix}-app/shared/ecr/kms-key`,
           WithDecryption: false,
         },
         physicalResourceId: cr.PhysicalResourceId.of(
           'CrossAccountSSMParameter'
         ),
         region: 'us-east-1',
-        assumedRoleArn: `arn:aws:iam::${props.ecrAccountId}:role/vmxfp-ecr-key-cross-account-role-shared`,
+        assumedRoleArn: `arn:aws:iam::${props.ecrAccountId}:role/${this.resourcePrefix}-ecr-key-cross-account-role-shared`,
       },
       policy: cr.AwsCustomResourcePolicy.fromSdkCalls({
         resources: cr.AwsCustomResourcePolicy.ANY_RESOURCE,
@@ -157,7 +165,7 @@ export class EKSStack extends cdk.Stack {
     );
 
     this.cluster = new eks.Cluster(this, 'Cluster', {
-      clusterName: `vmxfp-eks-cluster-${props.stage}`,
+      clusterName: `${this.resourcePrefix}-eks-cluster-${props.stage}`,
       vpc: this.vpc,
       vpcSubnets: [
         {
@@ -214,14 +222,14 @@ export class EKSStack extends cdk.Stack {
       this,
       'DefaultNodeGroupLaunchTemplate',
       {
-        launchTemplateName: `vmxfp-eks-cluster-${props.stage}-default-nodegroup-launch-template`,
+        launchTemplateName: `${this.resourcePrefix}-eks-cluster-default-nodegroup-launch-template-${props.stage}`,
         requireImdsv2: false,
       }
     );
 
     cdk.Tags.of(defaultNodeGroupLaunchTemplate).add(
       'Name',
-      `vmxfp-eks-cluster-${props.stage}-default-nodegroup`
+      `${this.resourcePrefix}-eks-cluster-default-nodegroup-${props.stage}`
     );
     cdk.Tags.of(defaultNodeGroupLaunchTemplate).add('stage', props.stage);
     cdk.Tags.of(defaultNodeGroupLaunchTemplate).add(
@@ -237,7 +245,7 @@ export class EKSStack extends cdk.Stack {
           apiVersion: 'v1',
           kind: 'Namespace',
           metadata: {
-            name: 'vmxfp-app',
+            name: `${this.resourcePrefix}-app`,
           },
         },
       ],
@@ -250,28 +258,28 @@ export class EKSStack extends cdk.Stack {
     this.addVpcCni();
     this.addEbsCsiDriver();
     this.istioGateway = this.addIstio();
-    this.addArgoCD();
+    this.addArgoCD(props);
 
     new ssm.StringParameter(this, 'ClusterSecurityGroupId', {
-      parameterName: `/vmxfp-app/${this.stage}/eks-cluster/security-group-id`,
+      parameterName: `/${this.resourcePrefix}-app/${this.stage}/eks-cluster/security-group-id`,
       stringValue: this.cluster.clusterSecurityGroupId,
       description: 'Security group ID for EKS cluster',
     });
 
     new ssm.StringParameter(this, 'ClusterOpenIdConnectProviderArn', {
-      parameterName: `/vmxfp-app/${this.stage}/eks-cluster/open-id-connect-provider-arn`,
+      parameterName: `/${this.resourcePrefix}-app/${this.stage}/eks-cluster/open-id-connect-provider-arn`,
       stringValue: this.cluster.openIdConnectProvider.openIdConnectProviderArn,
       description: 'Open ID Connect provider ARN for EKS cluster',
     });
 
     new ssm.StringParameter(this, 'ClusterKubectlServiceToken', {
-      parameterName: `/vmxfp-app/${this.stage}/eks-cluster/kubectl/service-token`,
+      parameterName: `/${this.resourcePrefix}-app/${this.stage}/eks-cluster/kubectl/service-token`,
       stringValue: this.cluster.kubectlProvider?.serviceToken ?? '',
       description: 'Kubectl service token for EKS cluster',
     });
 
     new ssm.StringParameter(this, 'ClusterKubectlRoleArn', {
-      parameterName: `/vmxfp-app/${this.stage}/eks-cluster/kubectl/role-arn`,
+      parameterName: `/${this.resourcePrefix}-app/${this.stage}/eks-cluster/kubectl/role-arn`,
       stringValue: this.cluster.kubectlProvider?.role?.roleArn ?? '',
       description: 'Kubectl role ARN for EKS cluster',
     });
@@ -399,7 +407,7 @@ export class EKSStack extends cdk.Stack {
     return installer;
   }
 
-  private addArgoCD() {
+  private addArgoCD(props: EKSStackProps) {
     const namespace = new eks.KubernetesManifest(this, 'ArgoCDNamespace', {
       cluster: this.cluster,
       manifest: [
@@ -427,8 +435,6 @@ export class EKSStack extends cdk.Stack {
 
     serviceAccount.node.addDependency(namespace);
 
-    const argocdGithubSecretName = 'argocd-github-token';
-
     serviceAccount.role.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: [
@@ -436,7 +442,7 @@ export class EKSStack extends cdk.Stack {
           'secretsmanager:DescribeSecret',
         ],
         resources: [
-          `arn:aws:secretsmanager:${this.region}:${this.account}:secret:${argocdGithubSecretName}*`,
+          `arn:aws:secretsmanager:${this.region}:${this.account}:secret:${props.gitOps.secretName}*`,
         ],
       })
     );
@@ -455,7 +461,7 @@ export class EKSStack extends cdk.Stack {
         parameters: {
           objects: JSON.stringify([
             {
-              objectName: argocdGithubSecretName,
+              objectName: props.gitOps.secretName,
               objectType: AwsSecretType.SECRETSMANAGER,
               jmesPath: [
                 { path: 'url', objectAlias: 'url' },
@@ -467,7 +473,7 @@ export class EKSStack extends cdk.Stack {
         },
         secretObjects: [
           {
-            secretName: argocdGithubSecretName,
+            secretName: props.gitOps.secretName,
             type: KubernetesSecretType.OPAQUE,
             labels: { 'argocd.argoproj.io/secret-type': 'repo-creds' },
             data: [
@@ -492,8 +498,6 @@ export class EKSStack extends cdk.Stack {
     secretManifest.node.addDependency(namespace);
     secretManifest.node.addDependency(this.secretsStoreInstaller);
 
-    const repoUrl = 'https://github.com/vm-x-ai-file-classifier';
-
     const chart = this.cluster.addHelmChart('ArgoCDHelm', {
       chart: 'argo-cd',
       release: 'argo-cd-bootstrap',
@@ -508,8 +512,8 @@ export class EKSStack extends cdk.Stack {
             'server.rootpath': '/argocd',
           },
           repositories: {
-            vmxfp: {
-              url: repoUrl,
+            [props.gitOps.repoUrl]: {
+              url: props.gitOps.repoUrl,
             },
           },
         },
@@ -543,13 +547,11 @@ export class EKSStack extends cdk.Stack {
     chart.node.addDependency(serviceAccount);
     chart.node.addDependency(secretManifest);
 
-    const targetRevision = 'network-dns';
-
     const rootApp = this.cluster.addManifest('ArgoCDRootApp', {
       apiVersion: 'argoproj.io/v1alpha1',
       kind: 'Application',
       metadata: {
-        name: 'vmxfp-app-root-app',
+        name: `${this.resourcePrefix}-app-root-app`,
         namespace: 'argocd',
         annotations: {
           'argocd.argoproj.io/sync-wave': '-1',
@@ -557,7 +559,7 @@ export class EKSStack extends cdk.Stack {
       },
       spec: {
         destination: {
-          namespace: 'vmxfp-app',
+          namespace: `${this.resourcePrefix}-app`,
           server: 'https://kubernetes.default.svc',
         },
         project: 'default',
@@ -565,9 +567,9 @@ export class EKSStack extends cdk.Stack {
           directory: {
             recurse: true,
           },
-          path: `packages/infra/argocd/${this.stage}`,
-          repoURL: repoUrl,
-          targetRevision,
+          path: props.gitOps.path,
+          repoURL: props.gitOps.repoUrl,
+          targetRevision: props.gitOps.targetRevision,
         },
         syncPolicy: {
           automated: {
@@ -619,7 +621,7 @@ export class EKSStack extends cdk.Stack {
 
   private addEbsCsiDriver() {
     const csiDriverKey = new kms.Key(this, 'CsiDriverKey', {
-      alias: `vmxfp-eks-cluster-csi-driver-key-${this.stage}`,
+      alias: `${this.resourcePrefix}-eks-cluster-csi-driver-key-${this.stage}`,
     });
 
     this.nodeRole.attachInlinePolicy(

@@ -215,7 +215,7 @@ importers:
 
   packages/apps/api:
     dependencies:
-      '@vmxfp/infra-cdk-shared':
+      '@workspace/infra-cdk-shared':
         specifier: workspace:*
         version: link:../../infra/cdk/shared
       aws-cdk-lib:
@@ -378,7 +378,7 @@ importers:
       '@types/react-syntax-highlighter':
         specifier: ^15.5.13
         version: 15.5.13
-      '@vmxfp/infra-cdk-shared':
+      '@workspace/infra-cdk-shared':
         specifier: workspace:*
         version: link:../../infra/cdk/shared
       aws-cdk-lib:
@@ -417,7 +417,7 @@ importers:
 
   packages/infra/database:
     dependencies:
-      '@vmxfp/infra-cdk-shared':
+      '@workspace/infra-cdk-shared':
         specifier: workspace:*
         version: link:../cdk/shared
       aws-cdk-lib:
@@ -432,7 +432,7 @@ importers:
 
   packages/infra/ecr:
     dependencies:
-      '@vmxfp/infra-cdk-shared':
+      '@workspace/infra-cdk-shared':
         specifier: workspace:*
         version: link:../cdk/shared
       aws-cdk-lib:
@@ -453,7 +453,7 @@ importers:
       '@aws-cdk/lambda-layer-kubectl-v33':
         specifier: ^2.0.0
         version: 2.0.0(aws-cdk-lib@2.200.1(constructs@10.4.2))(constructs@10.4.2)
-      '@vmxfp/infra-cdk-shared':
+      '@workspace/infra-cdk-shared':
         specifier: workspace:*
         version: link:../cdk/shared
       aws-cdk-lib:
@@ -478,7 +478,7 @@ importers:
 
   packages/infra/event:
     dependencies:
-      '@vmxfp/infra-cdk-shared':
+      '@workspace/infra-cdk-shared':
         specifier: workspace:*
         version: link:../cdk/shared
       aws-cdk-lib:
@@ -493,7 +493,7 @@ importers:
 
   packages/infra/github-actions:
     dependencies:
-      '@vmxfp/infra-cdk-shared':
+      '@workspace/infra-cdk-shared':
         specifier: workspace:*
         version: link:../cdk/shared
       aws-cdk-lib:
@@ -508,7 +508,7 @@ importers:
 
   packages/infra/network:
     dependencies:
-      '@vmxfp/infra-cdk-shared':
+      '@workspace/infra-cdk-shared':
         specifier: workspace:*
         version: link:../cdk/shared
       aws-cdk-lib:
@@ -523,7 +523,7 @@ importers:
 
   packages/workflows/evaluation:
     dependencies:
-      '@vmxfp/infra-cdk-shared':
+      '@workspace/infra-cdk-shared':
         specifier: workspace:*
         version: link:../../infra/cdk/shared
       aws-cdk-lib:
@@ -538,7 +538,7 @@ importers:
 
   packages/workflows/ingestion:
     dependencies:
-      '@vmxfp/infra-cdk-shared':
+      '@workspace/infra-cdk-shared':
         specifier: workspace:*
         version: link:../../infra/cdk/shared
       aws-cdk-lib:
@@ -556,7 +556,7 @@ importers:
       '@aws-cdk/aws-eks-v2-alpha':
         specifier: 2.200.2-alpha.0
         version: 2.200.2-alpha.0(aws-cdk-lib@2.200.1(constructs@10.4.2))(constructs@10.4.2)
-      '@vmxfp/infra-cdk-shared':
+      '@workspace/infra-cdk-shared':
         specifier: workspace:*
         version: link:../../infra/cdk/shared
       aws-cdk-lib:
@@ -571,7 +571,7 @@ importers:
 
   secrets:
     dependencies:
-      '@vmxfp/infra-cdk-shared':
+      '@workspace/infra-cdk-shared':
         specifier: workspace:*
         version: link:../packages/infra/cdk/shared
       aws-cdk-lib:

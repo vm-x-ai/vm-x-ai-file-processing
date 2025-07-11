@@ -1,5 +1,5 @@
 {
-  "name": "@vmxfp/infra-argocd",
+  "name": "@workspace/infra-argocd",
   "version": "0.0.1",
   "private": true,
   "type": "module",

@@ -3,9 +3,14 @@ import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import type { Construct } from 'constructs';
 
-export function importEksCluster(scope: Construct, id: string, stage: string) {
+export function importEksCluster(
+  scope: Construct,
+  id: string,
+  stage: string,
+  resourcePrefix: string
+) {
   return eks.Cluster.fromClusterAttributes(scope, id, {
-    clusterName: `vmxfp-eks-cluster-${stage}`,
+    clusterName: `${resourcePrefix}-eks-cluster-${stage}`,
     openIdConnectProvider:
       eks.OpenIdConnectProvider.fromOpenIdConnectProviderArn(
         scope,
@@ -13,7 +18,7 @@ export function importEksCluster(scope: Construct, id: string, stage: string) {
         ssm.StringParameter.fromStringParameterName(
           scope,
           'EKSOpenIdConnectProviderArn',
-          `/vmxfp-app/${stage}/eks-cluster/open-id-connect-provider-arn`
+          `/${resourcePrefix}-app/${stage}/eks-cluster/open-id-connect-provider-arn`
         ).stringValue
       ),
     kubectlProvider: eks.KubectlProvider.fromKubectlProviderAttributes(
@@ -23,7 +28,7 @@ export function importEksCluster(scope: Construct, id: string, stage: string) {
         serviceToken: ssm.StringParameter.fromStringParameterName(
           scope,
           'EKSKubectlServiceToken',
-          `/vmxfp-app/${stage}/eks-cluster/kubectl/service-token`
+          `/${resourcePrefix}-app/${stage}/eks-cluster/kubectl/service-token`
         ).stringValue,
         role: iam.Role.fromRoleArn(
           scope,
@@ -31,7 +36,7 @@ export function importEksCluster(scope: Construct, id: string, stage: string) {
           ssm.StringParameter.fromStringParameterName(
             scope,
             'EKSKubectlRoleArn',
-            `/vmxfp-app/${stage}/eks-cluster/kubectl/role-arn`
+            `/${resourcePrefix}-app/${stage}/eks-cluster/kubectl/role-arn`
           ).stringValue
         ),
       }

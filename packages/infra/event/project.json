@@ -9,7 +9,7 @@
     "cdk-bootstrap": {},
     "cdk-deploy": {},
     "deploy": {
-      "executor": "@vmxfp/workspace-plugins:proxy-executor",
+      "executor": "@workspace/workspace-plugins:proxy-executor",
       "options": {
         "target": "cdk-deploy"
       }

@@ -88,7 +88,8 @@
     }
   ],
   "tui": {
-    "enabled": false
+    "enabled": false,
+    "autoExit": true
   },
   "targetDefaults": {
     "cdk-bootstrap": {
@@ -131,7 +132,8 @@
         "shared": {
           "command": "cdk deploy -c stage=shared --require-approval never --all"
         }
-      }
+      },
+      "dependsOn": ["^build"]
     },
     "docker-build": {
       "executor": "nx:run-commands",
@@ -165,7 +167,7 @@
       }
     },
     "update-image-tag": {
-      "executor": "@vmxfp/workspace-plugins:update-yaml",
+      "executor": "@workspace/workspace-plugins:update-yaml",
       "options": {
         "keyPath": "image.tag",
         "gitAdd": true

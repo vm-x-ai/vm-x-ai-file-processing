@@ -1,5 +1,5 @@
 {
-  "name": "@vmxfp/ui",
+  "name": "@workspace/ui",
   "version": "0.0.1",
   "private": true,
   "dependencies": {
@@ -51,7 +51,7 @@
   },
   "devDependencies": {
     "@aws-cdk/aws-eks-v2-alpha": "2.200.2-alpha.0",
-    "@vmxfp/infra-cdk-shared": "workspace:*",
+    "@workspace/infra-cdk-shared": "workspace:*",
     "@tailwindcss/postcss": "^4",
     "@types/d3-hierarchy": "^3.1.7",
     "@types/lodash.camelcase": "^4.3.9",

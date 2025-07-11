@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { getStages } from '@vmxfp/infra-cdk-shared';
+import { getStages, RESOURCE_PREFIX } from '@workspace/infra-cdk-shared';
 import * as cdk from 'aws-cdk-lib';
 import { EKSStack } from './stacks/eks-stack.js';
 
@@ -17,10 +17,11 @@ for (const stage of getStages(app.node.tryGetContext('stage') ?? 'dev')) {
     },
   };
 
-  new EKSStack(app, `vmxfp-eks-cluster-${stage.stageName}`, {
+  new EKSStack(app, `${RESOURCE_PREFIX}-eks-cluster-${stage.stageName}`, {
     ...baseParams,
     adminRoleArn: stage.adminRoleArn,
     ecrAccountId: getStages('shared')[0].accountId,
-    ecrRepositoryPrefix: `vmxfp-`,
+    ecrRepositoryPrefix: `${RESOURCE_PREFIX}-`,
+    gitOps: stage.gitOps,
   });
 }

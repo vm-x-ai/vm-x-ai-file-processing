@@ -1,3 +1,4 @@
+import { RESOURCE_PREFIX } from '@workspace/infra-cdk-shared';
 import * as cdk from 'aws-cdk-lib';
 import type { IVpc } from 'aws-cdk-lib/aws-ec2';
 import {
@@ -17,12 +18,13 @@ interface NetworkStackProps extends cdk.StackProps {
 
 export class NetworkStack extends cdk.Stack {
   vpc: IVpc;
+  private readonly resourcePrefix: string = RESOURCE_PREFIX;
 
   constructor(scope: Construct, id: string, props: NetworkStackProps) {
     super(scope, id, props);
 
     this.vpc = new Vpc(this, 'Vpc', {
-      vpcName: `vmxfp-app-${props.stage}-vpc`,
+      vpcName: `${this.resourcePrefix}-app-vpc-${props.stage}`,
       ipAddresses: IpAddresses.cidr(props.cidr),
       enableDnsHostnames: true,
       enableDnsSupport: true,
@@ -52,13 +54,13 @@ export class NetworkStack extends cdk.Stack {
       'BastionHostSecurityGroup',
       {
         vpc: this.vpc,
-        securityGroupName: `vmxfp-app-bastion-host-security-group-${props.stage}`,
+        securityGroupName: `${this.resourcePrefix}-app-bastion-host-security-group-${props.stage}`,
       }
     );
 
     const bastionHost = new BastionHostLinux(this, 'BastionHost', {
       vpc: this.vpc,
-      instanceName: `vmxfp-app-bastion-host-${props.stage}`,
+      instanceName: `${this.resourcePrefix}-app-bastion-host-${props.stage}`,
       securityGroup: bastionHostSecurityGroup,
       subnetSelection: {
         subnetType: SubnetType.PUBLIC,
@@ -66,12 +68,12 @@ export class NetworkStack extends cdk.Stack {
     });
 
     new StringParameter(this, 'BastionHostInstanceId', {
-      parameterName: `/vmxfp-app/${props.stage}/bastion-host/instance-id`,
+      parameterName: `/${this.resourcePrefix}-app/${props.stage}/bastion-host/instance-id`,
       stringValue: bastionHost.instanceId,
     });
 
     new StringParameter(this, 'BastionHostSecurityGroupId', {
-      parameterName: `/vmxfp-app/${props.stage}/bastion-host/security-group-id`,
+      parameterName: `/${this.resourcePrefix}-app/${props.stage}/bastion-host/security-group-id`,
       stringValue: bastionHostSecurityGroup.securityGroupId,
     });
   }

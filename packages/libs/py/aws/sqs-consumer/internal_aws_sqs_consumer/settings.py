@@ -1,5 +1,6 @@
 from os import environ
 
+from internal_utils import jinja_template_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 env_file = f".env.{environ.get('ENV', 'local')}"
@@ -17,3 +18,8 @@ class SQSConsumerSettings(BaseSettings):
     visibility_timeout: int = 30
     number_of_concurrent_tasks: int = 100
     wait_time_seconds: int = 1
+
+    @jinja_template_validator("queue_url")
+    @classmethod
+    def resolve_jinja_templates(cls, value):
+        ...

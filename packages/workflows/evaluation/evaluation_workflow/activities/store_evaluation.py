@@ -3,16 +3,16 @@ import logging
 import uuid
 from uuid import UUID
 
-import vmxfp_db_models
+import internal_db_models
 from google.protobuf.json_format import MessageToDict
+from internal_db_repositories.evaluation import EvaluationRepository
+from internal_db_repositories.file import FileRepository
+from internal_db_repositories.file_evaluation import FileEvaluationRepository
 from temporalio import activity
 from vmxai.types import (
     CompletionBatchItemUpdateCallbackPayload,
     CompletionBatchRequestStatus,
 )
-from vmxfp_db_repositories.evaluation import EvaluationRepository
-from vmxfp_db_repositories.file import FileRepository
-from vmxfp_db_repositories.file_evaluation import FileEvaluationRepository
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +50,7 @@ class StoreEvaluationActivity:
         response: str | None = None
 
         match evaluation.evaluation_type:
-            case vmxfp_db_models.EvaluationType.BOOLEAN:
+            case internal_db_models.EvaluationType.BOOLEAN:
                 if not result.payload.response.tool_calls:
                     raise ValueError("No tool calls from VMX")
 
@@ -64,7 +64,7 @@ class StoreEvaluationActivity:
 
                 boolean_answer = json.loads(boolean_answer)
                 response = str(boolean_answer["answer"]).lower()
-            case vmxfp_db_models.EvaluationType.ENUM_CHOICE:
+            case internal_db_models.EvaluationType.ENUM_CHOICE:
                 if not result.payload.response.tool_calls:
                     raise ValueError("No tool calls from VMX")
 
@@ -78,7 +78,7 @@ class StoreEvaluationActivity:
 
                 enum_answer = json.loads(enum_answer)
                 response = enum_answer["answer"]
-            case vmxfp_db_models.EvaluationType.TEXT:
+            case internal_db_models.EvaluationType.TEXT:
                 response = result.payload.response.message
 
         existing_file_evaluation = (
@@ -90,9 +90,9 @@ class StoreEvaluationActivity:
         )
 
         status = (
-            vmxfp_db_models.FileEvaluationStatus.COMPLETED
+            internal_db_models.FileEvaluationStatus.COMPLETED
             if result.payload.status == CompletionBatchRequestStatus.COMPLETED
-            else vmxfp_db_models.FileEvaluationStatus.FAILED
+            else internal_db_models.FileEvaluationStatus.FAILED
         )
 
         llm_request = result.payload.request.model_dump(mode="json")
@@ -125,7 +125,7 @@ class StoreEvaluationActivity:
                 f"evaluation_id: {evaluation_id}, content_id: {file_content_id}"
             )
             await self._file_evaluation_repository.add(
-                vmxfp_db_models.FileEvaluationCreate(
+                internal_db_models.FileEvaluationCreate(
                     id=uuid.uuid4(),
                     file_id=file.id,
                     evaluation_id=evaluation_id,

@@ -1,5 +1,5 @@
 from dependency_injector import containers, providers
-from vmxfp_db_repositories.containers import RepositoriesContainer
+from internal_db_repositories.containers import RepositoriesContainer
 
 from .evaluation import EvaluationService
 

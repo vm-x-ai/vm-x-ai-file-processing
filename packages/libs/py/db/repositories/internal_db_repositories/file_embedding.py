@@ -4,7 +4,7 @@ from contextlib import AbstractAsyncContextManager
 from typing import Any, Callable, cast
 from uuid import UUID
 
-import vmxfp_db_models
+import internal_db_models
 from pydantic import BaseModel
 from sqlalchemy import (
     Column,
@@ -90,9 +90,9 @@ class SimilaritySearchRequest(BaseModel):
 class FileEmbeddingRepository(
     BaseRepository[
         UUID,
-        vmxfp_db_models.FileEmbedding,
-        vmxfp_db_models.FileEmbeddingRead,
-        vmxfp_db_models.FileEmbeddingCreate,
+        internal_db_models.FileEmbedding,
+        internal_db_models.FileEmbeddingRead,
+        internal_db_models.FileEmbeddingCreate,
     ]
 ):
     def __init__(
@@ -103,30 +103,30 @@ class FileEmbeddingRepository(
         super().__init__(
             session_factory,
             write_session_factory,
-            vmxfp_db_models.FileEmbedding,
-            vmxfp_db_models.FileEmbeddingRead,
-            vmxfp_db_models.FileEmbeddingCreate,
+            internal_db_models.FileEmbedding,
+            internal_db_models.FileEmbeddingRead,
+            internal_db_models.FileEmbeddingCreate,
         )
 
     @property
     def _id_fields(self) -> tuple[Column[UUID]]:
-        return (cast(Column[UUID], vmxfp_db_models.FileEmbedding.id),)
+        return (cast(Column[UUID], internal_db_models.FileEmbedding.id),)
 
     def _id_predicate(self, id: UUID) -> ColumnExpressionArgument[bool]:
-        return col(vmxfp_db_models.FileEmbedding.id) == id
+        return col(internal_db_models.FileEmbedding.id) == id
 
     async def get_by_file_id(
         self, file_id: UUID
-    ) -> list[vmxfp_db_models.FileEmbeddingRead]:
+    ) -> list[internal_db_models.FileEmbeddingRead]:
         async with self._session_factory() as session:
-            query = select(vmxfp_db_models.FileEmbedding).where(
-                vmxfp_db_models.FileEmbedding.file_id == file_id
+            query = select(internal_db_models.FileEmbedding).where(
+                internal_db_models.FileEmbedding.file_id == file_id
             )
 
             result = await session.scalars(query)
 
             return [
-                vmxfp_db_models.FileEmbeddingRead.model_validate(embedding)
+                internal_db_models.FileEmbeddingRead.model_validate(embedding)
                 for embedding in result.all()
             ]
 
@@ -136,8 +136,8 @@ class FileEmbeddingRepository(
         query_embedding: list[float],
         payload: SimilaritySearchRequest,
     ) -> (
-        list[vmxfp_db_models.FileEmbeddingRead]
-        | list[vmxfp_db_models.FileContentReadWithChunkScore]
+        list[internal_db_models.FileEmbeddingRead]
+        | list[internal_db_models.FileContentReadWithChunkScore]
     ):
         """Performs a similarity search for file chunks within a specific file.
 
@@ -168,20 +168,20 @@ class FileEmbeddingRepository(
         payload: SimilaritySearchRequest,
         filter_fn: Callable[
             [
-                SelectOfScalar[tuple[vmxfp_db_models.FileEmbedding, float]],
+                SelectOfScalar[tuple[internal_db_models.FileEmbedding, float]],
                 Subquery,
             ],
-            SelectOfScalar[tuple[vmxfp_db_models.FileEmbedding, float]],
+            SelectOfScalar[tuple[internal_db_models.FileEmbedding, float]],
         ],
     ) -> (
-        Select[tuple[vmxfp_db_models.FileEmbedding, float, bool, UUID]]
+        Select[tuple[internal_db_models.FileEmbedding, float, bool, UUID]]
         | Select[
             tuple[
-                vmxfp_db_models.FileContent,
+                internal_db_models.FileContent,
                 float,
                 bool,
                 UUID,
-                vmxfp_db_models.FileEmbedding,
+                internal_db_models.FileEmbedding,
             ]
         ]
     ):
@@ -194,12 +194,15 @@ class FileEmbeddingRepository(
         Returns:
             SQLAlchemy Select query object configured for similarity search
         """
-        similarity_score = 1 - vmxfp_db_models.FileEmbedding.embedding.cosine_distance(
-            query_embedding
+        similarity_score = (
+            1
+            - internal_db_models.FileEmbedding.embedding.cosine_distance(
+                query_embedding
+            )
         )
 
         score_query = select(
-            vmxfp_db_models.FileEmbedding, similarity_score.label("score")
+            internal_db_models.FileEmbedding, similarity_score.label("score")
         )
 
         if payload.limit is not None:
@@ -207,7 +210,7 @@ class FileEmbeddingRepository(
 
         score_subquery = score_query.subquery("score")
 
-        query: SelectOfScalar[tuple[vmxfp_db_models.FileEmbedding, float]] = select(
+        query: SelectOfScalar[tuple[internal_db_models.FileEmbedding, float]] = select(
             score_subquery
         )  # type: ignore
         query = filter_fn(query, score_subquery)
@@ -221,21 +224,21 @@ class FileEmbeddingRepository(
                 query = query.order_by(col(score_subquery.c.chunk_number).asc())
 
         query_cte = query.cte("score_cte")
-        query_cte_alias = aliased(vmxfp_db_models.FileEmbedding, query_cte)
+        query_cte_alias = aliased(internal_db_models.FileEmbedding, query_cte)
         neighbor_query: (
-            Select[tuple[vmxfp_db_models.FileEmbedding, Any]]
-            | Select[tuple[vmxfp_db_models.FileContent, Any]]
+            Select[tuple[internal_db_models.FileEmbedding, Any]]
+            | Select[tuple[internal_db_models.FileContent, Any]]
         )
 
         match payload.when_match_return:
             case SimilaritySearchWhenMatchReturn.CHUNK:
                 neighbor_query = (
                     select(
-                        vmxfp_db_models.FileEmbedding,
-                        func.array_agg(col(vmxfp_db_models.FileEmbedding.id))
+                        internal_db_models.FileEmbedding,
+                        func.array_agg(col(internal_db_models.FileEmbedding.id))
                         .over(
-                            partition_by=col(vmxfp_db_models.FileEmbedding.file_id),
-                            order_by=col(vmxfp_db_models.FileEmbedding.chunk_number),
+                            partition_by=col(internal_db_models.FileEmbedding.file_id),
+                            order_by=col(internal_db_models.FileEmbedding.chunk_number),
                             range_=(
                                 -payload.before_neighbor_count,
                                 payload.after_neighbor_count,
@@ -245,18 +248,18 @@ class FileEmbeddingRepository(
                     )
                     .prefix_with(text("DISTINCT ON (file_embeddings.id)"))
                     .where(
-                        col(vmxfp_db_models.FileEmbedding.file_id)
+                        col(internal_db_models.FileEmbedding.file_id)
                         == col(query_cte.c.file_id),
                     )
                 )
             case SimilaritySearchWhenMatchReturn.CONTENT:
                 neighbor_query = (
                     select(
-                        vmxfp_db_models.FileContent,
-                        func.array_agg(col(vmxfp_db_models.FileContent.id))
+                        internal_db_models.FileContent,
+                        func.array_agg(col(internal_db_models.FileContent.id))
                         .over(
-                            partition_by=col(vmxfp_db_models.FileContent.file_id),
-                            order_by=col(vmxfp_db_models.FileContent.content_number),
+                            partition_by=col(internal_db_models.FileContent.file_id),
+                            order_by=col(internal_db_models.FileContent.content_number),
                             range_=(
                                 -payload.before_neighbor_count,
                                 payload.after_neighbor_count,
@@ -266,7 +269,7 @@ class FileEmbeddingRepository(
                     )
                     .prefix_with(text("DISTINCT ON (file_contents.id)"))
                     .where(
-                        col(vmxfp_db_models.FileContent.file_id)
+                        col(internal_db_models.FileContent.file_id)
                         == col(query_cte.c.file_id),
                     )
                 )
@@ -279,10 +282,10 @@ class FileEmbeddingRepository(
                 result_query = (
                     (
                         select(
-                            vmxfp_db_models.FileEmbedding,
+                            internal_db_models.FileEmbedding,
                             case(
                                 (
-                                    col(vmxfp_db_models.FileEmbedding.id)
+                                    col(internal_db_models.FileEmbedding.id)
                                     != col(neighbor_query_cte.c.id),
                                     literal(0),
                                 ),
@@ -290,7 +293,7 @@ class FileEmbeddingRepository(
                             ).label("score"),
                             case(
                                 (
-                                    col(vmxfp_db_models.FileEmbedding.id)
+                                    col(internal_db_models.FileEmbedding.id)
                                     != col(neighbor_query_cte.c.id),
                                     true(),
                                 ),
@@ -298,7 +301,7 @@ class FileEmbeddingRepository(
                             ).label("is_neighbor"),
                             case(
                                 (
-                                    col(vmxfp_db_models.FileEmbedding.id)
+                                    col(internal_db_models.FileEmbedding.id)
                                     != col(neighbor_query_cte.c.id),
                                     neighbor_query_cte.c.id,
                                 ),
@@ -311,12 +314,12 @@ class FileEmbeddingRepository(
                             col(neighbor_query_cte.c.id) == col(query_cte.c.id),
                         )
                         .join(
-                            vmxfp_db_models.FileEmbedding,
-                            col(vmxfp_db_models.FileEmbedding.id)
+                            internal_db_models.FileEmbedding,
+                            col(internal_db_models.FileEmbedding.id)
                             == any_(neighbor_query_cte.c.neighbor_ids),
                         )
                         .order_by(
-                            col(vmxfp_db_models.FileEmbedding.chunk_number).asc()
+                            col(internal_db_models.FileEmbedding.chunk_number).asc()
                             if payload.order_by == SimilaritySearchOrderBy.CHUNK
                             else text("score DESC")
                         )
@@ -325,15 +328,15 @@ class FileEmbeddingRepository(
                     or payload.after_neighbor_count > 0
                     else (
                         select(
-                            vmxfp_db_models.FileEmbedding,
+                            internal_db_models.FileEmbedding,
                             query_cte.c.score,
                             false().label("is_neighbor"),
                             null().label("neighbor_from"),
                         )
                         .select_from(query_cte)
                         .join(
-                            vmxfp_db_models.FileEmbedding,
-                            col(vmxfp_db_models.FileEmbedding.id)
+                            internal_db_models.FileEmbedding,
+                            col(internal_db_models.FileEmbedding.id)
                             == col(query_cte.c.id),
                         )
                     )
@@ -344,10 +347,10 @@ class FileEmbeddingRepository(
                     (
                         # SQLModel select does not have a overload for 4 expressions
                         select(  # type: ignore
-                            vmxfp_db_models.FileContent,
+                            internal_db_models.FileContent,
                             case(
                                 (
-                                    col(vmxfp_db_models.FileContent.id)
+                                    col(internal_db_models.FileContent.id)
                                     != col(neighbor_query_cte.c.id),
                                     literal(0),
                                 ),
@@ -355,7 +358,7 @@ class FileEmbeddingRepository(
                             ).label("score"),
                             case(
                                 (
-                                    col(vmxfp_db_models.FileContent.id)
+                                    col(internal_db_models.FileContent.id)
                                     != col(neighbor_query_cte.c.id),
                                     true(),
                                 ),
@@ -363,7 +366,7 @@ class FileEmbeddingRepository(
                             ).label("is_neighbor"),
                             case(
                                 (
-                                    col(vmxfp_db_models.FileContent.id)
+                                    col(internal_db_models.FileContent.id)
                                     != col(neighbor_query_cte.c.id),
                                     neighbor_query_cte.c.id,
                                 ),
@@ -377,12 +380,12 @@ class FileEmbeddingRepository(
                             col(neighbor_query_cte.c.id) == col(query_cte.c.content_id),
                         )
                         .join(
-                            vmxfp_db_models.FileContent,
-                            col(vmxfp_db_models.FileContent.id)
+                            internal_db_models.FileContent,
+                            col(internal_db_models.FileContent.id)
                             == any_(neighbor_query_cte.c.neighbor_ids),
                         )
                         .order_by(
-                            col(vmxfp_db_models.FileContent.content_number).asc()
+                            col(internal_db_models.FileContent.content_number).asc()
                             if payload.order_by == SimilaritySearchOrderBy.CHUNK
                             else text("score DESC")
                         )
@@ -391,7 +394,7 @@ class FileEmbeddingRepository(
                     or payload.after_neighbor_count > 0
                     else (
                         select(  # type: ignore
-                            vmxfp_db_models.FileContent,
+                            internal_db_models.FileContent,
                             query_cte.c.score,
                             false().label("is_neighbor"),
                             null().label("neighbor_from"),
@@ -399,22 +402,22 @@ class FileEmbeddingRepository(
                         )
                         .select_from(query_cte)
                         .join(
-                            vmxfp_db_models.FileContent,
-                            col(vmxfp_db_models.FileContent.id)
+                            internal_db_models.FileContent,
+                            col(internal_db_models.FileContent.id)
                             == col(query_cte.c.content_id),
                         )
                     )
                 )
 
         return cast(
-            Select[tuple[vmxfp_db_models.FileEmbedding, float, bool, UUID]]
+            Select[tuple[internal_db_models.FileEmbedding, float, bool, UUID]]
             | Select[
                 tuple[
-                    vmxfp_db_models.FileContent,
+                    internal_db_models.FileContent,
                     float,
                     bool,
                     UUID,
-                    vmxfp_db_models.FileEmbedding,
+                    internal_db_models.FileEmbedding,
                 ]
             ],
             result_query,
@@ -424,20 +427,20 @@ class FileEmbeddingRepository(
         self,
         payload: SimilaritySearchRequest,
         db_results: (
-            Sequence[tuple[vmxfp_db_models.FileEmbedding, float, bool, UUID]]
+            Sequence[tuple[internal_db_models.FileEmbedding, float, bool, UUID]]
             | Sequence[
                 tuple[
-                    vmxfp_db_models.FileContent,
+                    internal_db_models.FileContent,
                     float,
                     bool,
                     UUID,
-                    vmxfp_db_models.FileEmbedding,
+                    internal_db_models.FileEmbedding,
                 ]
             ]
         ),
     ) -> (
-        list[vmxfp_db_models.FileEmbeddingRead]
-        | list[vmxfp_db_models.FileContentReadWithChunkScore]
+        list[internal_db_models.FileEmbeddingRead]
+        | list[internal_db_models.FileContentReadWithChunkScore]
     ):
         """Parses raw similarity search results into FileEmbeddingRead.
 
@@ -453,7 +456,7 @@ class FileEmbeddingRepository(
                     cast(
                         Sequence[
                             tuple[
-                                vmxfp_db_models.FileEmbedding,
+                                internal_db_models.FileEmbedding,
                                 float,
                                 bool,
                                 UUID,
@@ -467,11 +470,11 @@ class FileEmbeddingRepository(
                     cast(
                         Sequence[
                             tuple[
-                                vmxfp_db_models.FileContent,
+                                internal_db_models.FileContent,
                                 float,
                                 bool,
                                 UUID,
-                                vmxfp_db_models.FileEmbedding,
+                                internal_db_models.FileEmbedding,
                             ]
                         ],
                         db_results,
@@ -480,15 +483,17 @@ class FileEmbeddingRepository(
 
     def _parse_chunk_result(
         self,
-        db_results: Sequence[tuple[vmxfp_db_models.FileEmbedding, float, bool, UUID]],
-    ) -> list[vmxfp_db_models.FileEmbeddingRead]:
+        db_results: Sequence[
+            tuple[internal_db_models.FileEmbedding, float, bool, UUID]
+        ],
+    ) -> list[internal_db_models.FileEmbeddingRead]:
         """
         Parses the Similarity Search Query result into a list of FileEmbeddingRead 
-        vmxfp_db_models.
+        internal_db_models.
 
         This function also parses the before and after neighbors of the chunks and
         organizes them into the before_neighbors and after_neighbors fields of the
-        FileEmbeddingRead vmxfp_db_models.
+        FileEmbeddingRead internal_db_models.
 
         Args:
             db_results: Sequence of tuples containing FileEmbedding models \
@@ -498,7 +503,7 @@ class FileEmbeddingRepository(
             List of FileEmbeddingRead models with similarity scores
         """
         file_chunk_map = {
-            chunk.id: vmxfp_db_models.FileEmbeddingRead(
+            chunk.id: internal_db_models.FileEmbeddingRead(
                 **chunk.model_dump(),
                 score=score if not is_neighbor else None,
                 before_neighbors=[],
@@ -508,7 +513,7 @@ class FileEmbeddingRepository(
             if not is_neighbor
         }
 
-        chunk_result: list[vmxfp_db_models.FileEmbeddingRead] = []
+        chunk_result: list[internal_db_models.FileEmbeddingRead] = []
 
         for chunk, _, is_neighbor, neighbor_from in db_results:
             chunk_id = cast(UUID, chunk.id)
@@ -529,7 +534,7 @@ class FileEmbeddingRepository(
                         parent_chunk.after_neighbors = []
 
                     parent_chunk.after_neighbors.append(
-                        vmxfp_db_models.FileEmbeddingRead(
+                        internal_db_models.FileEmbeddingRead(
                             **chunk.model_dump(),
                         )
                     )
@@ -542,7 +547,7 @@ class FileEmbeddingRepository(
                         parent_chunk.before_neighbors = []
 
                     parent_chunk.before_neighbors.append(
-                        vmxfp_db_models.FileEmbeddingRead(
+                        internal_db_models.FileEmbeddingRead(
                             **chunk.model_dump(),
                         )
                     )
@@ -553,21 +558,21 @@ class FileEmbeddingRepository(
         self,
         db_results: Sequence[
             tuple[
-                vmxfp_db_models.FileContent,
+                internal_db_models.FileContent,
                 float,
                 bool,
                 UUID,
-                vmxfp_db_models.FileEmbedding,
+                internal_db_models.FileEmbedding,
             ]
         ],
-    ) -> list[vmxfp_db_models.FileContentReadWithChunkScore]:
+    ) -> list[internal_db_models.FileContentReadWithChunkScore]:
         """
         Parses the Similarity Search Query result into a list of \
-            FileContentReadWithChunkScore vmxfp_db_models.
+            FileContentReadWithChunkScore internal_db_models.
 
         This function also parses the before and after neighbors of the contents and
         organizes them into the before_neighbors and after_neighbors fields of the
-        FileContentReadWithChunkScore vmxfp_db_models.
+        FileContentReadWithChunkScore internal_db_models.
 
         Args:
             db_results: Sequence of tuples containing FileContent models and \
@@ -576,10 +581,10 @@ class FileEmbeddingRepository(
         Returns:
             List of FileContentReadWithChunkScore models with similarity scores
         """
-        file_chunk_map: dict[UUID, vmxfp_db_models.FileEmbeddingRead] = {}
+        file_chunk_map: dict[UUID, internal_db_models.FileEmbeddingRead] = {}
         root_file_content_map, file_content_map = self._map_content_result(db_results)
 
-        content_result: list[vmxfp_db_models.FileContentReadWithChunkScore] = []
+        content_result: list[internal_db_models.FileContentReadWithChunkScore] = []
         for content, score, is_neighbor, neighbor_from, chunk in db_results:
             content_id: UUID = cast(UUID, content.id)
             item_content = file_content_map[content_id]
@@ -618,7 +623,7 @@ class FileEmbeddingRepository(
 
             chunk_id = cast(UUID, chunk.id)
             if chunk_id not in file_chunk_map and chunk.content_id == content_id:
-                file_chunk_map[chunk_id] = vmxfp_db_models.FileEmbeddingRead(
+                file_chunk_map[chunk_id] = internal_db_models.FileEmbeddingRead(
                     **chunk.model_dump(),
                     score=score,
                 )
@@ -630,20 +635,20 @@ class FileEmbeddingRepository(
         self,
         db_results: Sequence[
             tuple[
-                vmxfp_db_models.FileContent,
+                internal_db_models.FileContent,
                 float,
                 bool,
                 UUID,
-                vmxfp_db_models.FileEmbedding,
+                internal_db_models.FileEmbedding,
             ]
         ],
     ) -> tuple[
-        dict[UUID, vmxfp_db_models.FileContentReadWithChunkScore],
-        dict[UUID, vmxfp_db_models.FileContentReadWithChunkScore],
+        dict[UUID, internal_db_models.FileContentReadWithChunkScore],
+        dict[UUID, internal_db_models.FileContentReadWithChunkScore],
     ]:
         """
         Maps the Similarity Search Query result into a dictionary of \
-            FileContentReadWithChunkScore vmxfp_db_models.
+            FileContentReadWithChunkScore internal_db_models.
 
         The root_file_content_map contains only the matching content \
             (is_neighbor is False)
@@ -660,16 +665,18 @@ class FileEmbeddingRepository(
             A tuple of two dictionaries.
         """
         root_file_content_map: dict[
-            UUID, vmxfp_db_models.FileContentReadWithChunkScore
+            UUID, internal_db_models.FileContentReadWithChunkScore
         ] = {}
-        file_content_map: dict[UUID, vmxfp_db_models.FileContentReadWithChunkScore] = {}
+        file_content_map: dict[
+            UUID, internal_db_models.FileContentReadWithChunkScore
+        ] = {}
 
         for content, _, is_neighbor, _, _ in db_results:
             content_id: UUID = cast(UUID, content.id)
             if content_id in file_content_map:
                 continue
 
-            item_content = vmxfp_db_models.FileContentReadWithChunkScore(
+            item_content = internal_db_models.FileContentReadWithChunkScore(
                 **content.model_dump(),
                 match_chunks=[],
                 before_neighbors=[],

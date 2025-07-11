@@ -1,11 +1,11 @@
 {
-  "name": "@vmxfp/api",
+  "name": "@workspace/api",
   "version": "0.0.1",
   "private": true,
   "type": "module",
   "dependencies": {
     "aws-cdk-lib": "^2.200.1",
     "constructs": "^10.4.2",
-    "@vmxfp/infra-cdk-shared": "workspace:*"
+    "@workspace/infra-cdk-shared": "workspace:*"
   }
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { getStages } from '@vmxfp/infra-cdk-shared';
+import { getStages, RESOURCE_PREFIX } from '@workspace/infra-cdk-shared';
 import * as cdk from 'aws-cdk-lib';
 import { NetworkStack } from './stacks/network-stack.js';
 
@@ -13,7 +13,7 @@ for (const stage of getStages(app.node.tryGetContext('stage') ?? 'dev')) {
     },
   };
 
-  new NetworkStack(app, `vmxfp-network-${stage.stageName}`, {
+  new NetworkStack(app, `${RESOURCE_PREFIX}-network-${stage.stageName}`, {
     ...baseParams,
     cidr: stage.cidr,
   });

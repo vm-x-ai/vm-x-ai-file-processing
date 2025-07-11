@@ -20,7 +20,7 @@ project.json
   "name": "api",
   "targets": {
     "build": {
-      "executor": "@vmxfp/workspace-plugins:nest-build",
+      "executor": "@workspace/workspace-plugins:nest-build",
       "options": {
         "main": "src/main.ts",
         "outputPath": "{projectRoot}/dist",

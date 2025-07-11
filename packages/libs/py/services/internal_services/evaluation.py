@@ -2,10 +2,10 @@ import logging
 from typing import Optional
 from uuid import UUID
 
+import internal_db_models
 import jinja2
-import vmxfp_db_models
-from vmxfp_db_repositories.evaluation import EvaluationRepository
-from vmxfp_db_repositories.evaluation_template import (
+from internal_db_repositories.evaluation import EvaluationRepository
+from internal_db_repositories.evaluation_template import (
     EvaluationTemplateRepository,
 )
 
@@ -26,7 +26,7 @@ class EvaluationService:
         project_id: UUID,
         parent_evaluation_id: Optional[UUID] = None,
         parent_evaluation_option: Optional[str] = None,
-    ) -> list[vmxfp_db_models.EvaluationReadWithTemplate]:
+    ) -> list[internal_db_models.EvaluationReadWithTemplate]:
         evaluations = await self._repo.get_by_project_id_and_parent_evaluation_id(
             project_id,
             parent_evaluation_id,
@@ -42,7 +42,7 @@ class EvaluationService:
             for evaluation in evaluations
         ]
 
-    async def get(self, id: UUID) -> vmxfp_db_models.EvaluationRead:
+    async def get(self, id: UUID) -> internal_db_models.EvaluationRead:
         evaluation = await super().get(id)
         if not evaluation.template_id:
             return evaluation
@@ -55,10 +55,13 @@ class EvaluationService:
 
     def _apply_template(
         self,
-        evaluation: vmxfp_db_models.EvaluationRead
-        | vmxfp_db_models.EvaluationReadWithTemplate,
-        template: vmxfp_db_models.EvaluationTemplateRead | None,
-    ) -> vmxfp_db_models.EvaluationRead | vmxfp_db_models.EvaluationReadWithTemplate:
+        evaluation: internal_db_models.EvaluationRead
+        | internal_db_models.EvaluationReadWithTemplate,
+        template: internal_db_models.EvaluationTemplateRead | None,
+    ) -> (
+        internal_db_models.EvaluationRead
+        | internal_db_models.EvaluationReadWithTemplate
+    ):
         if not template:
             return evaluation
 

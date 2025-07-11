@@ -3,13 +3,15 @@ import { Construct } from 'constructs';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
-import { importEksCluster } from '@vmxfp/infra-cdk-shared';
+import { importEksCluster, RESOURCE_PREFIX } from '@workspace/infra-cdk-shared';
 
 export interface EvaluationWorkflowStackProps extends cdk.StackProps {
   stage: string;
 }
 
 export class EvaluationWorkflowStack extends cdk.Stack {
+  private readonly resourcePrefix: string = RESOURCE_PREFIX;
+
   constructor(
     scope: Construct,
     id: string,
@@ -20,11 +22,11 @@ export class EvaluationWorkflowStack extends cdk.Stack {
     const eventBus = events.EventBus.fromEventBusName(
       this,
       'EventBus',
-      `vmxfp-event-bus-${props.stage}`
+      `${this.resourcePrefix}-event-bus-${props.stage}`
     );
 
     const evaluationQueue = new sqs.Queue(this, 'EvaluationWorkflowQueue', {
-      queueName: `vmxfp-evaluation-workflow-${this.region}-${props.stage}`,
+      queueName: `${this.resourcePrefix}-evaluation-workflow-${this.region}-${props.stage}`,
     });
 
     new events.Rule(this, 'EvaluationWorkflowTriggerRule', {
@@ -32,7 +34,7 @@ export class EvaluationWorkflowStack extends cdk.Stack {
       eventPattern: {
         detailType: ['file_ingested_successfully'],
       },
-      ruleName: `vmxfp-evaluation-workflow-${this.region}-${props.stage}`,
+      ruleName: `${this.resourcePrefix}-evaluation-workflow-${this.region}-${props.stage}`,
       targets: [
         new targets.SqsQueue(evaluationQueue, {
           message: events.RuleTargetInput.fromEventPath('$.detail'),
@@ -41,13 +43,18 @@ export class EvaluationWorkflowStack extends cdk.Stack {
     });
 
     if (props.stage !== 'local') {
-      const eksCluster = importEksCluster(this, 'EKSCluster', props.stage);
+      const eksCluster = importEksCluster(
+        this,
+        'EKSCluster',
+        props.stage,
+        this.resourcePrefix
+      );
 
       const serviceAccount = eksCluster.addServiceAccount(
         'EksEvaluationWorkflowServiceAccount',
         {
-          name: 'vmxfp-evaluation-workflow-service-account',
-          namespace: 'vmxfp-app',
+          name: `${this.resourcePrefix}-evaluation-workflow-service-account`,
+          namespace: `${this.resourcePrefix}-app`,
         }
       );
 

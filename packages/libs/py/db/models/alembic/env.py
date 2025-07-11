@@ -7,14 +7,14 @@ from typing import TypedDict
 import boto3
 import botocore
 import botocore.client
-from vmxfp_logger import setup_logger
+from internal_logger import setup_logger
 from sqlalchemy import engine_from_config, pool
 from sqlmodel import SQLModel
 
 from alembic import context
-from vmxfp_db_models import *  # noqa: F403
-from vmxfp_db_models.session_manager import SessionManager
-from vmxfp_db_models.settings import Settings
+from internal_db_models import *  # noqa: F403
+from internal_db_models.session_manager import SessionManager
+from internal_db_models.settings import Settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

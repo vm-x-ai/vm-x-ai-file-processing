@@ -4,6 +4,7 @@ import * as rds from 'aws-cdk-lib/aws-rds';
 import * as kms from 'aws-cdk-lib/aws-kms';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import type { Construct } from 'constructs';
+import { RESOURCE_PREFIX } from '@workspace/infra-cdk-shared';
 
 interface DatabaseStackProps extends cdk.StackProps {
   stage: string;
@@ -11,28 +12,30 @@ interface DatabaseStackProps extends cdk.StackProps {
 }
 
 export class DatabaseStack extends cdk.Stack {
+  private readonly resourcePrefix: string = RESOURCE_PREFIX;
+
   constructor(scope: Construct, id: string, props: DatabaseStackProps) {
     super(scope, id, props);
 
     const vpc = ec2.Vpc.fromLookup(this, 'Vpc', {
-      vpcName: `vmxfp-app-${props.stage}-vpc`,
+      vpcName: `${this.resourcePrefix}-app-vpc-${props.stage}`,
     });
 
     const securityGroup = new ec2.SecurityGroup(this, 'DatabaseSecurityGroup', {
       vpc,
       description: 'Security group for the database',
-      securityGroupName: `vmxfp-app-database-security-group-${props.stage}`,
+      securityGroupName: `${this.resourcePrefix}-app-database-security-group-${props.stage}`,
     });
 
     const encryptionKey = new kms.Key(this, 'DatabaseKey', {
-      alias: `vmxfp-app-database-key-${props.stage}`,
+      alias: `${this.resourcePrefix}-app-database-key-${props.stage}`,
     });
 
     const databaseSecret = new rds.DatabaseSecret(this, 'DatabaseSecret', {
       username: 'postgres_admin',
       dbname: 'app',
       encryptionKey,
-      secretName: `vmxfp-app-database-secret-${props.stage}`,
+      secretName: `${this.resourcePrefix}-app-database-secret-${props.stage}`,
     });
 
     const subnetGroup = new rds.SubnetGroup(this, 'DatabaseSubnetGroup', {
@@ -41,7 +44,7 @@ export class DatabaseStack extends cdk.Stack {
       vpcSubnets: {
         subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
       },
-      subnetGroupName: `vmxfp-app-database-subnet-group-${props.stage}`,
+      subnetGroupName: `${this.resourcePrefix}-app-database-subnet-group-${props.stage}`,
     });
 
     const databaseCluster = new rds.DatabaseCluster(this, 'AppDatabase', {
@@ -50,7 +53,7 @@ export class DatabaseStack extends cdk.Stack {
       }),
       writer: rds.ClusterInstance.provisioned('Writer1', {
         autoMinorVersionUpgrade: true,
-        instanceIdentifier: `vmxfp-app-database-writer1-${props.stage}`,
+        instanceIdentifier: `${this.resourcePrefix}-app-database-writer1-${props.stage}`,
         publiclyAccessible: false,
         instanceType: props.instanceType,
       }),
@@ -60,7 +63,7 @@ export class DatabaseStack extends cdk.Stack {
       vpcSubnets: {
         subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
       },
-      clusterIdentifier: `vmxfp-app-database-${props.stage}`,
+      clusterIdentifier: `${this.resourcePrefix}-app-database-${props.stage}`,
       credentials: rds.Credentials.fromSecret(databaseSecret),
       backup: {
         retention: cdk.Duration.days(30),
@@ -73,7 +76,7 @@ export class DatabaseStack extends cdk.Stack {
       performanceInsightEncryptionKey: encryptionKey,
       subnetGroup,
       cloudwatchLogsExports: ['postgresql'],
-      instanceIdentifierBase: `vmxfp-app-database-instance-${props.stage}`,
+      instanceIdentifierBase: `${this.resourcePrefix}-app-database-instance-${props.stage}`,
     });
 
     const eksSecurityGroup = ec2.SecurityGroup.fromSecurityGroupId(
@@ -82,7 +85,7 @@ export class DatabaseStack extends cdk.Stack {
       ssm.StringParameter.fromStringParameterName(
         this,
         'EksSecurityGroupParameter',
-        `/vmxfp-app/${props.stage}/eks-cluster/security-group-id`
+        `/${this.resourcePrefix}-app/${props.stage}/eks-cluster/security-group-id`
       ).stringValue
     );
 
@@ -92,7 +95,7 @@ export class DatabaseStack extends cdk.Stack {
       ssm.StringParameter.fromStringParameterName(
         this,
         'BastionHostSecurityGroupParameter',
-        `/vmxfp-app/${props.stage}/bastion-host/security-group-id`
+        `/${this.resourcePrefix}-app/${props.stage}/bastion-host/security-group-id`
       ).stringValue
     );
 
@@ -100,22 +103,22 @@ export class DatabaseStack extends cdk.Stack {
     databaseCluster.connections.allowDefaultPortFrom(bastionHostSecurityGroup);
 
     new ssm.StringParameter(this, 'DatabaseEndpoint', {
-      parameterName: `/vmxfp-app/${props.stage}/database/endpoint`,
+      parameterName: `/${this.resourcePrefix}-app/${props.stage}/database/endpoint`,
       stringValue: databaseCluster.clusterEndpoint.hostname,
     });
 
     new ssm.StringParameter(this, 'DatabaseRoEndpoint', {
-      parameterName: `/vmxfp-app/${props.stage}/database/ro-endpoint`,
+      parameterName: `/${this.resourcePrefix}-app/${props.stage}/database/ro-endpoint`,
       stringValue: databaseCluster.clusterReadEndpoint.hostname,
     });
 
     new ssm.StringParameter(this, 'DatabasePort', {
-      parameterName: `/vmxfp-app/${props.stage}/database/port`,
+      parameterName: `/${this.resourcePrefix}-app/${props.stage}/database/port`,
       stringValue: databaseCluster.clusterEndpoint.port.toString(),
     });
 
     new ssm.StringParameter(this, 'DatabaseSecretKmsKeyArn', {
-      parameterName: `/vmxfp-app/${props.stage}/database/secret/kms-key/arn`,
+      parameterName: `/${this.resourcePrefix}-app/${props.stage}/database/secret/kms-key/arn`,
       stringValue: encryptionKey.keyArn,
     });
   }

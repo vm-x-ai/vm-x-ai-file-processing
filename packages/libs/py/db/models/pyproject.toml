@@ -1,6 +1,6 @@
 [tool.coverage.run]
 branch = true
-source = [ "vmxfp_db_models" ]
+source = [ "internal_db_models" ]
 
 [tool.coverage.report]
 exclude_lines = ['if TYPE_CHECKING:']
@@ -16,7 +16,7 @@ addopts = """
 """
 
 [project]
-name = "vmxfp-py-db-models"
+name = "py-db-models"
 version = "1.0.0"
 description = "Python Database Models"
 requires-python = ">=3.9,<4"
@@ -24,7 +24,7 @@ readme = 'README.md'
 dependencies = [
  "alembic>=1.15.2",
  "boto3>=1.37.3",
- "vmxfp-py-logger",
+ "py-logger",
  "numpydantic>=1.6.9",
  "pgvector>=0.4.1",
  "psycopg[binary]>=3.2.8",
@@ -33,7 +33,7 @@ dependencies = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["vmxfp_db_models"]
+packages = ["internal_db_models"]
 
 [tool.hatch.metadata]
 allow-direct-references = true
@@ -75,4 +75,4 @@ fixable = ["ALL"]
 unfixable = []
 
 [tool.uv.sources]
-vmxfp-py-logger = { workspace = true }
+py-logger = { workspace = true }

@@ -2,7 +2,7 @@
   "name": "py-aws-sqs-consumer",
   "$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
   "projectType": "library",
-  "sourceRoot": "packages/libs/py/aws/sqs-consumer/vmxfp_aws_sqs_consumer",
+  "sourceRoot": "packages/libs/py/aws/sqs-consumer/internal_aws_sqs_consumer",
   "targets": {
     "lock": {
       "executor": "@nxlv/python:lock",
@@ -41,7 +41,7 @@
       "executor": "@nxlv/python:ruff-check",
       "outputs": [],
       "options": {
-        "lintFilePatterns": ["vmxfp_aws_sqs_consumer", "tests"]
+        "lintFilePatterns": ["internal_aws_sqs_consumer", "tests"]
       },
       "cache": true
     },
@@ -49,7 +49,7 @@
       "executor": "@nxlv/python:ruff-format",
       "outputs": [],
       "options": {
-        "filePatterns": ["vmxfp_aws_sqs_consumer", "tests"]
+        "filePatterns": ["internal_aws_sqs_consumer", "tests"]
       },
       "cache": true
     },

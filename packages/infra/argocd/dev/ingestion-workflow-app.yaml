@@ -10,7 +10,7 @@ spec:
   project: default
   source:
     path: packages/workflows/ingestion/argocd
-    repoURL: https://github.com/vm-x-ai-file-classifier
+    repoURL: https://github.com/vm-x-ai/vm-x-ai-file-classifier
     targetRevision: network-dns
     helm:
       valueFiles:

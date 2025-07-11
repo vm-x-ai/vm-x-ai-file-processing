@@ -4,6 +4,7 @@ import * as kms from 'aws-cdk-lib/aws-kms';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import type { Construct } from 'constructs';
+import { RESOURCE_PREFIX } from '@workspace/infra-cdk-shared';
 
 interface ECRStackProps extends cdk.StackProps {
   stage: string;
@@ -13,6 +14,8 @@ interface ECRStackProps extends cdk.StackProps {
 }
 
 export class ECRStack extends cdk.Stack {
+  private readonly resourcePrefix: string = RESOURCE_PREFIX;
+
   constructor(scope: Construct, id: string, props: ECRStackProps) {
     super(scope, id, props);
 
@@ -20,7 +23,7 @@ export class ECRStack extends cdk.Stack {
       this,
       `ECRRepository-${props.repositoryName}`,
       {
-        repositoryName: `vmxfp-${props.repositoryName}-ecr-${props.stage}`,
+        repositoryName: `${this.resourcePrefix}-${props.repositoryName}-ecr-${props.stage}`,
         encryption: ecr.RepositoryEncryption.KMS,
         encryptionKey: props.encryptionKey,
       }
@@ -34,7 +37,7 @@ export class ECRStack extends cdk.Stack {
       this,
       `ECRRepositoryArnParameter-${props.repositoryName}`,
       {
-        parameterName: `/vmxfp-app/${props.stage}/ecr/repository/${props.repositoryName}/arn`,
+        parameterName: `/${this.resourcePrefix}-app/${props.stage}/ecr/repository/${props.repositoryName}/arn`,
         stringValue: ecrRepository.repositoryArn,
       }
     );
@@ -43,7 +46,7 @@ export class ECRStack extends cdk.Stack {
       this,
       `ECRRepositoryNameParameter-${props.repositoryName}`,
       {
-        parameterName: `/vmxfp-app/${props.stage}/ecr/repository/${props.repositoryName}/name`,
+        parameterName: `/${this.resourcePrefix}-app/${props.stage}/ecr/repository/${props.repositoryName}/name`,
         stringValue: ecrRepository.repositoryName,
       }
     );
@@ -52,7 +55,7 @@ export class ECRStack extends cdk.Stack {
       this,
       `ECRRepositoryUriParameter-${props.repositoryName}`,
       {
-        parameterName: `/vmxfp-app/${props.stage}/ecr/repository/${props.repositoryName}/url`,
+        parameterName: `/${this.resourcePrefix}-app/${props.stage}/ecr/repository/${props.repositoryName}/url`,
         stringValue: ecrRepository.repositoryUri,
       }
     );

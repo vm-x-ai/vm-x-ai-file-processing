@@ -13,7 +13,7 @@ This library provides a collection of general-purpose utility functions and help
 Import the required utility functions in your Python project:
 
 ```python
-from vmxfp_utils import some_utility_function
+from internal_utils import some_utility_function
 ```
 
 ## Installation
@@ -21,7 +21,7 @@ from vmxfp_utils import some_utility_function
 To add this package to another Python project in the monorepo, use:
 
 ```bash
-pnpm nx run <target_project>:add vmxfp-py-utils --local
+pnpm nx run <target_project>:add py-utils --local
 ```
 
 Replace `<target_project>` with the name of your target project.

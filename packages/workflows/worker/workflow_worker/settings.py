@@ -1,5 +1,6 @@
 from os import environ
 
+from internal_utils.pydantic_settings_jinja import jinja_template_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 env_file = f".env.{environ.get('ENV', 'local')}"
@@ -41,6 +42,11 @@ class ThumbnailSettings(BaseSettings):
 
     s3_bucket_name: str
 
+    @jinja_template_validator("s3_bucket_name")
+    @classmethod
+    def resolve_jinja_templates(cls, value):
+        ...
+
 
 class Landing(BaseSettings):
     model_config = SettingsConfigDict(
@@ -51,6 +57,11 @@ class Landing(BaseSettings):
     )
 
     s3_bucket_name: str
+
+    @jinja_template_validator("s3_bucket_name")
+    @classmethod
+    def resolve_jinja_templates(cls, value):
+        ...
 
 
 class IngestionCallbackSettings(BaseSettings):
@@ -76,3 +87,8 @@ class Settings(BaseSettings):
     landing: Landing = Landing()
     ingestion_callback: IngestionCallbackSettings = IngestionCallbackSettings()
     event_bus_name: str
+
+    @jinja_template_validator("event_bus_name")
+    @classmethod
+    def resolve_jinja_templates(cls, value):
+        ...

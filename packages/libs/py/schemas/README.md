@@ -13,7 +13,7 @@ This library defines and manages data schemas for Python projects within the vm-
 Import and use schemas in your Python project:
 
 ```python
-from vmxfp_schemas import SomeSchema
+from internal_schemas import SomeSchema
 
 validated = SomeSchema.model_validate(data)
 ```
@@ -23,7 +23,7 @@ validated = SomeSchema.model_validate(data)
 To add this package to another Python project in the monorepo, use:
 
 ```bash
-pnpm nx run <target_project>:add vmxfp-py-schemas --local
+pnpm nx run <target_project>:add py-schemas --local
 ```
 
 Replace `<target_project>` with the name of your target project.

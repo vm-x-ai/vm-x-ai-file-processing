@@ -2,7 +2,7 @@ from contextlib import AbstractAsyncContextManager
 from typing import Callable, Optional, cast
 from uuid import UUID
 
-import vmxfp_db_models
+import internal_db_models
 from sqlalchemy import Column, ColumnExpressionArgument, select
 from sqlalchemy.orm import selectinload
 from sqlmodel import col
@@ -14,9 +14,9 @@ from .base import BaseRepository
 class EvaluationRepository(
     BaseRepository[
         UUID,
-        vmxfp_db_models.Evaluation,
-        vmxfp_db_models.EvaluationRead,
-        vmxfp_db_models.EvaluationCreate,
+        internal_db_models.Evaluation,
+        internal_db_models.EvaluationRead,
+        internal_db_models.EvaluationCreate,
     ]
 ):
     def __init__(
@@ -27,33 +27,33 @@ class EvaluationRepository(
         super().__init__(
             session_factory,
             write_session_factory,
-            vmxfp_db_models.Evaluation,
-            vmxfp_db_models.EvaluationRead,
-            vmxfp_db_models.EvaluationCreate,
+            internal_db_models.Evaluation,
+            internal_db_models.EvaluationRead,
+            internal_db_models.EvaluationCreate,
         )
 
     @property
     def _id_fields(self) -> tuple[Column[UUID]]:
-        return (cast(Column[UUID], vmxfp_db_models.Evaluation.id),)
+        return (cast(Column[UUID], internal_db_models.Evaluation.id),)
 
     def _id_predicate(self, id: UUID) -> ColumnExpressionArgument[bool]:
-        return col(vmxfp_db_models.Evaluation.id) == id
+        return col(internal_db_models.Evaluation.id) == id
 
     async def get_by_project_id(
         self,
         project_id: UUID,
-    ) -> list[vmxfp_db_models.EvaluationRead]:
+    ) -> list[internal_db_models.EvaluationRead]:
         async with self._session_factory() as session:
             query = (
-                select(vmxfp_db_models.Evaluation)
-                .where(vmxfp_db_models.Evaluation.project_id == project_id)
-                .order_by(col(vmxfp_db_models.Evaluation.created_at).asc())
+                select(internal_db_models.Evaluation)
+                .where(internal_db_models.Evaluation.project_id == project_id)
+                .order_by(col(internal_db_models.Evaluation.created_at).asc())
             )
 
             result = await session.scalars(query)
 
             return [
-                vmxfp_db_models.EvaluationRead.model_validate(evaluation)
+                internal_db_models.EvaluationRead.model_validate(evaluation)
                 for evaluation in result.all()
             ]
 
@@ -62,38 +62,40 @@ class EvaluationRepository(
         project_id: UUID,
         parent_evaluation_id: Optional[UUID] = None,
         parent_evaluation_option: Optional[str] = None,
-    ) -> list[vmxfp_db_models.EvaluationReadWithTemplate]:
+    ) -> list[internal_db_models.EvaluationReadWithTemplate]:
         async with self._session_factory() as session:
             query = (
-                select(vmxfp_db_models.Evaluation)
-                .where(vmxfp_db_models.Evaluation.project_id == project_id)
-                .options(selectinload(vmxfp_db_models.Evaluation.template))
+                select(internal_db_models.Evaluation)
+                .where(internal_db_models.Evaluation.project_id == project_id)
+                .options(selectinload(internal_db_models.Evaluation.template))
             )
 
             if parent_evaluation_id is not None:
                 query = query.where(
-                    col(vmxfp_db_models.Evaluation.parent_evaluation_id)
+                    col(internal_db_models.Evaluation.parent_evaluation_id)
                     == parent_evaluation_id
                 )
             else:
                 query = query.where(
-                    col(vmxfp_db_models.Evaluation.parent_evaluation_id).is_(None)
+                    col(internal_db_models.Evaluation.parent_evaluation_id).is_(None)
                 )
 
             if parent_evaluation_option is not None:
                 query = query.where(
-                    col(vmxfp_db_models.Evaluation.parent_evaluation_option)
+                    col(internal_db_models.Evaluation.parent_evaluation_option)
                     == parent_evaluation_option
                 )
             else:
                 query = query.where(
-                    col(vmxfp_db_models.Evaluation.parent_evaluation_option).is_(None)
+                    col(internal_db_models.Evaluation.parent_evaluation_option).is_(
+                        None
+                    )
                 )
 
             result = await session.scalars(query)
 
             return [
-                vmxfp_db_models.EvaluationReadWithTemplate.model_validate(evaluation)
+                internal_db_models.EvaluationReadWithTemplate.model_validate(evaluation)
                 for evaluation in result.all()
             ]
 
@@ -101,20 +103,20 @@ class EvaluationRepository(
         self,
         project_id: UUID,
         category_id: UUID,
-    ) -> list[vmxfp_db_models.EvaluationRead]:
+    ) -> list[internal_db_models.EvaluationRead]:
         async with self._session_factory() as session:
             query = (
-                select(vmxfp_db_models.Evaluation)
+                select(internal_db_models.Evaluation)
                 .where(
-                    vmxfp_db_models.Evaluation.project_id == project_id,
-                    vmxfp_db_models.Evaluation.category_id == category_id,
+                    internal_db_models.Evaluation.project_id == project_id,
+                    internal_db_models.Evaluation.category_id == category_id,
                 )
-                .order_by(col(vmxfp_db_models.Evaluation.created_at).desc())
+                .order_by(col(internal_db_models.Evaluation.created_at).desc())
             )
 
             result = await session.scalars(query)
 
             return [
-                vmxfp_db_models.EvaluationRead.model_validate(evaluation)
+                internal_db_models.EvaluationRead.model_validate(evaluation)
                 for evaluation in result.all()
             ]

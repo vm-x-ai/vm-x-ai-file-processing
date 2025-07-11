@@ -24,10 +24,10 @@ readme = 'README.md'
 dependencies = [
   "aioboto3>=14.3.0",
   "dependency-injector>=4.46.0",
-  "vmxfp-py-aws-sqs-consumer",
-  "vmxfp-py-logger",
-  "vmxfp-py-schemas",
-  "vmxfp-py-temporal-utils",
+  "py-aws-sqs-consumer",
+  "py-logger",
+  "py-schemas",
+  "py-temporal-utils",
   "langchain-community>=0.3.24",
   "langchain-openai>=0.3.16",
   "langchain-text-splitters>=0.3.8",
@@ -82,7 +82,7 @@ unfixable = []
 
 [tool.uv.sources]
 workflow-shared-activities = { workspace = true }
-vmxfp-py-aws-sqs-consumer = { workspace = true }
-vmxfp-py-temporal-utils = { workspace = true }
-vmxfp-py-logger = { workspace = true }
-vmxfp-py-schemas = { workspace = true }
+py-aws-sqs-consumer = { workspace = true }
+py-temporal-utils = { workspace = true }
+py-logger = { workspace = true }
+py-schemas = { workspace = true }

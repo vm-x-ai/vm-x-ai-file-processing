@@ -6,7 +6,7 @@ import * as snsSubscriptions from 'aws-cdk-lib/aws-sns-subscriptions';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
-import { importEksCluster } from '@vmxfp/infra-cdk-shared';
+import { importEksCluster, RESOURCE_PREFIX } from '@workspace/infra-cdk-shared';
 
 export interface IngestionWorkflowStackProps extends cdk.StackProps {
   stage: string;
@@ -15,6 +15,7 @@ export interface IngestionWorkflowStackProps extends cdk.StackProps {
 export class IngestionWorkflowStack extends cdk.Stack {
   public readonly landingBucket: s3.Bucket;
   public readonly thumbnailBucket: s3.Bucket;
+  private readonly resourcePrefix: string = RESOURCE_PREFIX;
 
   constructor(
     scope: Construct,
@@ -24,7 +25,7 @@ export class IngestionWorkflowStack extends cdk.Stack {
     super(scope, id, props);
 
     const workflowTopic = new sns.Topic(this, 'IngestionWorkflowTopic', {
-      topicName: `vmxfp-ingestion-ingestion-workflow-${this.region}-${props.stage}`,
+      topicName: `${this.resourcePrefix}-ingestion-ingestion-workflow-${this.region}-${props.stage}`,
     });
 
     const cors = [
@@ -42,7 +43,7 @@ export class IngestionWorkflowStack extends cdk.Stack {
       },
     ];
 
-    const bucketName = `vmxfp-ingestion-landing-${this.region}-${props.stage}`;
+    const bucketName = `${this.resourcePrefix}-ingestion-landing-${this.region}-${props.stage}`;
 
     this.landingBucket = new s3.Bucket(this, 'IngestionWorkflowStorageBucket', {
       bucketName,
@@ -93,14 +94,14 @@ export class IngestionWorkflowStack extends cdk.Stack {
       this,
       'IngestionWorkflowStorageThumbnailBucket',
       {
-        bucketName: `vmxfp-file-thumbnail-${this.region}-${props.stage}`,
+        bucketName: `${this.resourcePrefix}-file-thumbnail-${this.region}-${props.stage}`,
         cors,
         versioned: true,
       }
     );
 
     const ingestionQueue = new sqs.Queue(this, 'IngestionWorkflowQueue', {
-      queueName: `vmxfp-ingestion-workflow-${this.region}-${props.stage}`,
+      queueName: `${this.resourcePrefix}-ingestion-workflow-${this.region}-${props.stage}`,
     });
 
     workflowTopic.addSubscription(
@@ -108,23 +109,28 @@ export class IngestionWorkflowStack extends cdk.Stack {
     );
 
     new ssm.StringParameter(this, 'IngestionWorkflowQueueUrl', {
-      parameterName: `/vmxfp-app/${props.stage}/ingestion/workflow/queue/url`,
+      parameterName: `/${this.resourcePrefix}-app/${props.stage}/ingestion/workflow/queue/url`,
       stringValue: ingestionQueue.queueUrl,
     });
 
     new ssm.StringParameter(this, 'IngestionWorkflowQueueArn', {
-      parameterName: `/vmxfp-app/${props.stage}/ingestion/workflow/queue/arn`,
+      parameterName: `/${this.resourcePrefix}-app/${props.stage}/ingestion/workflow/queue/arn`,
       stringValue: ingestionQueue.queueArn,
     });
 
     if (props.stage !== 'local') {
-      const eksCluster = importEksCluster(this, 'EKSCluster', props.stage);
+      const eksCluster = importEksCluster(
+        this,
+        'EKSCluster',
+        props.stage,
+        this.resourcePrefix
+      );
 
       const serviceAccount = eksCluster.addServiceAccount(
         'EksIngestionWorkflowServiceAccount',
         {
-          name: 'vmxfp-ingestion-workflow-service-account',
-          namespace: 'vmxfp-app',
+          name: `${this.resourcePrefix}-ingestion-workflow-service-account`,
+          namespace: `${this.resourcePrefix}-app`,
         }
       );
 

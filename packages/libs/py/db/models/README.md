@@ -31,22 +31,22 @@ graph TD
 
 ## Directory Structure
 
-| Path                                     | Purpose                        |
-| ---------------------------------------- | ------------------------------ |
-| `vmxfp_db_models/file.py`                | File and FileEvaluation models |
-| `vmxfp_db_models/project.py`             | Project and ProjectEvaluation  |
-| `vmxfp_db_models/evaluation.py`          | Evaluation models              |
-| `vmxfp_db_models/evaluation_category.py` | Evaluation category models     |
-| `vmxfp_db_models/evaluation_template.py` | Evaluation template models     |
-| `vmxfp_db_models/file_content.py`        | File content chunking          |
-| `vmxfp_db_models/file_embedding.py`      | Embedding/vector models        |
-| `vmxfp_db_models/session_manager.py`     | Session management             |
-| `tests/`                                 | (Placeholder) for tests        |
+| Path                                        | Purpose                        |
+| ------------------------------------------- | ------------------------------ |
+| `internal_db_models/file.py`                | File and FileEvaluation models |
+| `internal_db_models/project.py`             | Project and ProjectEvaluation  |
+| `internal_db_models/evaluation.py`          | Evaluation models              |
+| `internal_db_models/evaluation_category.py` | Evaluation category models     |
+| `internal_db_models/evaluation_template.py` | Evaluation template models     |
+| `internal_db_models/file_content.py`        | File content chunking          |
+| `internal_db_models/file_embedding.py`      | Embedding/vector models        |
+| `internal_db_models/session_manager.py`     | Session management             |
+| `tests/`                                    | (Placeholder) for tests        |
 
 ## Installation
 
 ```bash
-pnpm nx run <target_project>:add vmxfp-py-db-models --local
+pnpm nx run <target_project>:add py-db-models --local
 ```
 
 ## Main Models Overview

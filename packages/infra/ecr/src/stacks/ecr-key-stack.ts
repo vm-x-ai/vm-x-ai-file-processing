@@ -3,6 +3,7 @@ import * as kms from 'aws-cdk-lib/aws-kms';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import type { Construct } from 'constructs';
+import { RESOURCE_PREFIX } from '@workspace/infra-cdk-shared';
 
 interface ECRKeyStackProps extends cdk.StackProps {
   stage: string;
@@ -11,12 +12,13 @@ interface ECRKeyStackProps extends cdk.StackProps {
 
 export class ECRKeyStack extends cdk.Stack {
   public readonly encryptionKey: kms.Key;
+  private readonly resourcePrefix: string = RESOURCE_PREFIX;
 
   constructor(scope: Construct, id: string, props: ECRKeyStackProps) {
     super(scope, id, props);
 
     this.encryptionKey = new kms.Key(this, 'ECRKey', {
-      alias: `vmxfp-ecr-key-${props.stage}`,
+      alias: `${this.resourcePrefix}-ecr-key-${props.stage}`,
     });
 
     const principals = props.accountIds.map(
@@ -35,14 +37,14 @@ export class ECRKeyStack extends cdk.Stack {
       this,
       'ECRKMSKeyParameter',
       {
-        parameterName: `/vmxfp-app/${props.stage}/ecr/kms-key`,
+        parameterName: `/${this.resourcePrefix}-app/${props.stage}/ecr/kms-key`,
         stringValue: this.encryptionKey.keyArn,
       }
     );
 
     new iam.Role(this, 'ECRKeyCrossAccountSsmFetcherRole', {
       assumedBy: new iam.CompositePrincipal(...principals),
-      roleName: `vmxfp-ecr-key-cross-account-role-${props.stage}`,
+      roleName: `${this.resourcePrefix}-ecr-key-cross-account-role-${props.stage}`,
       inlinePolicies: {
         ECRKeyCrossAccountSsmFetcherPolicy: new iam.PolicyDocument({
           statements: [

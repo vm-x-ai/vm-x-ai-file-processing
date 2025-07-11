@@ -1,3 +1,14 @@
+const gitOwner = 'vm-x-ai';
+const gitRepo = 'vm-x-ai-file-classifier';
+
+const gitOps = {
+  owner: gitOwner,
+  repo: gitRepo,
+  repoUrl: `https://github.com/${gitOwner}/${gitRepo}`,
+  secretName: 'argocd-github-token',
+  targetRevision: 'main',
+};
+
 export const stages = [
   {
     accountId: '000000000000',
@@ -9,6 +20,10 @@ export const stages = [
     region: 'us-east-1',
     isProd: false,
     cidr: '10.0.0.0/16',
+    gitOps: {
+      ...gitOps,
+      path: `packages/infra/argocd/local`,
+    },
   },
   {
     accountId: '[DEV_ACCOUNT_ID]',
@@ -20,6 +35,10 @@ export const stages = [
     region: 'us-east-1',
     isProd: false,
     cidr: '10.0.0.0/16',
+    gitOps: {
+      ...gitOps,
+      path: `packages/infra/argocd/dev`,
+    },
   },
   {
     accountId: '[SHARED_SERVICES_ACCOUNT_ID]',
@@ -27,6 +46,10 @@ export const stages = [
     region: 'us-east-1',
     isProd: false,
     cidr: '10.2.0.0/16',
+    gitOps: {
+      ...gitOps,
+      path: `packages/infra/argocd/shared`,
+    },
   },
 ];
 

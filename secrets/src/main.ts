@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { getStages } from '@vmxfp/infra-cdk-shared';
+import { getStages } from '@workspace/infra-cdk-shared';
 import * as cdk from 'aws-cdk-lib';
 import { SecretsKmsStack } from './stacks/secrets-kms-stack.js';
 

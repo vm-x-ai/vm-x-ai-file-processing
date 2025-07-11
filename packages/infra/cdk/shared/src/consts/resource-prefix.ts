@@ -1,1 +1,1 @@
-export const RESOURCE_PREFIX = 'vmxfp';
+export const RESOURCE_PREFIX = process.env.RESOURCE_PREFIX || 'file-processing';

@@ -1,11 +1,11 @@
 import logging
 import uuid
 
-import vmxfp_db_models
+import internal_db_models
+from internal_db_repositories.file import FileRepository
+from internal_db_repositories.file_embedding import FileEmbeddingRepository
 from langchain_openai import OpenAIEmbeddings
 from temporalio import activity
-from vmxfp_db_repositories.file import FileRepository
-from vmxfp_db_repositories.file_embedding import FileEmbeddingRepository
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class CreateChunkEmbeddingsActivity:
         chunk_number: int,
     ) -> None:
         await self._file_repository.update(
-            file_id, {"status": vmxfp_db_models.FileStatus.EMBEDDING}
+            file_id, {"status": internal_db_models.FileStatus.EMBEDDING}
         )
 
         logger.info(f"Creating embeddings for chunk {chunk_number}")
@@ -51,12 +51,12 @@ class CreateChunkEmbeddingsActivity:
             {
                 "chunk_number": chunk_number,
                 "embedding": embedding[0],
-                "status": vmxfp_db_models.FileEmbeddingStatus.EMBEDDED,
+                "status": internal_db_models.FileEmbeddingStatus.EMBEDDED,
             },
         )
 
         logger.info(f"Updated embedding for chunk {chunk_number} to database")
 
         await self._file_repository.update(
-            file_id, {"status": vmxfp_db_models.FileStatus.EMBEDDED}
+            file_id, {"status": internal_db_models.FileStatus.EMBEDDED}
         )

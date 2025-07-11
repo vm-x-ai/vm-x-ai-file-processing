@@ -1,7 +1,7 @@
 import aioboto3
 from dependency_injector import providers
-from vmxfp_aws_sqs_consumer.settings import SQSConsumerSettings
-from vmxfp_temporal_utils.containers import TemporalContainer
+from internal_aws_sqs_consumer.settings import SQSConsumerSettings
+from internal_temporal_utils.containers import TemporalContainer
 
 
 class Container(TemporalContainer):

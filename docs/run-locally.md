@@ -11,11 +11,33 @@ You will need the following tools installed on your machine:
 - [ngrok](https://ngrok.com/docs/getting-started/) Local development tool for exposing local services to the internet
 - [UV](https://docs.astral.sh/uv/getting-started/installation/) Python package manager
 
-## OpenAI API Key
+## Quick Start
+
+Run the following command to bootstrap the application:
+
+```bash
+pnpm run bootstrap
+```
+
+This will guide you through the setup process.
+
+After the bootstrap process is complete, you can start the application by running the following command:
+
+```bash
+pnpm run serve
+```
+
+This will start the application and you can access the UI at http://localhost:3002/ui.
+
+## Manual Setup
+
+If you want to setup the application manually, you can follow the steps below.
+
+### OpenAI API Key
 
 You will need an OpenAI API key to run the application. You can get one from the [OpenAI website](https://platform.openai.com/account/api-keys).
 
-## Install Dependencies
+### Install Dependencies
 
 This project is a multi-language monorepo, so, we need to install the Node.js and Python dependencies.
 
@@ -31,17 +53,17 @@ Install the Python dependencies:
 uv sync
 ```
 
-## Create a VM-X Workspace
+### Create a VM-X Workspace
 
 We need to create a VM-X account and workspace to run the application.
 
-### Create a VM-X Account
+#### Create a VM-X Account
 
 - Access the [VM-X Plans](https://vm-x.ai/plans) page (choose the "Beta" plan for free)
 - Fill the form with your information or use the "Sign up with Google" button
 - You will be redirected to the [VM-X Getting Started](https://console.vm-x.ai/getting-started) page.
 
-### Create a VM-X Workspace
+#### Create a VM-X Workspace
 
 - Give a name to your workspace and environment.
 - Wait for the API Key to be created and copy to somewhere safe.
@@ -49,11 +71,11 @@ We need to create a VM-X account and workspace to run the application.
 - You will be redirected to the **LLM provider integration** page, paste your OpenAI Key and click on "Save" to finish the LLM provider integration.
 - A dialog will appear with the "Workspace ID" and "Environment ID" in the **OpenAI Completion API Adapter**. Copy them.
 
-## Local Development
+### Local Development
 
 **IMPORTANT:** Make sure you have the docker running and the ngrok client installed.
 
-### Docker Containers
+#### Docker Containers
 
 Let's start by running the service dependencies, such as Temporal, Postgres and Localstack.
 
@@ -61,7 +83,7 @@ Let's start by running the service dependencies, such as Temporal, Postgres and 
 - **Postgres**: We use Postgres to store the data.
 - **Localstack**: We use Localstack to mock the AWS services.
 
-### Start Docker Compose
+#### Start Docker Compose
 
 Let's start the Docker Compose services.
 
@@ -71,7 +93,7 @@ docker compose -f docker-compose.yml up -d
 
 This will mock the AWS services, so, you don't need to have AWS credentials to run the application.
 
-### Start Ngrok
+#### Start Ngrok
 
 Please make sure you created a static ngrok domain in the [ngrok dashboard](https://dashboard.ngrok.com/domains).
 
@@ -85,7 +107,7 @@ Copy the ngrok url
 
 **IMPORTANT:** VM-X sends HTTP requests to the API when the workflow evaluations are completed, so, we need to expose our local API to the internet.
 
-### Add Environment Variables files
+#### Add Environment Variables files
 
 You will need to add the following environment variables files to some of the projects.
 
@@ -116,14 +138,20 @@ VMX_ENVIRONMENT_ID=<YOUR_VMX_ENVIRONMENT_ID>
 VMX_RESOURCE_ID=openai-default
 
 # S3 Buckets
-THUMBNAIL_S3_BUCKET_NAME=vmxfp-file-thumbnail-us-east-1-local
-LANDING_S3_BUCKET_NAME=vmxfp-ingestion-landing-us-east-1-local
+# <RESOURCE_PREFIX>-file-thumbnail-<REGION>-<STAGE>
+# The Pydantic settings will resolve the Jinja templates
+THUMBNAIL_S3_BUCKET_NAME="{{ RESOURCE_PREFIX }}-file-thumbnail-us-east-1-local"
+# <RESOURCE_PREFIX>-ingestion-landing-<REGION>-<STAGE>
+# The Pydantic settings will resolve the Jinja templates
+LANDING_S3_BUCKET_NAME="{{ RESOURCE_PREFIX }}-ingestion-landing-us-east-1-local"
 
 # Evaluation Callback URL
 INGESTION_CALLBACK_URL=<YOUR_NGROK_URL>/ingestion-callback
 
 # Event Bus Name
-EVENT_BUS_NAME=vmxfp-event-bus-local
+# <RESOURCE_PREFIX>-event-bus-<STAGE>
+# The Pydantic settings will resolve the Jinja templates
+EVENT_BUS_NAME="{{ RESOURCE_PREFIX }}-event-bus-local"
 ```
 
 #### API
@@ -144,7 +172,9 @@ TEMPORAL_HOST=localhost:7233
 OPENAI_API_KEY=<YOUR_OPENAI_API_KEY>
 
 # S3 Buckets
-LANDING_S3_BUCKET_NAME=vmxfp-ingestion-landing-us-east-1-local
+# <RESOURCE_PREFIX>-ingestion-landing-<REGION>-<STAGE>
+# The Pydantic settings will resolve the Jinja templates
+LANDING_S3_BUCKET_NAME="{{ RESOURCE_PREFIX }}-ingestion-landing-us-east-1-local"
 
 # Localstack S3 Endpoint
 AWS_ENDPOINT_URL_S3=http://localhost.localstack.cloud:4566
@@ -166,7 +196,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8000/api
 
 ```
 
-### Apply Database Migrations
+#### Apply Database Migrations
 
 Let's create all the database tables to our local Postgres database.
 
@@ -176,7 +206,7 @@ pnpm nx run py-db-models:migrations-apply:local
 
 ### Infrastructure
 
-#### Bootstrap CDK
+#### Bootstrap CDK Stack
 
 This project uses CDK as the infrastructure as code tool, and the first step is to bootstrap the CDK stack.
 
@@ -188,8 +218,6 @@ pnpm nx run infra-events:cdk-bootstrap:local
 
 #### Deploy Local Infrastructure
 
-#### Deploy All Base Infra
-
 ```bash
 pnpm nx run-many -t cdk-deploy -c local --projects=tag:local-infra
 ```
@@ -200,43 +228,43 @@ pnpm nx run-many -t cdk-deploy -c local --projects=tag:local-infra
 pnpm nx run-many -t cdk-deploy -c local --projects=tag:local-workflow-infra
 ```
 
-### Start the Workflow Worker
+#### Start the Workflow Worker
 
 ```bash
 pnpm nx run workflow-worker:serve
 ```
 
-#### Start the Application
+#### Start the API
 
 ```bash
 pnpm nx run api:serve
 ```
 
-##### Start Ingestion Workflow SQS Consumer
+#### Start Ingestion Workflow SQS Consumer
 
 ```bash
 pnpm nx run workflow-ingestion:serve
 ```
 
-##### Start Evaluation Workflow SQS Consumer
+#### Start Evaluation Workflow SQS Consumer
 
 ```bash
 pnpm nx run workflow-evaluation:serve
 ```
 
-### Start the UI
+#### Start the UI
 
 ```bash
 pnpm nx run ui:dev
 ```
 
-Useful URLs:
+#### Useful URLs:
 
 - [Temporal UI](http://localhost:8080/)
 - [UI](http://localhost:3002/ui)
 - [API OpenAPI Spec](http://localhost:8000/docs)
 
-Local Database Details:
+#### Local Database Details
 
 - Host: `localhost`
 - Port: `5433`

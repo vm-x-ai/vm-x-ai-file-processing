@@ -1,8 +1,8 @@
 from typing import Optional
 from uuid import UUID
 
+from internal_db_models.evaluation import EvaluationBase, EvaluationType
 from pydantic import BaseModel, Field, model_validator
-from vmxfp_db_models.evaluation import EvaluationBase, EvaluationType
 
 
 class HttpEvaluationCreate(BaseModel):
