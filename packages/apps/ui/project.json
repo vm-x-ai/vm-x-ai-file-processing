@@ -9,7 +9,11 @@
     "cdk-bootstrap": {},
     "cdk-deploy": {},
     "build": {
-      "cache": false
+      "cache": false,
+      "configurations": {
+        "dev": {},
+        "prd": {}
+      }
     },
     "dev": {
       "continuous": true,

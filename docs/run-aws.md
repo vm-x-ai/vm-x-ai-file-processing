@@ -249,14 +249,7 @@ export AWS_PROFILE=<your-profile>
 Start the SSM session from the bastion host to the database:
 
 ```bash
-aws ssm start-session \
---target $(aws ssm get-parameter --name /[YOUR_RESOURCE_PREFIX]-app/dev/bastion-host/instance-id --query 'Parameter.Value' --output text) \
---document-name AWS-StartPortForwardingSessionToRemoteHost \
---parameters "{
-  \"host\": [\"$(aws ssm get-parameter --name /[YOUR_RESOURCE_PREFIX]-app/dev/database/endpoint --query 'Parameter.Value' --output text)\"],
-  \"portNumber\": [\"$(aws ssm get-parameter --name /[YOUR_RESOURCE_PREFIX]-app/dev/database/port --query 'Parameter.Value' --output text)\"],
-  \"localPortNumber\": [\"5433\"]
-}"
+pnpm db-tunnel --aws-profile <your-profile> --stage dev --local-port 5434
 ```
 
 ## ECR
