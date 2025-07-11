@@ -16,7 +16,7 @@ spec:
       serviceAccountName: "{{ .Values.resourcePrefix }}-temporal-worker-service-account"
       containers:
         - name: "{{ .Values.resourcePrefix }}-temporal-worker"
-          image: "{{ .Values.sharedServicesAccountId }}.dkr.ecr.{{ .Values.awsRegion }}.amazonaws.com/{{ .Values.resourcePrefix }}-{{ .Values.image.repositoryName }}:{{ .Values.image.tag }}"
+          image: "{{ .Values.ecrRepositoryName }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: DB_USER

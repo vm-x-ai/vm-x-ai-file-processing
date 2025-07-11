@@ -16,7 +16,7 @@ spec:
       serviceAccountName: "{{ .Values.resourcePrefix }}-ui-service-account"
       containers:
         - name: "{{ .Values.resourcePrefix }}-ui"
-          image: "{{ .Values.sharedServicesAccountId }}.dkr.ecr.{{ .Values.awsRegion }}.amazonaws.com/{{ .Values.resourcePrefix }}-{{ .Values.image.repositoryName }}:{{ .Values.image.tag }}"
+          image: "{{ .Values.ecrRepositoryName }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 3000

@@ -16,7 +16,7 @@ spec:
       serviceAccountName: {{ .Values.resourcePrefix }}-evaluation-workflow-service-account
       containers:
         - name: "{{ .Values.resourcePrefix }}-evaluation-workflow"
-          image: "{{ .Values.sharedServicesAccountId }}.dkr.ecr.{{ .Values.awsRegion }}.amazonaws.com/{{ .Values.resourcePrefix }}-{{ .Values.image.repositoryName }}:{{ .Values.image.tag }}"
+          image: "{{ .Values.ecrRepositoryName }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: TEMPORAL_HOST
