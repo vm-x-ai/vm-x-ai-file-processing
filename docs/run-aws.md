@@ -17,13 +17,9 @@ By default, the resource prefix is `file-processing`, and it's used across the e
 
 You can change it by updating the `RESOURCE_PREFIX` in the root `.env` file.
 
-## Update the AWS Account IDs
+## Update the AWS Account IDs and GitHub Repo Details
 
-Update the `packages/infra/cdk/shared/src/consts/stages.ts` with your AWS accounts information.
-
-## Update GitHub Repo Details
-
-TBC.
+Update the `packages/infra/cdk/shared/src/consts/stages.ts` with your AWS accounts information and GitHub repo details.
 
 ## CDK Bootstrap
 
@@ -79,7 +75,7 @@ secrets:
     description: OpenAI credentials
     value: |
       {
-        "api_key": "<YOUR_OPENAI_API_KEY>",
+        "api_key": "<YOUR_OPENAI_API_KEY>"
       }
 
   - name: vmx-credentials
