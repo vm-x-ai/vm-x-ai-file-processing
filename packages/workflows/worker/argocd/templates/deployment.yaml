@@ -88,7 +88,7 @@ spec:
             - name: EVENT_BUS_NAME
               value: "{{ .Values.resourcePrefix }}-event-bus-{{ .Values.stage }}"
             - name: INGESTION_CALLBACK_URL
-              value: "http://$(ISTIO_GATEWAY_HOSTNAME)/api/ingestion-callback"
+              value: "http://{{ .Values.ingressGatewayAddress }}/api/ingestion-callback"
           resources:
             requests:
               memory: {{ .Values.resources.requests.memory }}
