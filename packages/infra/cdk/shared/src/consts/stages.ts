@@ -34,12 +34,12 @@ export const stages = [
     },
   },
   {
-    accountId: '952151901799',
+    accountId: '[YOUR_DEV_ACCOUNT_ID]',
     stageName: 'dev',
     rootDomainName: 'dev.xxxxxx.com',
     apiRootDomainName: 'api.dev.xxxxxx.com',
     adminRoleArn:
-      'arn:aws:iam::952151901799:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AdministratorAccess_04a0ade00e1e06de',
+      'arn:aws:iam::[YOUR_DEV_ACCOUNT_ID]:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AdministratorAccess_xxxxxx',
     region: 'us-east-1',
     isProd: false,
     cidr: '10.0.0.0/16',
@@ -49,7 +49,7 @@ export const stages = [
     },
   },
   {
-    accountId: '952151901799',
+    accountId: '[YOUR_SHARED_SERVICES_ACCOUNT_ID]',
     stageName: 'shared',
     region: 'us-east-1',
     isProd: false,
