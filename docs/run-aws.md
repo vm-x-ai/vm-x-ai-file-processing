@@ -11,6 +11,12 @@ This project requires two AWS accounts:
 1. **Shared Services Account**: Contains shared resources like ECR repositories.
 2. **Development Account**: Contains the application infrastructure like EKS cluster, RDS database, and application workloads.
 
+## Update Resource Prefix (Optional)
+
+By default, the resource prefix is `file-processing`, and it's used across the entire project (AWS resources, ArgoCD, etc.).
+
+You can change it by updating the `RESOURCE_PREFIX` in the root `.env` file.
+
 ## Update the AWS Account IDs
 
 Update the `packages/infra/cdk/shared/src/consts/stages.ts` with your AWS accounts information.
@@ -19,11 +25,212 @@ Update the `packages/infra/cdk/shared/src/consts/stages.ts` with your AWS accoun
 
 TBC.
 
+## CDK Bootstrap
+
+```bash
+pnpm nx run infra-network:cdk-bootstrap:dev
+```
+
+## Deploy Docker Repositories
+
+```bash
+pnpm nx run infra-ecr:cdk-deploy:shared
+```
+
+**NOTE:** Make sure you have the correct AWS profile set.
+
+## Deploy Network
+
+```bash
+pnpm nx run infra-network:cdk-deploy:dev
+```
+
+## Deploy Event Bus
+
+```bash
+pnpm nx run infra-events:cdk-deploy:dev
+```
+
+## Deploy Secret KMS Key
+
+```bash
+pnpm nx run infra-secrets:cdk-deploy:dev
+```
+
 ## Add Secrets
 
-TBC
+Update the following file `secrets/secrets/dev.yaml` as follows:
 
-## Aurora Database Tunnel
+```yaml
+kms:
+  arn: !cf_output secrets-kms-dev.KeyArn
+parameters: []
+secrets:
+  - name: argocd-github-token
+    description: GitHub token for ArgoCD
+    value: |
+      {
+        "url": "https://github.com/<YOUR_GITHUB_USERNAME>/<YOUR_GITHUB_REPO_NAME>.git",
+        "username": "<YOUR_GITHUB_USERNAME>",
+        "password": "<YOUR_GITHUB_TOKEN>"
+      }
+
+  - name: openai-credentials
+    description: OpenAI credentials
+    value: |
+      {
+        "api_key": "<YOUR_OPENAI_API_KEY>",
+      }
+
+  - name: vmx-credentials
+    description: VMX credentials
+    value: |
+      {
+        "domain": "us-east-1.vm-x.ai",
+        "api_key": "<YOUR_VMX_API_KEY>",
+        "workspace_id": "<YOUR_VMX_WORKSPACE_ID>",
+        "environment_id": "<YOUR_VMX_ENVIRONMENT_ID>",
+        "resource_id": "<YOUR_VMX_RESOURCE_ID>"
+      }
+
+secrets_file: ./_encrypted/dev.yaml
+```
+
+## Encrypt Secrets
+
+```bash
+pnpm nx run infra-secrets:encrypt:dev
+```
+
+**IMPORTANT:** Make sure you have the [aws-ssm-secrets-cli](https://pypi.org/project/aws-ssm-secrets-cli/) installed.
+
+## Deploy Secrets
+
+```bash
+pnpm nx run infra-secrets:deploy-secrets:dev
+```
+
+## Deploy EKS Cluster
+
+```bash
+pnpm nx run infra-eks:cdk-deploy:dev
+```
+
+## Deploy Aurora Database
+
+```bash
+pnpm nx run infra-database:cdk-deploy:dev
+```
+
+## Apply Database Migrations
+
+```bash
+pnpm nx run py-db-models:migrations-apply:dev
+```
+
+## Update ArgoCD Secrets Namespace (Optional)
+
+In case you changed the resource prefix (default is `file-processing`), you need to update the namespace in the following files:
+
+- `packages/infra/argocd/dev/app-secrets.yaml`
+- `packages/infra/argocd/dev/app-vmx-secrets.yaml`
+
+## Access ArgoCD
+
+### Install Kubectl
+
+You will need the `kubectl` CLI to run the next commands, install the `kubectl` by following the [AWS Set up kubectl and eksctl](https://docs.aws.amazon.com/eks/latest/userguide/install-kubectl.html#kubectl-install-update) guide.
+
+### Get Istio Gateway AWS Network Load Balancer DNS name
+
+```bash
+kubectl get svc ingressgateway -n istio-system -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+```
+
+### Get ArgoCD Admin Password
+
+```bash
+kubectl get secret argocd-initial-admin-secret -n argocd \
+  -o jsonpath='{.data.password}' | base64 --decode; echo
+```
+
+**IMPORTANT:** It's strongly recommended to configure a SSO for the ArgoCD users.
+
+### Access ArgoCD UI
+
+Open the browser and navigate to the ArgoCD UI:
+
+```
+https://[ISTIO_GATEWAY_DNS_NAME]/argocd
+```
+
+Use the following credentials to access the ArgoCD UI:
+
+```
+username: admin
+password: [ARGOCD_ADMIN_PASSWORD] (see previous section)
+```
+
+## Access Temporal UI
+
+The Temporal UI is exposed through the same Istio Gateway as the ArgoCD UI.
+
+### Get Temporal UI URL
+
+```bash
+kubectl get svc temporal-ui -n temporal-system -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+```
+
+### Access Temporal UI
+
+Open the browser and navigate to the Temporal UI:
+
+```
+https://[ISTIO_GATEWAY_DNS_NAME]/temporal
+```
+
+### Deploy Applications
+
+#### Update Shared Services Account ID
+
+Update the `SHARED_SERVICES_ACCOUNT_ID` in the `.env` file with your AWS account ID.
+
+#### Docker Login
+
+```bash
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin [SHARED_SERVICES_ACCOUNT_ID].dkr.ecr.us-east-1.amazonaws.com
+```
+
+#### UI Build Environment Variables
+
+Since this demo app doesn't have a DNS configured, we need to set the `NEXT_PUBLIC_API_URL` environment variable to the API URL using the Istio Gateway DNS name.
+
+Create the `.env.build.dev` file with the following content:
+
+```
+NEXT_PUBLIC_API_URL=http://[ISTIO_GATEWAY_DNS_NAME]/api
+```
+
+#### Docker Build and Push
+
+##### Build and Push
+
+```bash
+pnpm nx run-many -t docker-build -c dev --tag "latest" --exclude 'tag:no-docker-build:dev'
+pnpm nx run-many -t docker-push -c dev --tag "latest" --exclude 'tag:no-docker-build:dev'
+```
+
+#### Deploy Applications
+
+```bash
+pnpm nx run api:cdk-deploy:dev
+pnpm nx run worker:cdk-deploy:dev
+pnpm nx run ingestion:cdk-deploy:dev
+pnpm nx run evaluation:cdk-deploy:dev
+pnpm nx run ui:cdk-deploy:dev
+```
+
+### Aurora Database Tunnel
 
 Export the AWS profile:
 
