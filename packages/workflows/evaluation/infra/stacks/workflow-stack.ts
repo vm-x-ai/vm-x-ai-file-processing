@@ -43,7 +43,7 @@ export class EvaluationWorkflowStack extends BaseStack {
         this.resourcePrefix
       );
 
-      this.registerArgoCDApplication(
+      const argoCDApp = this.registerArgoCDApplication(
         eksCluster,
         props,
         'evaluation-workflow-sqs-consumer',
@@ -59,6 +59,8 @@ export class EvaluationWorkflowStack extends BaseStack {
       );
 
       evaluationQueue.grantConsumeMessages(serviceAccount.role);
+
+      argoCDApp.node.addDependency(serviceAccount);
     }
   }
 }

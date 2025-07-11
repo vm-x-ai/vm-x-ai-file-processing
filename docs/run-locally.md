@@ -140,10 +140,10 @@ VMX_RESOURCE_ID=openai-default
 # S3 Buckets
 # <RESOURCE_PREFIX>-file-thumbnail-<REGION>-<STAGE>
 # The Pydantic settings will resolve the Jinja templates
-THUMBNAIL_S3_BUCKET_NAME="{{ RESOURCE_PREFIX }}-file-thumbnail-us-east-1-local"
+THUMBNAIL_S3_BUCKET_NAME="{{ RESOURCE_PREFIX }}-file-thumbnail-000000000000-us-east-1-local"
 # <RESOURCE_PREFIX>-ingestion-landing-<REGION>-<STAGE>
 # The Pydantic settings will resolve the Jinja templates
-LANDING_S3_BUCKET_NAME="{{ RESOURCE_PREFIX }}-ingestion-landing-us-east-1-local"
+LANDING_S3_BUCKET_NAME="{{ RESOURCE_PREFIX }}-ingestion-landing-000000000000-us-east-1-local"
 
 # Evaluation Callback URL
 INGESTION_CALLBACK_URL=<YOUR_NGROK_URL>/ingestion-callback

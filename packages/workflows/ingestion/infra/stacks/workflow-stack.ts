@@ -120,7 +120,7 @@ export class IngestionWorkflowStack extends BaseStack {
         this.resourcePrefix
       );
 
-      this.registerArgoCDApplication(
+      const argoCDApp = this.registerArgoCDApplication(
         eksCluster,
         props,
         'ingestion-workflow-sqs-consumer',
@@ -136,6 +136,8 @@ export class IngestionWorkflowStack extends BaseStack {
       );
 
       ingestionQueue.grantConsumeMessages(serviceAccount.role);
+
+      argoCDApp.node.addDependency(serviceAccount);
     }
   }
 }

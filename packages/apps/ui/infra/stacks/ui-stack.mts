@@ -19,7 +19,7 @@ export class UIStack extends BaseStack {
       this.resourcePrefix
     );
 
-    this.registerArgoCDApplication(
+    const argoCDApp = this.registerArgoCDApplication(
       eksCluster,
       props,
       'ui',
@@ -44,6 +44,8 @@ export class UIStack extends BaseStack {
       }
     );
 
+    argoCDApp.node.addDependency(serviceAccount);
+
     dbEncryptionKey.grantDecrypt(serviceAccount.role);
 
     serviceAccount.role.attachInlinePolicy(
@@ -55,6 +57,7 @@ export class UIStack extends BaseStack {
               'secretsmanager:DescribeSecret',
             ],
             resources: [
+              `arn:aws:secretsmanager:${this.region}:${this.account}:secret:vmx-credentials*`,
               `arn:aws:secretsmanager:${this.region}:${this.account}:secret:${this.resourcePrefix}-credentials*`,
             ],
           }),

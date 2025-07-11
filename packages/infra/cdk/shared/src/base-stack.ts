@@ -1,4 +1,4 @@
-import { ICluster } from '@aws-cdk/aws-eks-v2-alpha';
+import { ICluster, KubernetesObjectValue } from '@aws-cdk/aws-eks-v2-alpha';
 import * as cdk from 'aws-cdk-lib';
 import { GitOps, RESOURCE_PREFIX } from './consts/index.js';
 import { Construct } from 'constructs';
@@ -24,6 +24,18 @@ export class BaseStack extends cdk.Stack {
     appName: string,
     namespace: string
   ) {
+    const ingressGatewayAddress = new KubernetesObjectValue(
+      this,
+      'IngressGatewayAddress',
+      {
+        cluster: eksCluster,
+        objectType: 'service',
+        objectName: 'ingressgateway',
+        objectNamespace: 'istio-system',
+        jsonPath: '.status.loadBalancer.ingress[0].hostname',
+      }
+    );
+
     return eksCluster.addManifest('ArgoCDApp', {
       apiVersion: 'argoproj.io/v1alpha1',
       kind: 'Application',
@@ -71,6 +83,10 @@ export class BaseStack extends cdk.Stack {
               {
                 name: 'awsAccountId',
                 value: this.account,
+              },
+              {
+                name: 'ingressGatewayAddress',
+                value: ingressGatewayAddress.value,
               },
             ],
           },

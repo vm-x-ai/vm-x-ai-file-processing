@@ -19,7 +19,7 @@ export class TemporalWorkerStack extends BaseStack {
       this.resourcePrefix
     );
 
-    this.registerArgoCDApplication(
+    const argoCDApp = this.registerArgoCDApplication(
       eksCluster,
       props,
       'temporal-worker',
@@ -43,6 +43,8 @@ export class TemporalWorkerStack extends BaseStack {
         namespace: `${this.resourcePrefix}-app`,
       }
     );
+
+    argoCDApp.node.addDependency(serviceAccount);
 
     dbEncryptionKey.grantDecrypt(serviceAccount.role);
 

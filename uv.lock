@@ -2108,12 +2108,14 @@ version = "1.0.0"
 source = { editable = "packages/libs/py/aws/sqs-consumer" }
 dependencies = [
     { name = "aioboto3" },
+    { name = "py-utils" },
     { name = "pydantic-settings" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "aioboto3", specifier = ">=14.3.0" },
+    { name = "py-utils", editable = "packages/libs/py/utils" },
     { name = "pydantic-settings", specifier = ">=2.9.1" },
 ]
 

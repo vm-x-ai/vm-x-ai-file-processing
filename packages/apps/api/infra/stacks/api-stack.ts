@@ -19,7 +19,7 @@ export class APIStack extends BaseStack {
       this.resourcePrefix
     );
 
-    this.registerArgoCDApplication(
+    const argoCDApp = this.registerArgoCDApplication(
       eksCluster,
       props,
       'api',
@@ -43,6 +43,8 @@ export class APIStack extends BaseStack {
         namespace: `${this.resourcePrefix}-app`,
       }
     );
+
+    argoCDApp.node.addDependency(serviceAccount);
 
     dbEncryptionKey.grantDecrypt(serviceAccount.role);
 

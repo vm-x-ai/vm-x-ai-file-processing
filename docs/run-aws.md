@@ -224,11 +224,19 @@ pnpm nx run-many -t docker-push -c dev --tag "latest" --exclude 'tag:no-docker-b
 
 ```bash
 pnpm nx run api:cdk-deploy:dev
-pnpm nx run worker:cdk-deploy:dev
-pnpm nx run ingestion:cdk-deploy:dev
-pnpm nx run evaluation:cdk-deploy:dev
+pnpm nx run workflow-ingestion:cdk-deploy:dev
+pnpm nx run workflow-evaluation:cdk-deploy:dev
+pnpm nx run workflow-worker:cdk-deploy:dev
 pnpm nx run ui:cdk-deploy:dev
 ```
+
+#### Access Applications
+
+Open the browser and navigate to the applications:
+
+- API OpenAPI Docs: https://[ISTIO_GATEWAY_DNS_NAME]/api/docs
+- UI: https://[ISTIO_GATEWAY_DNS_NAME]/ui
+- Temporal UI: https://[ISTIO_GATEWAY_DNS_NAME]/temporal
 
 ### Aurora Database Tunnel
 
