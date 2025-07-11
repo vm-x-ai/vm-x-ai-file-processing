@@ -77,4 +77,4 @@ spec:
             driver: secrets-store.csi.k8s.io
             readOnly: true
             volumeAttributes:
-              secretProviderClass: "{{ .Values.resourcePrefix }}-app-secrets "
+              secretProviderClass: "{{ .Values.resourcePrefix }}-app-secrets"
