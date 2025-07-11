@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: vmxfp-temporal-worker
+  name: {{ .Values.resourcePrefix }}-temporal-worker
   namespace: {{ .Values.namespace }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: vmxfp-temporal-worker
+      app: {{ .Values.resourcePrefix }}-temporal-worker
   template:
     metadata:
       labels:
-        app: vmxfp-temporal-worker
+        app: {{ .Values.resourcePrefix }}-temporal-worker
     spec:
-      serviceAccountName: vmxfp-temporal-worker-service-account
+      serviceAccountName: {{ .Values.resourcePrefix }}-temporal-worker-service-account
       containers:
-        - name: vmxfp-temporal-worker
+        - name: {{ .Values.resourcePrefix }}-temporal-worker
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
@@ -88,7 +88,7 @@ spec:
             - name: EVENT_BUS_NAME
               value: {{ .Values.env.eventBusName }}
             - name: INGESTION_CALLBACK_URL
-              value: {{ .Values.env.ingestionCallbackUrl }}
+              value: "http://$(ISTIO_GATEWAY_HOSTNAME)/api/ingestion-callback"
           resources:
             requests:
               memory: {{ .Values.resources.requests.memory }}
@@ -109,10 +109,10 @@ spec:
             driver: secrets-store.csi.k8s.io
             readOnly: true
             volumeAttributes:
-              secretProviderClass: vmxfp-app-secrets 
+              secretProviderClass: {{ .Values.resourcePrefix }}-app-secrets 
         - name: vmx-secrets-store-inline
           csi:
             driver: secrets-store.csi.k8s.io
             readOnly: true
             volumeAttributes:
-              secretProviderClass: vmxfp-vmx-secrets
+              secretProviderClass: {{ .Values.resourcePrefix }}-vmx-secrets

@@ -21,5 +21,4 @@ class SQSConsumerSettings(BaseSettings):
 
     @jinja_template_validator("queue_url")
     @classmethod
-    def resolve_jinja_templates(cls, value):
-        ...
+    def resolve_jinja_templates(cls, value): ...

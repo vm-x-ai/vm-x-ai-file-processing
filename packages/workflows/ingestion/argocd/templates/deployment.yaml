@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: vmxfp-ingestion-workflow
+  name: {{ .Values.resourcePrefix }}-ingestion-workflow
   namespace: {{ .Values.namespace }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: vmxfp-ingestion-workflow
+      app: {{ .Values.resourcePrefix }}-ingestion-workflow
   template:
     metadata:
       labels:
-        app: vmxfp-ingestion-workflow
+        app: {{ .Values.resourcePrefix }}-ingestion-workflow
     spec:
-      serviceAccountName: vmxfp-ingestion-workflow-service-account
+      serviceAccountName: {{ .Values.resourcePrefix }}-ingestion-workflow-service-account
       containers:
-        - name: vmxfp-ingestion-workflow
+        - name: {{ .Values.resourcePrefix }}-ingestion-workflow
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:

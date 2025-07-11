@@ -1,7 +1,7 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
 metadata:
-  name: vmxfp-ui-gateway
+  name: {{ .Values.resourcePrefix }}-ui-gateway
   namespace: {{ .Values.namespace }}
 spec:
   selector:

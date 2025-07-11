@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: vmxfp-api
+  name: {{ .Values.resourcePrefix }}-api
   namespace: {{ .Values.namespace }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: vmxfp-api
+      app: {{ .Values.resourcePrefix }}-api
   template:
     metadata:
       labels:
-        app: vmxfp-api
+        app: {{ .Values.resourcePrefix }}-api
     spec:
-      serviceAccountName: vmxfp-api-service-account
+      serviceAccountName: {{ .Values.resourcePrefix }}-api-service-account
       containers:
-        - name: vmxfp-api
+        - name: {{ .Values.resourcePrefix }}-api
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
@@ -77,4 +77,4 @@ spec:
             driver: secrets-store.csi.k8s.io
             readOnly: true
             volumeAttributes:
-              secretProviderClass: vmxfp-app-secrets 
+              secretProviderClass: {{ .Values.resourcePrefix }}-app-secrets 

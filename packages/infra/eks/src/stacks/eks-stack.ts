@@ -10,18 +10,15 @@ import type { Construct } from 'constructs';
 import { KubectlV33Layer } from '@aws-cdk/lambda-layer-kubectl-v33';
 import * as yaml from 'js-yaml';
 import request, { Response, HttpVerb } from 'sync-request';
-import { RESOURCE_PREFIX } from '@workspace/infra-cdk-shared';
+import { GitOps, RESOURCE_PREFIX } from '@workspace/infra-cdk-shared';
 
 interface EKSStackProps extends cdk.StackProps {
   stage: string;
   adminRoleArn: string;
   ecrAccountId: string;
   ecrRepositoryPrefix: string;
-  gitOps: {
-    repoUrl: string;
+  gitOps: GitOps & {
     path: string;
-    targetRevision: string;
-    secretName: string;
   };
 }
 
@@ -512,7 +509,7 @@ export class EKSStack extends cdk.Stack {
             'server.rootpath': '/argocd',
           },
           repositories: {
-            [props.gitOps.repoUrl]: {
+            [`${props.gitOps.owner}-${props.gitOps.repo}`]: {
               url: props.gitOps.repoUrl,
             },
           },

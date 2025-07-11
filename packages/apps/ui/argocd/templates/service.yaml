@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: vmxfp-ui
+  name: {{ .Values.resourcePrefix }}-ui
   namespace: {{ .Values.namespace }}
 spec:
   selector:
-    app: vmxfp-ui
+    app: {{ .Values.resourcePrefix }}-ui
   ports:
     - port: {{ .Values.service.port }}
       targetPort: {{ .Values.service.targetPort }}

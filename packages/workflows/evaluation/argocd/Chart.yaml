@@ -1,4 +1,4 @@
 apiVersion: v2
-name: vmxfp-evaluation-workflow
+name: evaluation-workflow
 version: 0.1.0
-description: Helm chart for vmxfp-evaluation-workflow deployment
+description: Helm chart for evaluation-workflow deployment

@@ -1,4 +1,4 @@
 apiVersion: v2
-name: vmxfp-temporal-worker
+name: temporal-worker
 version: 0.1.0
-description: Helm chart for vmxfp-temporal-worker deployment
+description: Helm chart for temporal-worker deployment

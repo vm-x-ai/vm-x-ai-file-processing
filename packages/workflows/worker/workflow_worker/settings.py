@@ -44,8 +44,7 @@ class ThumbnailSettings(BaseSettings):
 
     @jinja_template_validator("s3_bucket_name")
     @classmethod
-    def resolve_jinja_templates(cls, value):
-        ...
+    def resolve_jinja_templates(cls, value): ...
 
 
 class Landing(BaseSettings):
@@ -60,8 +59,7 @@ class Landing(BaseSettings):
 
     @jinja_template_validator("s3_bucket_name")
     @classmethod
-    def resolve_jinja_templates(cls, value):
-        ...
+    def resolve_jinja_templates(cls, value): ...
 
 
 class IngestionCallbackSettings(BaseSettings):
@@ -90,5 +88,4 @@ class Settings(BaseSettings):
 
     @jinja_template_validator("event_bus_name")
     @classmethod
-    def resolve_jinja_templates(cls, value):
-        ...
+    def resolve_jinja_templates(cls, value): ...

@@ -127,11 +127,13 @@ sequenceDiagram
 This API application leverages a modern GitOps and Infrastructure-as-Code (IaC) approach for deployment and lifecycle management:
 
 - **CDK Stack Integration:**
+
   - The application's infrastructure is defined using AWS CDK (Cloud Development Kit).
   - The CDK stack is responsible for provisioning all required cloud resources, including the creation of an ArgoCD `Application` resource for this API.
   - The ArgoCD `Application` resource is created dynamically by the CDK stack, ensuring that deployment configuration is always in sync with the application's infrastructure code.
 
 - **ArgoCD Application & GitOps:**
+
   - The app includes an `argocd/` folder containing ArgoCD manifests and configuration specific to this service.
   - The ArgoCD `Application` resource (created by the CDK stack) points to this folder in the repository, enabling ArgoCD to manage the deployment of the API via GitOps.
   - This approach ensures that any changes to the application's Kubernetes manifests or configuration are automatically deployed and reconciled by ArgoCD, providing a robust, auditable, and automated deployment pipeline.

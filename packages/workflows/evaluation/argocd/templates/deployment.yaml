@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: vmxfp-evaluation-workflow
+  name: {{ .Values.resourcePrefix }}-evaluation-workflow
   namespace: {{ .Values.namespace }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: vmxfp-evaluation-workflow
+      app: {{ .Values.resourcePrefix }}-evaluation-workflow
   template:
     metadata:
       labels:
-        app: vmxfp-evaluation-workflow
+        app: {{ .Values.resourcePrefix }}-evaluation-workflow
     spec:
-      serviceAccountName: vmxfp-evaluation-workflow-service-account
+      serviceAccountName: {{ .Values.resourcePrefix }}-evaluation-workflow-service-account
       containers:
-        - name: vmxfp-evaluation-workflow
+        - name: {{ .Values.resourcePrefix }}-evaluation-workflow
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:

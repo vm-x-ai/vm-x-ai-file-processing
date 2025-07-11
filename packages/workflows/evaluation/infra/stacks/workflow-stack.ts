@@ -3,13 +3,18 @@ import { Construct } from 'constructs';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
-import { GitOps, importEksCluster, RESOURCE_PREFIX } from '@workspace/infra-cdk-shared';
+import {
+  GitOps,
+  importEksCluster,
+  RESOURCE_PREFIX,
+} from '@workspace/infra-cdk-shared';
 
 export interface EvaluationWorkflowStackProps extends cdk.StackProps {
   stage: string;
+  sharedServicesAccountId: string;
   gitOps: GitOps & {
     path: string;
-  }
+  };
 }
 
 export class EvaluationWorkflowStack extends cdk.Stack {
@@ -53,7 +58,7 @@ export class EvaluationWorkflowStack extends cdk.Stack {
         this.resourcePrefix
       );
 
-      eksCluster.addManifest("ArgoCDApp", {
+      eksCluster.addManifest('ArgoCDApp', {
         apiVersion: 'argoproj.io/v1alpha1',
         kind: 'Application',
         metadata: {
@@ -71,9 +76,14 @@ export class EvaluationWorkflowStack extends cdk.Stack {
             repoURL: props.gitOps.repoUrl,
             targetRevision: props.gitOps.targetRevision,
             helm: {
-              valueFiles: [
-                `${props.stage}.values.yaml`,
-              ],
+              valueFiles: [`${props.stage}.values.yaml`],
+              values: {
+                sharedServicesAccountId: props.sharedServicesAccountId,
+                resourcePrefix: this.resourcePrefix,
+                stage: props.stage,
+                awsRegion: this.region,
+                awsAccountId: this.account,
+              },
             },
           },
           syncPolicy: {
@@ -84,7 +94,7 @@ export class EvaluationWorkflowStack extends cdk.Stack {
             },
           },
         },
-      })
+      });
 
       const serviceAccount = eksCluster.addServiceAccount(
         'EksEvaluationWorkflowServiceAccount',

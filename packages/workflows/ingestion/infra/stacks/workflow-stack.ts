@@ -6,13 +6,18 @@ import * as snsSubscriptions from 'aws-cdk-lib/aws-sns-subscriptions';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
-import { GitOps, importEksCluster, RESOURCE_PREFIX } from '@workspace/infra-cdk-shared';
+import {
+  GitOps,
+  importEksCluster,
+  RESOURCE_PREFIX,
+} from '@workspace/infra-cdk-shared';
 
 export interface IngestionWorkflowStackProps extends cdk.StackProps {
   stage: string;
+  sharedServicesAccountId: string;
   gitOps: GitOps & {
     path: string;
-  }
+  };
 }
 
 export class IngestionWorkflowStack extends cdk.Stack {
@@ -129,7 +134,7 @@ export class IngestionWorkflowStack extends cdk.Stack {
         this.resourcePrefix
       );
 
-      eksCluster.addManifest("ArgoCDApp", {
+      eksCluster.addManifest('ArgoCDApp', {
         apiVersion: 'argoproj.io/v1alpha1',
         kind: 'Application',
         metadata: {
@@ -147,9 +152,14 @@ export class IngestionWorkflowStack extends cdk.Stack {
             repoURL: props.gitOps.repoUrl,
             targetRevision: props.gitOps.targetRevision,
             helm: {
-              valueFiles: [
-                `${props.stage}.values.yaml`,
-              ],
+              valueFiles: [`${props.stage}.values.yaml`],
+              values: {
+                sharedServicesAccountId: props.sharedServicesAccountId,
+                resourcePrefix: this.resourcePrefix,
+                stage: props.stage,
+                awsRegion: this.region,
+                awsAccountId: this.account,
+              },
             },
           },
           syncPolicy: {
@@ -160,7 +170,7 @@ export class IngestionWorkflowStack extends cdk.Stack {
             },
           },
         },
-      })
+      });
 
       const serviceAccount = eksCluster.addServiceAccount(
         'EksIngestionWorkflowServiceAccount',

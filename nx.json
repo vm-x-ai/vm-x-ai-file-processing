@@ -139,7 +139,7 @@
     "docker-build": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "docker build -t \"[SHARED_SERVICES_ACCOUNT_ID].dkr.ecr.us-east-1.amazonaws.com/[YOUR_RESOURCE_PREFIX]-$ECR_REPO_NAME-ecr-shared:${TAG_PREFIX}{args.tag}\" .",
+        "command": "docker build -t \"$SHARED_SERVICES_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/$RESOURCE_PREFIX-$ECR_REPO_NAME-ecr-shared:${TAG_PREFIX}{args.tag}\" .",
         "cwd": "{projectRoot}",
         "forwardAllArgs": false
       },
@@ -148,7 +148,7 @@
     "docker-push": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "docker push \"[SHARED_SERVICES_ACCOUNT_ID].dkr.ecr.us-east-1.amazonaws.com/[YOUR_RESOURCE_PREFIX]-$ECR_REPO_NAME-ecr-shared:${TAG_PREFIX}{args.tag}\"",
+        "command": "docker push \"$SHARED_SERVICES_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/$RESOURCE_PREFIX-$ECR_REPO_NAME-ecr-shared:${TAG_PREFIX}{args.tag}\"",
         "cwd": "{projectRoot}",
         "forwardAllArgs": false
       }

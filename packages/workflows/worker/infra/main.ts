@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib';
-import { getStages, resolveArgoCDPath, RESOURCE_PREFIX } from '@workspace/infra-cdk-shared';
+import {
+  getStages,
+  resolveArgoCDPath,
+  RESOURCE_PREFIX,
+} from '@workspace/infra-cdk-shared';
 import { TemporalWorkerStack } from './stacks/worker-stack.js';
 
 const app = new cdk.App();
@@ -18,6 +22,7 @@ for (const stage of getStages(app.node.tryGetContext('stage') ?? 'dev')) {
     `${RESOURCE_PREFIX}-app-temporal-worker-${stage.stageName}`,
     {
       ...baseParams,
+      sharedServicesAccountId: getStages('shared')[0].accountId,
       gitOps: {
         ...stage.gitOps,
         path: resolveArgoCDPath(import.meta.url),

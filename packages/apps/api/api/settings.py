@@ -30,8 +30,7 @@ class Landing(BaseSettings):
 
     @jinja_template_validator("s3_bucket_name")
     @classmethod
-    def resolve_jinja_templates(cls, value):
-        ...
+    def resolve_jinja_templates(cls, value): ...
 
 
 class Settings(BaseSettings):

@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib';
-import { getStages, resolveArgoCDPath, RESOURCE_PREFIX } from '@workspace/infra-cdk-shared';
+import {
+  getStages,
+  resolveArgoCDPath,
+  RESOURCE_PREFIX,
+} from '@workspace/infra-cdk-shared';
 import { UIStack } from './stacks/ui-stack.mjs';
 
 const app = new cdk.App();
@@ -15,6 +19,7 @@ for (const stage of getStages(app.node.tryGetContext('stage') ?? 'dev')) {
 
   new UIStack(app, `${RESOURCE_PREFIX}-ui-${stage.stageName}`, {
     ...baseParams,
+    sharedServicesAccountId: getStages('shared')[0].accountId,
     gitOps: {
       ...stage.gitOps,
       path: resolveArgoCDPath(import.meta.url),

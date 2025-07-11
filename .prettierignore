@@ -4,5 +4,5 @@
 /.nx/cache
 /.nx/workspace-data
 
-/**/argocd/*/templates/*.yaml
-/**/argocd/templates/*.yaml
+/**/argocd/**/*.yaml
+

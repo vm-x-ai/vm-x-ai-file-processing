@@ -1,12 +1,13 @@
 image:
   repository: >-
-    "[SHARED_SERVICES_ACCOUNT_ID].dkr.ecr.us-east-1.amazonaws.com/vmxfp-evaluation-workflow-sqs-consumer-ecr-shared"
-  tag: 95b6e0f3190d1b434f6f3ea8c8b5b0d470397400
-  pullPolicy: IfNotPresent
+    "{{ .Values.sharedServicesAccountId }}.dkr.ecr.{{ .Values.awsRegion }}.amazonaws.com/{{ .Values.resourcePrefix }}-evaluation-workflow-sqs-consumer-ecr-shared"
+  tag: latest
+  # Update to IfNotPresent when using proper image tags
+  pullPolicy: Always
 env:
   temporalHost: temporal-frontend.temporal:7233
   queueUrl: >-
-    https://sqs.us-east-1.amazonaws.com/978398161683/vmxfp-evaluation-workflow-us-east-1-dev
+    https://sqs.{{ .Values.awsRegion }}.amazonaws.com/{{ .Values.awsAccountId }}/{{ .Values.resourcePrefix }}-evaluation-workflow-{{ .Values.awsRegion }}-{{ .Values.stage }}
 resources:
   requests:
     memory: 256Mi
@@ -14,4 +15,4 @@ resources:
   limits:
     memory: 512Mi
     cpu: 500m
-namespace: vmxfp-app
+namespace: {{ .Values.resourcePrefix }}-app

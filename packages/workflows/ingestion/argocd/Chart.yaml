@@ -1,4 +1,4 @@
 apiVersion: v2
-name: vmxfp-ingestion-workflow
+name: ingestion-workflow
 version: 0.1.0
-description: Helm chart for vmxfp-ingestion-workflow deployment
+description: Helm chart for ingestion-workflow deployment

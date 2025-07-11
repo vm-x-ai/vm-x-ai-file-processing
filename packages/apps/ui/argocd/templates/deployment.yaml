@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: vmxfp-ui
+  name: {{ .Values.resourcePrefix }}-ui
   namespace: {{ .Values.namespace }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: vmxfp-ui
+      app: {{ .Values.resourcePrefix }}-ui
   template:
     metadata:
       labels:
-        app: vmxfp-ui
+        app: {{ .Values.resourcePrefix }}-ui
     spec:
-      serviceAccountName: vmxfp-ui-service-account
+      serviceAccountName: {{ .Values.resourcePrefix }}-ui-service-account
       containers:
-        - name: vmxfp-ui
+        - name: {{ .Values.resourcePrefix }}-ui
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
@@ -49,7 +49,7 @@ spec:
                   name: {{ .Values.env.vmxCredentialsSecret }}
                   key: resource_id
             - name: NEXT_PUBLIC_API_URL
-              value: {{ .Values.env.apiUrl }}
+              value: "http://$(ISTIO_GATEWAY_HOSTNAME)/api"
           resources:
             requests:
               memory: {{ .Values.resources.requests.memory }}
@@ -67,4 +67,4 @@ spec:
             driver: secrets-store.csi.k8s.io
             readOnly: true
             volumeAttributes:
-              secretProviderClass: vmxfp-vmx-secrets 
+              secretProviderClass: {{ .Values.resourcePrefix }}-vmx-secrets 
