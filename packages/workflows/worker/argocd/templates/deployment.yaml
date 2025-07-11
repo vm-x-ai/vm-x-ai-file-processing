@@ -1,92 +1,92 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.resourcePrefix }}-temporal-worker
+  name: "{{ .Values.resourcePrefix }}-temporal-worker"
   namespace: {{ .Values.namespace }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .Values.resourcePrefix }}-temporal-worker
+      app: "{{ .Values.resourcePrefix }}-temporal-worker"
   template:
     metadata:
       labels:
-        app: {{ .Values.resourcePrefix }}-temporal-worker
+        app: "{{ .Values.resourcePrefix }}-temporal-worker"
     spec:
-      serviceAccountName: {{ .Values.resourcePrefix }}-temporal-worker-service-account
+      serviceAccountName: "{{ .Values.resourcePrefix }}-temporal-worker-service-account"
       containers:
-        - name: {{ .Values.resourcePrefix }}-temporal-worker
-          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        - name: "{{ .Values.resourcePrefix }}-temporal-worker"
+          image: "{{ .Values.sharedServicesAccountId }}.dkr.ecr.{{ .Values.awsRegion }}.amazonaws.com/{{ .Values.resourcePrefix }}-{{ .Values.image.repositoryName }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.env.dbSecret }}
+                  name: "{{ .Values.resourcePrefix }}-app-database-secret"
                   key: username
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.env.dbSecret }}
+                  name: "{{ .Values.resourcePrefix }}-app-database-secret"
                   key: password
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.env.dbSecret }}
+                  name: "{{ .Values.resourcePrefix }}-app-database-secret"
                   key: host
             - name: DB_RO_HOST
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.env.dbRoHost }}
-                  key: {{ .Values.env.dbRoHost }}
+                  name: "{{ .Values.resourcePrefix }}-app-database-ro-host"
+                  key: "{{ .Values.resourcePrefix }}-app-database-ro-host"
             - name: DB_PORT
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.env.dbSecret }}
+                  name: "{{ .Values.resourcePrefix }}-app-database-secret"
                   key: port
             - name: DB_NAME
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.env.dbSecret }}
+                  name: "{{ .Values.resourcePrefix }}-app-database-secret"
                   key: dbname
             - name: OPENAI_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.env.openaiApiKeySecret }}
+                  name: "openai-credentials"
                   key: api_key
             - name: LANDING_S3_BUCKET_NAME
-              value: {{ .Values.env.landingS3Bucket }}
+              value: "{{ .Values.resourcePrefix }}-ingestion-landing-{{ .Values.awsRegion }}-{{ .Values.stage }}"
             - name: THUMBNAIL_S3_BUCKET_NAME
-              value: {{ .Values.env.thumbnailS3Bucket }}
+              value: "{{ .Values.resourcePrefix }}-file-thumbnail-{{ .Values.awsRegion }}-{{ .Values.stage }}"
             - name: TEMPORAL_HOST
-              value: {{ .Values.env.temporalHost }}
+              value: "temporal-frontend.temporal:7233"
             - name: VMX_DOMAIN
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.env.vmxCredentialsSecret }}
+                  name: "vmx-credentials"
                   key: domain
             - name: VMX_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.env.vmxCredentialsSecret }}
+                  name: "vmx-credentials"
                   key: api_key
             - name: VMX_WORKSPACE_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.env.vmxCredentialsSecret }}
+                  name: "vmx-credentials"
                   key: workspace_id
             - name: VMX_ENVIRONMENT_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.env.vmxCredentialsSecret }}
+                  name: "vmx-credentials"
                   key: environment_id
             - name: VMX_RESOURCE_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.env.vmxCredentialsSecret }}
+                  name: "vmx-credentials"
                   key: resource_id
             - name: EVENT_BUS_NAME
-              value: {{ .Values.env.eventBusName }}
+              value: "{{ .Values.resourcePrefix }}-event-bus-{{ .Values.stage }}"
             - name: INGESTION_CALLBACK_URL
               value: "http://$(ISTIO_GATEWAY_HOSTNAME)/api/ingestion-callback"
           resources:
@@ -109,10 +109,10 @@ spec:
             driver: secrets-store.csi.k8s.io
             readOnly: true
             volumeAttributes:
-              secretProviderClass: {{ .Values.resourcePrefix }}-app-secrets 
+              secretProviderClass: "{{ .Values.resourcePrefix }}-app-secrets"
         - name: vmx-secrets-store-inline
           csi:
             driver: secrets-store.csi.k8s.io
             readOnly: true
             volumeAttributes:
-              secretProviderClass: {{ .Values.resourcePrefix }}-vmx-secrets
+              secretProviderClass: "{{ .Values.resourcePrefix }}-vmx-secrets"

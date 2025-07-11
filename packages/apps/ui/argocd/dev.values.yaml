@@ -1,10 +1,7 @@
 image:
-  repository: '{{ .Values.sharedServicesAccountId }}.dkr.ecr.{{ .Values.awsRegion }}.amazonaws.com/{{ .Values.resourcePrefix }}-ui-ecr-shared'
-  tag: dev-latest
+  tag: latest
   # Update to IfNotPresent when using proper image tags
   pullPolicy: Always
-env:
-  vmxCredentialsSecret: vmx-credentials
 resources:
   requests:
     memory: 256Mi
@@ -15,5 +12,4 @@ resources:
 service:
   type: ClusterIP
   port: 80
-  targetPort: 3000
-namespace: {{ .Values.resourcePrefix }}-app
+  targetPort: 8000

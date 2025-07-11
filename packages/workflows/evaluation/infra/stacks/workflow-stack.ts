@@ -1,29 +1,18 @@
-import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import {
-  GitOps,
+  BaseStack,
+  BaseStackProps,
   importEksCluster,
-  RESOURCE_PREFIX,
 } from '@workspace/infra-cdk-shared';
 
-export interface EvaluationWorkflowStackProps extends cdk.StackProps {
-  stage: string;
-  sharedServicesAccountId: string;
-  gitOps: GitOps & {
-    path: string;
-  };
-}
-
-export class EvaluationWorkflowStack extends cdk.Stack {
-  private readonly resourcePrefix: string = RESOURCE_PREFIX;
-
+export class EvaluationWorkflowStack extends BaseStack {
   constructor(
     scope: Construct,
     id: string,
-    props: EvaluationWorkflowStackProps
+    props: BaseStackProps
   ) {
     super(scope, id, props);
 
@@ -58,43 +47,12 @@ export class EvaluationWorkflowStack extends cdk.Stack {
         this.resourcePrefix
       );
 
-      eksCluster.addManifest('ArgoCDApp', {
-        apiVersion: 'argoproj.io/v1alpha1',
-        kind: 'Application',
-        metadata: {
-          name: `${this.resourcePrefix}-app-evaluation-workflow`,
-          namespace: 'argocd',
-        },
-        spec: {
-          destination: {
-            namespace: `${this.resourcePrefix}-app`,
-            server: 'https://kubernetes.default.svc',
-          },
-          project: 'default',
-          source: {
-            path: props.gitOps.path,
-            repoURL: props.gitOps.repoUrl,
-            targetRevision: props.gitOps.targetRevision,
-            helm: {
-              valueFiles: [`${props.stage}.values.yaml`],
-              values: {
-                sharedServicesAccountId: props.sharedServicesAccountId,
-                resourcePrefix: this.resourcePrefix,
-                stage: props.stage,
-                awsRegion: this.region,
-                awsAccountId: this.account,
-              },
-            },
-          },
-          syncPolicy: {
-            automated: {
-              prune: true,
-              selfHeal: true,
-              allowEmpty: true,
-            },
-          },
-        },
-      });
+      this.registerArgoCDApplication(
+        eksCluster,
+        props,
+        "evaluation-workflow-sqs-consumer",
+        `${this.resourcePrefix}-app`
+      );
 
       const serviceAccount = eksCluster.addServiceAccount(
         'EksEvaluationWorkflowServiceAccount',

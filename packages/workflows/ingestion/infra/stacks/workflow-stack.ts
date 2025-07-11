@@ -1,4 +1,3 @@
-import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as sns from 'aws-cdk-lib/aws-sns';
@@ -7,28 +6,19 @@ import * as sqs from 'aws-cdk-lib/aws-sqs';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import {
-  GitOps,
+  BaseStack,
+  BaseStackProps,
   importEksCluster,
-  RESOURCE_PREFIX,
 } from '@workspace/infra-cdk-shared';
 
-export interface IngestionWorkflowStackProps extends cdk.StackProps {
-  stage: string;
-  sharedServicesAccountId: string;
-  gitOps: GitOps & {
-    path: string;
-  };
-}
-
-export class IngestionWorkflowStack extends cdk.Stack {
+export class IngestionWorkflowStack extends BaseStack {
   public readonly landingBucket: s3.Bucket;
   public readonly thumbnailBucket: s3.Bucket;
-  private readonly resourcePrefix: string = RESOURCE_PREFIX;
 
   constructor(
     scope: Construct,
     id: string,
-    props: IngestionWorkflowStackProps
+    props: BaseStackProps
   ) {
     super(scope, id, props);
 
@@ -134,43 +124,12 @@ export class IngestionWorkflowStack extends cdk.Stack {
         this.resourcePrefix
       );
 
-      eksCluster.addManifest('ArgoCDApp', {
-        apiVersion: 'argoproj.io/v1alpha1',
-        kind: 'Application',
-        metadata: {
-          name: `${this.resourcePrefix}-app-ingestion-workflow`,
-          namespace: 'argocd',
-        },
-        spec: {
-          destination: {
-            namespace: `${this.resourcePrefix}-app`,
-            server: 'https://kubernetes.default.svc',
-          },
-          project: 'default',
-          source: {
-            path: props.gitOps.path,
-            repoURL: props.gitOps.repoUrl,
-            targetRevision: props.gitOps.targetRevision,
-            helm: {
-              valueFiles: [`${props.stage}.values.yaml`],
-              values: {
-                sharedServicesAccountId: props.sharedServicesAccountId,
-                resourcePrefix: this.resourcePrefix,
-                stage: props.stage,
-                awsRegion: this.region,
-                awsAccountId: this.account,
-              },
-            },
-          },
-          syncPolicy: {
-            automated: {
-              prune: true,
-              selfHeal: true,
-              allowEmpty: true,
-            },
-          },
-        },
-      });
+      this.registerArgoCDApplication(
+        eksCluster,
+        props,
+        "ingestion-workflow-sqs-consumer",
+        `${this.resourcePrefix}-app`
+      );
 
       const serviceAccount = eksCluster.addServiceAccount(
         'EksIngestionWorkflowServiceAccount',

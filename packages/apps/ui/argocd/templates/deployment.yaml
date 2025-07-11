@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.resourcePrefix }}-ui
+  name: "{{ .Values.resourcePrefix }}-ui"
   namespace: {{ .Values.namespace }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .Values.resourcePrefix }}-ui
+      app: "{{ .Values.resourcePrefix }}-ui"
   template:
     metadata:
       labels:
-        app: {{ .Values.resourcePrefix }}-ui
+        app: "{{ .Values.resourcePrefix }}-ui"
     spec:
-      serviceAccountName: {{ .Values.resourcePrefix }}-ui-service-account
+      serviceAccountName: "{{ .Values.resourcePrefix }}-ui-service-account"
       containers:
-        - name: {{ .Values.resourcePrefix }}-ui
-          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        - name: "{{ .Values.resourcePrefix }}-ui"
+          image: "{{ .Values.sharedServicesAccountId }}.dkr.ecr.{{ .Values.awsRegion }}.amazonaws.com/{{ .Values.resourcePrefix }}-{{ .Values.image.repositoryName }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 3000
@@ -24,29 +24,29 @@ spec:
             - name: VMX_DOMAIN
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.env.vmxCredentialsSecret }}
+                  name: vmx-credentials
                   key: domain
             - name: VMX_PROTOCOL
               value: https
             - name: VMX_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.env.vmxCredentialsSecret }}
+                  name: vmx-credentials
                   key: api_key
             - name: VMX_WORKSPACE_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.env.vmxCredentialsSecret }}
+                  name: vmx-credentials
                   key: workspace_id
             - name: VMX_ENVIRONMENT_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.env.vmxCredentialsSecret }}
+                  name: vmx-credentials
                   key: environment_id
             - name: VMX_RESOURCE
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.env.vmxCredentialsSecret }}
+                  name: vmx-credentials
                   key: resource_id
             - name: NEXT_PUBLIC_API_URL
               value: "http://$(ISTIO_GATEWAY_HOSTNAME)/api"
@@ -67,4 +67,4 @@ spec:
             driver: secrets-store.csi.k8s.io
             readOnly: true
             volumeAttributes:
-              secretProviderClass: {{ .Values.resourcePrefix }}-vmx-secrets 
+              secretProviderClass: "{{ .Values.resourcePrefix }}-vmx-secrets"

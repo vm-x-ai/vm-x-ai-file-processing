@@ -1,13 +1,7 @@
 image:
-  repository: >-
-    "{{ .Values.sharedServicesAccountId }}.dkr.ecr.{{ .Values.awsRegion }}.amazonaws.com/{{ .Values.resourcePrefix }}-ingestion-workflow-sqs-consumer-ecr-shared"
   tag: latest
   # Update to IfNotPresent when using proper image tags
   pullPolicy: Always
-env:
-  temporalHost: temporal-frontend.temporal:7233
-  queueUrl: >-
-    https://sqs.{{ .Values.awsRegion }}.amazonaws.com/{{ .Values.awsAccountId }}/{{ .Values.resourcePrefix }}-ingestion-workflow-{{ .Values.awsRegion }}-{{ .Values.stage }}
 resources:
   requests:
     memory: 256Mi
@@ -15,4 +9,3 @@ resources:
   limits:
     memory: 512Mi
     cpu: 500m
-namespace: {{ .Values.resourcePrefix }}-app

@@ -1,28 +1,28 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.resourcePrefix }}-ingestion-workflow
+  name: "{{ .Values.resourcePrefix }}-ingestion-workflow"
   namespace: {{ .Values.namespace }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .Values.resourcePrefix }}-ingestion-workflow
+      app: "{{ .Values.resourcePrefix }}-ingestion-workflow"
   template:
     metadata:
       labels:
-        app: {{ .Values.resourcePrefix }}-ingestion-workflow
+        app: "{{ .Values.resourcePrefix }}-ingestion-workflow"
     spec:
-      serviceAccountName: {{ .Values.resourcePrefix }}-ingestion-workflow-service-account
+      serviceAccountName: "{{ .Values.resourcePrefix }}-ingestion-workflow-service-account"
       containers:
-        - name: {{ .Values.resourcePrefix }}-ingestion-workflow
-          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        - name: "{{ .Values.resourcePrefix }}-ingestion-workflow"
+          image: "{{ .Values.sharedServicesAccountId }}.dkr.ecr.{{ .Values.awsRegion }}.amazonaws.com/{{ .Values.resourcePrefix }}-{{ .Values.image.repositoryName }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: TEMPORAL_HOST
-              value: {{ .Values.env.temporalHost }}
+              value: "temporal-frontend.temporal:7233"
             - name: SQS_CONSUMER_QUEUE_URL
-              value: {{ .Values.env.queueUrl }}
+              value: "https://sqs.{{ .Values.awsRegion }}.amazonaws.com/{{ .Values.awsAccountId }}/{{ .Values.resourcePrefix }}-ingestion-workflow-{{ .Values.awsRegion }}-{{ .Values.stage }}"
           resources:
             requests:
               memory: {{ .Values.resources.requests.memory }}

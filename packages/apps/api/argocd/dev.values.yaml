@@ -1,5 +1,4 @@
 image:
-  repositoryName: "api-ecr-shared"
   tag: latest
   # Update to IfNotPresent when using proper image tags
   pullPolicy: Always

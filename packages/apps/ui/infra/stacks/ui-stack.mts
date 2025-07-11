@@ -1,26 +1,15 @@
-import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as kms from 'aws-cdk-lib/aws-kms';
 import type { Construct } from 'constructs';
 import {
-  GitOps,
+  BaseStack,
+  BaseStackProps,
   importEksCluster,
-  RESOURCE_PREFIX,
 } from '@workspace/infra-cdk-shared';
 
-interface UIStackProps extends cdk.StackProps {
-  stage: string;
-  sharedServicesAccountId: string;
-  gitOps: GitOps & {
-    path: string;
-  };
-}
-
-export class UIStack extends cdk.Stack {
-  private readonly resourcePrefix: string = RESOURCE_PREFIX;
-
-  constructor(scope: Construct, id: string, props: UIStackProps) {
+export class UIStack extends BaseStack {
+  constructor(scope: Construct, id: string, props: BaseStackProps) {
     super(scope, id, props);
 
     const eksCluster = importEksCluster(
@@ -30,43 +19,12 @@ export class UIStack extends cdk.Stack {
       this.resourcePrefix
     );
 
-    eksCluster.addManifest('ArgoCDApp', {
-      apiVersion: 'argoproj.io/v1alpha1',
-      kind: 'Application',
-      metadata: {
-        name: `${this.resourcePrefix}-app-ui`,
-        namespace: 'argocd',
-      },
-      spec: {
-        destination: {
-          namespace: `${this.resourcePrefix}-app`,
-          server: 'https://kubernetes.default.svc',
-        },
-        project: 'default',
-        source: {
-          path: props.gitOps.path,
-          repoURL: props.gitOps.repoUrl,
-          targetRevision: props.gitOps.targetRevision,
-          helm: {
-            valueFiles: [`${props.stage}.values.yaml`],
-            values: {
-              sharedServicesAccountId: props.sharedServicesAccountId,
-              resourcePrefix: this.resourcePrefix,
-              stage: props.stage,
-              awsRegion: this.region,
-              awsAccountId: this.account,
-            },
-          },
-        },
-        syncPolicy: {
-          automated: {
-            prune: true,
-            selfHeal: true,
-            allowEmpty: true,
-          },
-        },
-      },
-    });
+    this.registerArgoCDApplication(
+      eksCluster,
+      props,
+      "ui",
+      `${this.resourcePrefix}-app`
+    );
 
     const dbEncryptionKey = kms.Key.fromKeyArn(
       this,

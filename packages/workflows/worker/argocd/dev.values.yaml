@@ -1,17 +1,7 @@
 image:
-  repository: '{{ .Values.sharedServicesAccountId }}.dkr.ecr.{{ .Values.awsRegion }}.amazonaws.com/{{ .Values.resourcePrefix }}-temporal-worker-ecr-shared'
   tag: latest
   # Update to IfNotPresent when using proper image tags
   pullPolicy: Always
-env:
-  dbSecret: {{ .Values.resourcePrefix }}-app-database-secret
-  dbRoHost: {{ .Values.resourcePrefix }}-app-database-ro-host
-  openaiApiKeySecret: openai-credentials
-  landingS3Bucket: {{ .Values.resourcePrefix }}-ingestion-landing-{{ .Values.awsRegion }}-{{ .Values.stage }}
-  thumbnailS3Bucket: {{ .Values.resourcePrefix }}-file-thumbnail-{{ .Values.awsRegion }}-{{ .Values.stage }}
-  vmxCredentialsSecret: vmx-credentials
-  temporalHost: temporal-frontend.temporal:7233
-  eventBusName: {{ .Values.resourcePrefix }}-event-bus-{{ .Values.stage }}
 resources:
   requests:
     memory: 256Mi
@@ -19,4 +9,3 @@ resources:
   limits:
     memory: 512Mi
     cpu: 500m
-namespace: {{ .Values.resourcePrefix }}-app
