@@ -6,7 +6,7 @@ const gitOps = {
   repo: gitRepo,
   repoUrl: `https://github.com/${gitOwner}/${gitRepo}`,
   secretName: 'argocd-github-token',
-  targetRevision: 'main',
+  targetRevision: 'temporal-workflow',
 };
 
 export const stages = [

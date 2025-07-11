@@ -12,6 +12,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
+import Link from 'next/link';
 import { Params } from 'next/dist/server/request/params';
 import React from 'react';
 
@@ -62,6 +63,7 @@ export default function NextBreadcrumbs({
           .replace(']', '');
 
         const href = '/' + asPathNestedRoutes.slice(0, idx + 1).join('/');
+        console.log('href', href);
         return {
           href,
           textGenerator: () => getTextGenerator(param, params, query),
@@ -127,5 +129,9 @@ function Crumb({
     return <BreadcrumbPage color="text.primary">{text}</BreadcrumbPage>;
   }
 
-  return <BreadcrumbLink href={href}>{text}</BreadcrumbLink>;
+  return (
+    <BreadcrumbLink asChild>
+      <Link href={href}>{text}</Link>
+    </BreadcrumbLink>
+  );
 }

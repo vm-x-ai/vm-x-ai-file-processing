@@ -551,7 +551,7 @@ export class EKSStack extends cdk.Stack {
       apiVersion: 'argoproj.io/v1alpha1',
       kind: 'Application',
       metadata: {
-        name: `${this.resourcePrefix}-app-root-app`,
+        name: `${this.resourcePrefix}-root-app`,
         namespace: 'argocd',
         annotations: {
           'argocd.argoproj.io/sync-wave': '-1',

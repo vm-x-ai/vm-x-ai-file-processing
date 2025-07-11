@@ -11,13 +11,17 @@ This project requires two AWS accounts:
 1. **Shared Services Account**: Contains shared resources like ECR repositories.
 2. **Development Account**: Contains the application infrastructure like EKS cluster, RDS database, and application workloads.
 
-TBC: Add a easy way to replace the resource prefix in the codebase without massive changes.
-
 ## Update the AWS Account IDs
 
 Update the `packages/infra/cdk/shared/src/consts/stages.ts` with your AWS accounts information.
 
-TODO TO UPDATE: `nx.json`
+## Update GitHub Repo Details
+
+TBC.
+
+## Add Secrets
+
+TBC
 
 ## Aurora Database Tunnel
 

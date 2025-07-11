@@ -11,7 +11,7 @@ spec:
   source:
     path: packages/workflows/ingestion/argocd
     repoURL: https://github.com/vm-x-ai/vm-x-ai-file-classifier
-    targetRevision: network-dns
+    targetRevision: main
     helm:
       valueFiles:
         - dev.values.yaml
