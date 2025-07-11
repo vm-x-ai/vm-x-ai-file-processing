@@ -16,7 +16,7 @@ spec:
       serviceAccountName: "{{ .Values.resourcePrefix }}-api-service-account"
       containers:
         - name: "{{ .Values.resourcePrefix }}-api"
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: "{{ .Values.sharedServicesAccountId }}.dkr.ecr.{{ .Values.awsRegion }}.amazonaws.com/{{ .Values.resourcePrefix }}-{{ .Values.image.repositoryName }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 8000
@@ -24,42 +24,42 @@ spec:
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: "{{ .Values.env.dbSecret }}"
+                  name: "{{ .Values.resourcePrefix }}-app-database-secret"
                   key: username
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: "{{ .Values.env.dbSecret }}"
+                  name: "{{ .Values.resourcePrefix }}-app-database-secret"
                   key: password
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
-                  name: "{{ .Values.env.dbSecret }}"
+                  name: "{{ .Values.resourcePrefix }}-app-database-secret"
                   key: host
             - name: DB_RO_HOST
               valueFrom:
                 secretKeyRef:
-                  name: "{{ .Values.env.dbRoHost }}"
-                  key: "{{ .Values.env.dbRoHost }}"
+                  name: "{{ .Values.resourcePrefix }}-app-database-ro-host"
+                  key: "{{ .Values.resourcePrefix }}-app-database-ro-host"
             - name: DB_PORT
               valueFrom:
                 secretKeyRef:
-                  name: "{{ .Values.env.dbSecret }}"
+                  name: "{{ .Values.resourcePrefix }}-app-database-secret"
                   key: port
             - name: DB_NAME
               valueFrom:
                 secretKeyRef:
-                  name: "{{ .Values.env.dbSecret }}"
+                  name: "{{ .Values.resourcePrefix }}-app-database-secret"
                   key: dbname
             - name: OPENAI_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: "{{ .Values.env.openaiApiKeySecret }}"
+                  name: "openai-credentials"
                   key: api_key
             - name: LANDING_S3_BUCKET_NAME
-              value: "{{ .Values.env.landingS3Bucket }}"
+              value: "{{ .Values.resourcePrefix }}-ingestion-landing-{{ .Values.awsRegion }}-{{ .Values.stage }}"
             - name: TEMPORAL_HOST
-              value: "{{ .Values.env.temporalHost }}"
+              value: "temporal-frontend.temporal:7233"
           resources:
             requests:
               memory: {{ .Values.resources.requests.memory }}
