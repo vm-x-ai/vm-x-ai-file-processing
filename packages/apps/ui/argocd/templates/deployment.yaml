@@ -49,7 +49,17 @@ spec:
                   name: vmx-credentials
                   key: resource_id
             - name: NEXT_PUBLIC_API_URL
+              {{- if .Values.minikube }}
+              value: "http://localhost:80/api"
+              {{- else }}
               value: "http://{{ .Values.ingressGatewayAddress }}/api"
+              {{- end }}
+            - name: API_URL
+              {{- if .Values.minikube }}
+              value: "http://{{ .Values.resourcePrefix }}-api.{{ .Values.namespace }}.svc.cluster.local:80/api"
+              {{- else }}
+              value: "{{ .Values.ingressGatewayAddress }}/api"
+              {{- end }}
           resources:
             requests:
               memory: {{ .Values.resources.requests.memory }}
@@ -57,14 +67,18 @@ spec:
             limits:
               memory: {{ .Values.resources.limits.memory }}
               cpu: {{ .Values.resources.limits.cpu }}
+          {{- if not .Values.minikube }}
           volumeMounts:
             - name: vmx-secrets-store-inline
               mountPath: '/mnt/vmx-secrets-store'
               readOnly: true
+          {{- end }}
       volumes:
+        {{- if not .Values.minikube }}
         - name: vmx-secrets-store-inline
           csi:
             driver: secrets-store.csi.k8s.io
             readOnly: true
             volumeAttributes:
               secretProviderClass: "{{ .Values.resourcePrefix }}-vmx-secrets"
+        {{- end }}

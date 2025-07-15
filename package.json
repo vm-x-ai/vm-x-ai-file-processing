@@ -4,6 +4,8 @@
   "license": "MIT",
   "scripts": {
     "bootstrap": "bash scripts/bootstrap.sh",
+    "minikube-bootstrap": "bash scripts/bootstrap_minikube.sh",
+    "minikube-serve": "bash scripts/minikube_serve.sh",
     "serve": "bash scripts/run-apps.sh",
     "db-tunnel": "bash scripts/db_tunnel.sh"
   },

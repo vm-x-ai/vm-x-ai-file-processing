@@ -20,9 +20,27 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: TEMPORAL_HOST
+              {{- if .Values.minikube }}
+              value: "temporal-frontend.temporal.svc.cluster.local:7233"
+              {{- else }}
               value: "temporal-frontend.temporal:7233"
+              {{- end }}
             - name: SQS_CONSUMER_QUEUE_URL
+              {{- if .Values.minikube }}
+              value: "http://localstack.localstack.svc.cluster.local:4566/{{ .Values.awsAccountId }}/{{ .Values.resourcePrefix }}-ingestion-workflow-{{ .Values.awsRegion }}-{{ .Values.stage }}"
+              {{- else }}
               value: "https://sqs.{{ .Values.awsRegion }}.amazonaws.com/{{ .Values.awsAccountId }}/{{ .Values.resourcePrefix }}-ingestion-workflow-{{ .Values.awsRegion }}-{{ .Values.stage }}"
+              {{- end }}
+            {{- if .Values.minikube }}
+            - name: AWS_DEFAULT_REGION
+              value: "{{ .Values.awsRegion }}"
+            - name: AWS_ACCESS_KEY_ID
+              value: "XXXX"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "XXXX"
+            - name: AWS_ENDPOINT_URL_SQS
+              value: "http://localstack.localstack.svc.cluster.local:4566"
+            {{- end }}
           resources:
             requests:
               memory: {{ .Values.resources.requests.memory }}

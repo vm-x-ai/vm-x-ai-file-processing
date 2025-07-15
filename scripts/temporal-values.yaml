@@ -1,0 +1,25 @@
+prometheus:
+  enabled: false
+grafana:
+  enabled: false
+server:
+  replicaCount: 1
+  config:
+    namespaces:
+      create: true
+      namespace:
+        - name: default
+          retention: 180d
+elasticsearch:
+  replicas: 1
+cassandra:
+  config:
+    cluster_size: 1
+ui:
+  enabled: true
+web:
+  additionalEnv:
+    - name: TEMPORAL_UI_PUBLIC_PATH
+      value: /temporal
+    - name: TEMPORAL_CSRF_COOKIE_INSECURE
+      value: 'true'

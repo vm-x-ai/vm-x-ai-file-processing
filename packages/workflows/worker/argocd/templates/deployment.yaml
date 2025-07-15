@@ -59,7 +59,11 @@ spec:
             - name: THUMBNAIL_S3_BUCKET_NAME
               value: "{{ .Values.resourcePrefix }}-file-thumbnail-{{ .Values.awsAccountId }}-{{ .Values.awsRegion }}-{{ .Values.stage }}"
             - name: TEMPORAL_HOST
+              {{- if .Values.minikube }}
+              value: "temporal-frontend.temporal.svc.cluster.local:7233"
+              {{- else }}
               value: "temporal-frontend.temporal:7233"
+              {{- end }}
             - name: VMX_DOMAIN
               valueFrom:
                 secretKeyRef:
@@ -89,6 +93,18 @@ spec:
               value: "{{ .Values.resourcePrefix }}-event-bus-{{ .Values.stage }}"
             - name: INGESTION_CALLBACK_URL
               value: "http://{{ .Values.ingressGatewayAddress }}/api/ingestion-callback"
+            {{- if .Values.minikube }}
+            - name: AWS_DEFAULT_REGION
+              value: "{{ .Values.awsRegion }}"
+            - name: AWS_ACCESS_KEY_ID
+              value: "XXXX"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "XXXX"
+            - name: AWS_ENDPOINT_URL_S3
+              value: "http://localstack.localstack.svc.cluster.local:4566"
+            - name: AWS_ENDPOINT_URL_EVENTBRIDGE
+              value: "http://localstack.localstack.svc.cluster.local:4566"
+            {{- end }}
           resources:
             requests:
               memory: {{ .Values.resources.requests.memory }}
@@ -96,6 +112,7 @@ spec:
             limits:
               memory: {{ .Values.resources.limits.memory }}
               cpu: {{ .Values.resources.limits.cpu }}
+          {{- if not .Values.minikube }}
           volumeMounts:
             - name: app-secrets-store-inline
               mountPath: '/mnt/app-secrets-store'
@@ -103,7 +120,9 @@ spec:
             - name: vmx-secrets-store-inline
               mountPath: '/mnt/vmx-secrets-store'
               readOnly: true
+          {{- end }}
       volumes:
+        {{- if not .Values.minikube }}
         - name: app-secrets-store-inline
           csi:
             driver: secrets-store.csi.k8s.io
@@ -116,3 +135,4 @@ spec:
             readOnly: true
             volumeAttributes:
               secretProviderClass: "{{ .Values.resourcePrefix }}-vmx-secrets"
+        {{- end }}

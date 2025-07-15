@@ -91,6 +91,9 @@
         "local": {
           "envFile": "{projectRoot}/.env"
         },
+        "minikube": {
+          "envFile": "{projectRoot}/.env.minikube"
+        },
         "dev": {
           "envFile": "{projectRoot}/.env.dev"
         },

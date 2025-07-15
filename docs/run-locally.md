@@ -29,6 +29,22 @@ pnpm run serve
 
 This will start the application and you can access the UI at http://localhost:3002/ui.
 
+## Deploy to Minikube
+
+Deploy the entire stack to your local Minikube cluster.
+
+Benefits:
+
+- Simulate a more realistic environment
+- No need to have AWS credentials
+- No costs
+
+Please follow this [guide](./run-minikube.md)
+
+## Deploy to AWS
+
+Deploy this entire stack to your AWS account, please follow this [guide](./run-aws.md)
+
 ## Manual Setup
 
 If you want to setup the application manually, you can follow the steps below.
@@ -271,5 +287,3 @@ pnpm nx run ui:dev
 - Database: `ingestion`
 - Username: `app`
 - Password: `app`
-
-You can also deploy this entire stack to your AWS account, please follow this [guide](./run-aws.md)
