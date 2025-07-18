@@ -153,6 +153,30 @@
         "forwardAllArgs": false
       }
     },
+    "helm-deploy": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "./scripts/deploy_helm_app.sh --project-root {projectRoot} --aws-region us-east-1 --image-tag=\"${TAG_PREFIX}{args.tag}\"",
+        "forwardAllArgs": false
+      },
+      "configurations": {
+        "local": {
+          "env": {
+            "STAGE": "local"
+          }
+        },
+        "dev": {
+          "env": {
+            "STAGE": "dev"
+          }
+        },
+        "prd": {
+          "env": {
+            "STAGE": "prd"
+          }
+        }
+      }
+    },
     "docker-compose-up": {
       "executor": "nx:run-commands",
       "options": {

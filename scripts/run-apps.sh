@@ -2,13 +2,12 @@
 
 set -e
 
-CHECK="\xE2\x9C\x85"
-INFO="\xE2\x84\xB9\xEF\xB8\x8F"
-ROCKET="\xF0\x9F\x9A\x80"
+# Source shared logging functions
+source "$(dirname "$0")/shared/logging.sh"
 
-echo -e "$INFO  Starting Apps..."
-echo -e "$ROCKET Access the UI at http://localhost:3002/ui" 
-echo -e "$ROCKET Access the OpenAPI Docs at http://localhost:8000/docs" 
-echo -e "$ROCKET Access the Temporal Web UI at http://localhost:8080" 
+log_info "Starting Apps..."
+log_rocket_bold_inline "Access the **UI** at http://localhost:3002/ui" 
+log_rocket_bold_inline "Access the **OpenAPI Docs** at http://localhost:8000/docs" 
+log_rocket_bold_inline "Access the **Temporal Web UI** at http://localhost:8080" 
 
 NX_TUI=true pnpm nx run ui:dev-with-deps

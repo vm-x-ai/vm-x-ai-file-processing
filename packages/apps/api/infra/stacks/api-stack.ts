@@ -19,13 +19,6 @@ export class APIStack extends BaseStack {
       this.resourcePrefix
     );
 
-    const argoCDApp = this.registerArgoCDApplication(
-      eksCluster,
-      props,
-      'api',
-      `${this.resourcePrefix}-app`
-    );
-
     const dbEncryptionKey = kms.Key.fromKeyArn(
       this,
       'DatabaseSecretKmsKey',
@@ -44,7 +37,16 @@ export class APIStack extends BaseStack {
       }
     );
 
-    argoCDApp.node.addDependency(serviceAccount);
+    if (props.gitOps.enabled) {
+      const argoCDApp = this.registerArgoCDApplication(
+        eksCluster,
+        props,
+        'api',
+        `${this.resourcePrefix}-app`
+      );
+
+      argoCDApp.node.addDependency(serviceAccount);
+    }
 
     dbEncryptionKey.grantDecrypt(serviceAccount.role);
 

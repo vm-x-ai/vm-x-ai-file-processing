@@ -2,6 +2,9 @@
 
 set -e
 
+# Source shared logging functions
+source "$(dirname "$0")/shared/logging.sh"
+
 # Usage:
 #   ./bootstrap.sh [--openai-key=KEY|--openai-key KEY] [--vmx-api-key=KEY|--vmx-api-key KEY] [--vmx-workspace-id=ID|--vmx-workspace-id ID] [--vmx-environment-id=ID|--vmx-environment-id ID] [--vmx-domain=DOMAIN|--vmx-domain DOMAIN] [--vmx-resource-id=ID|--vmx-resource-id ID] [--ngrok-domain=DOMAIN|--ngrok-domain DOMAIN] [--help]
 # If any argument is omitted, the script will prompt for it interactively.
@@ -59,59 +62,45 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Emojis
-CHECK="\xE2\x9C\x85"
-CROSS="\xE2\x9D\x8C"
-INFO="\xE2\x84\xB9\xEF\xB8\x8F"
-WARN="\xF0\x9F\x9A\xA8"
-ROCKET="\xF0\x9F\x9A\x80"
-GEAR="\xE2\x9A\x99\xEF\xB8\x8F"
-
-# Color and style helpers
-BOLD="\033[1m"
-RESET="\033[0m"
-BLUE="\033[34m"
-YELLOW="\033[33m"
-
 # Step 1: Check for required binaries
 REQUIRED_BINS=(node pnpm docker ngrok uv)
 MISSING=()
-echo -e "$INFO  Checking required binaries..."
+log_info "Checking required binaries..."
 for bin in "${REQUIRED_BINS[@]}"; do
   if ! command -v $bin &>/dev/null; then
-    echo -e "$CROSS $bin not found."
+    log_error "$bin not found."
     MISSING+=("$bin")
   fi
 done
 if [ ${#MISSING[@]} -ne 0 ]; then
-  echo -e "$WARN Please install the missing binaries: ${MISSING[*]}"
+  log_warning "Please install the missing binaries: ${MISSING[*]}"
   exit 1
 else
-  echo -e "$CHECK All required binaries found."
+  log_success "All required binaries found."
 fi
 
-echo
+log_newline
 # Step 2: Check if Docker is running
-echo -e "$INFO  Checking if Docker is running..."
+log_info "Checking if Docker is running..."
 if ! docker info &>/dev/null; then
-  echo -e "$CROSS Docker is not running. Please start Docker."
+  log_error "Docker is not running. Please start Docker."
   exit 1
 else
-  echo -e "$CHECK Docker is running."
+  log_success "Docker is running."
 fi
 
-echo
+log_newline
 # Step 3: Prompt for secrets and config
-echo -e "${INFO}  ${BOLD}OpenAI API Key Setup:${RESET}"
-echo -e "1. Go to ${BOLD}${BLUE}https://platform.openai.com/account/api-keys${RESET}"
-echo -e "2. Click ${BOLD}Create new secret key${RESET} and copy your key."
-echo -e "3. Save it somewhere safe—you'll need it for the next step."
-echo
+log_info_bold "OpenAI API Key Setup:"
+log_info_bold_inline "1. Go to **https://platform.openai.com/account/api-keys**"
+log_info_bold_inline "2. Click **Create new secret key** and copy your key."
+log_info "3. Save it somewhere safe—you'll need it for the next step."
+log_newline
 if [ -z "$OPENAI_API_KEY" ]; then
   read -p "Enter your OpenAI API key: " OPENAI_API_KEY
 fi
 
-echo
+log_newline
 
 # Check if all VMX and ngrok arguments are provided
 ALL_VMX_NGROK_SET=1
@@ -124,24 +113,24 @@ done
 
 # VMX and ngrok instructions only if not all values are set
 if [ $ALL_VMX_NGROK_SET -eq 0 ]; then
-  echo
-  echo -e "${INFO}  VM-X Account & Workspace Setup:"
-  echo -e "1. Go to ${BOLD}${BLUE}https://vm-x.ai/plans${RESET} and select the Beta plan (free)."
-  echo -e "2. Sign up with your email or Google account."
-  echo -e "3. After signup, you'll be redirected to ${BOLD}${BLUE}https://console.vm-x.ai/getting-started${RESET}."
-  echo -e "4. Create a workspace (e.g., my-dev-workspace) and environment (e.g., local or dev)."
-  echo -e "5. Wait for your ${BOLD}API Key${RESET} to be generated. Copy and save it."
-  echo -e "6. You'll be redirected to the LLM provider integration page. Paste your OpenAI API Key and click Save."
-  echo -e "7. A dialog will show your ${BOLD}Workspace ID${RESET} and ${BOLD}Environment ID${RESET}. Copy and save both."
-  echo
+  log_newline
+  log_info "VM-X Account & Workspace Setup:"
+  log_info_bold_inline "1. Go to **https://vm-x.ai/plans** and select the Beta plan (free)."
+  log_info "2. Sign up with your email or Google account."
+  log_info_bold_inline "3. After signup, you'll be redirected to **https://console.vm-x.ai/getting-started**."
+  log_info "4. Create a workspace (e.g., my-dev-workspace) and environment (e.g., local or dev)."
+  log_info_bold_inline "5. Wait for your **API Key** to be generated. Copy and save it."
+  log_info "6. You'll be redirected to the LLM provider integration page. Paste your OpenAI API Key and click Save."
+  log_info_bold_inline "7. A dialog will show your **Workspace ID** and **Environment ID**. Copy and save both."
+  log_newline
 
-  echo -e "You will need the following for the next steps:"
-  echo -e "- ${BOLD}VMX API Key${RESET} (from step 5)"
-  echo -e "- ${BOLD}VMX Workspace ID${RESET} (from step 7)"
-  echo -e "- ${BOLD}VMX Environment ID${RESET} (from step 7)"
-  echo -e "- ${BOLD}VMX Domain${RESET} (default: ${BOLD}us-east-1.vm-x.ai${RESET})"
-  echo -e "- ${BOLD}VMX Resource ID${RESET} (default: ${BOLD}openai-default${RESET})"
-  echo
+  log_info "You will need the following for the next steps:"
+  log_info_bold_inline "- **VMX API Key** (from step 5)"
+  log_info_bold_inline "- **VMX Workspace ID** (from step 7)"
+  log_info_bold_inline "- **VMX Environment ID** (from step 7)"
+  log_info_bold_inline "- **VMX Domain** (default: **us-east-1.vm-x.ai**)"
+  log_info_bold_inline "- **VMX Resource ID** (default: **openai-default**)"
+  log_newline
 fi
 
 if [ -z "$VMX_API_KEY" ]; then
@@ -154,36 +143,46 @@ if [ -z "$VMX_ENVIRONMENT_ID" ]; then
   read -p "Enter your VMX Environment ID: " VMX_ENVIRONMENT_ID
 fi
 if [ -z "$VMX_DOMAIN" ]; then
-  read -p "Enter your VMX Domain [${BOLD}us-east-1.vm-x.ai${RESET}]: " VMX_DOMAIN
+  log_prompt_bold_inline "Enter your VMX Domain [**us-east-1.vm-x.ai**]: "
+  read VMX_DOMAIN
 fi
 VMX_DOMAIN=${VMX_DOMAIN:-us-east-1.vm-x.ai}
 if [ -z "$VMX_RESOURCE_ID" ]; then
-  read -p "Enter your VMX Resource ID [${BOLD}openai-default${RESET}]: " VMX_RESOURCE_ID
+  log_prompt_bold_inline "Enter your VMX Resource ID [**openai-default**]: "
+  read VMX_RESOURCE_ID
 fi
 VMX_RESOURCE_ID=${VMX_RESOURCE_ID:-openai-default}
 
-echo
+log_newline
 
 if [ $ALL_VMX_NGROK_SET -eq 0 ]; then
-  echo -e "${INFO}  Ngrok Custom Domain Setup:"
-  echo -e "- See the official guide: ${BOLD}${BLUE}https://ngrok.com/docs/universal-gateway/custom-domains/${RESET}"
-  echo -e "- This allows you to use your own domain (e.g., app.your-domain.com) with ngrok for a persistent, memorable endpoint."
-  echo -e "- Steps:"
-  echo -e "   1. In your ngrok dashboard, go to the Domains page and click ${BOLD}New Domain${RESET} to add your domain."
-  echo -e "   2. ngrok will provide a ${BOLD}CNAME${RESET} value (e.g., exampledata.otherdata.ngrok-cname.com). Copy this."
-  echo -e "   3. In your DNS provider's dashboard, create a ${BOLD}CNAME${RESET} record for your domain (e.g., app.your-domain.com) pointing to the value from step 2."
-  echo -e "   5. Start your tunnel with: ${BOLD}ngrok http --url=<YOUR_CUSTOM_DOMAIN> 8000${RESET}"
-  echo -e "   6. Enter your custom domain (e.g., app.your-domain.com) below."
-  echo
+  log_info "Ngrok Custom Domain Setup:"
+  log_info_bold_inline "- See the official guide: **https://ngrok.com/docs/universal-gateway/custom-domains/**"
+  log_info "- This allows you to use your own domain (e.g., app.your-domain.com) with ngrok for a persistent, memorable endpoint."
+  log_info "- Steps:"
+  log_info_bold_inline "   1. In your ngrok dashboard, go to the Domains page and click **New Domain** to add your domain."
+  log_info_bold_inline "   2. ngrok will provide a **CNAME** value (e.g., exampledata.otherdata.ngrok-cname.com). Copy this."
+  log_info_bold_inline "   3. In your DNS provider's dashboard, create a **CNAME** record for your domain (e.g., app.your-domain.com) pointing to the value from step 2."
+  log_info_bold_inline "   5. Start your tunnel with: **ngrok http --url=<YOUR_CUSTOM_DOMAIN> 8000**"
+  log_info "   6. Enter your custom domain (e.g., app.your-domain.com) below."
+  log_newline
 fi
 if [ -z "$NGROK_DOMAIN" ]; then
   read -p "Enter your ngrok custom domain (e.g. app.your-domain.com): " NGROK_DOMAIN
 fi
+
+# Write the ngrok domain to the .env file, if it's not already there
+if ! grep -q "NGROK_DOMAIN" .env; then
+  echo "" >> .env
+  echo "# Ngrok Domain" >> .env
+  echo "NGROK_DOMAIN=$NGROK_DOMAIN" >> .env
+fi
+
 NGROK_URL="https://$NGROK_DOMAIN"
 
-echo
+log_newline
 # Step 4: Generate .env files
-echo -e "$INFO  Generating .env files..."
+log_info "Generating .env files..."
 
 WORKER_ENV="packages/workflows/worker/.env.local"
 API_ENV="packages/apps/api/.env.serve.local"
@@ -261,53 +260,53 @@ VMX_RESOURCE=$VMX_RESOURCE_ID
 NEXT_PUBLIC_API_URL=http://localhost:8000/api
 EOF
 
-echo -e "$CHECK .env files generated."
+log_success ".env files generated."
 
-echo
+log_newline
 # Step 5: Install dependencies
-echo -e "$INFO  Installing Node.js dependencies..."
+log_info "Installing Node.js dependencies..."
 pnpm install
 
-echo
+log_newline
 
-echo -e "$INFO  Installing Python dependencies..."
+log_info "Installing Python dependencies..."
 uv sync
 
-echo
+log_newline
 # Step 6: Start Docker Compose
-echo -e "$INFO  Starting Docker Compose services..."
+log_info "Starting Docker Compose services..."
 docker compose -f docker-compose.yml up -d
 
-echo -e "$CHECK Docker Compose services started."
+log_success "Docker Compose services started."
 
-echo
+log_newline
 # Step 7: Remind user to start ngrok manually
-echo -e "$WARN Please start ngrok manually with: ngrok http --url=$NGROK_DOMAIN 8000"
+log_warning_bold_inline "Please start ngrok manually with: **ngrok http --url=$NGROK_DOMAIN 8000**"
 
-echo
+log_newline
 # Step 8: Apply database migrations
-echo -e "$INFO  Applying database migrations..."
+log_info "Applying database migrations..."
 pnpm nx run py-db-models:migrations-apply:local
 
-echo -e "$CHECK Database migrations applied."
+log_success "Database migrations applied."
 
-echo
+log_newline
 # Step 9: Bootstrap and deploy infrastructure
-echo -e "$INFO  Bootstrapping CDK..."
+log_info "Bootstrapping CDK..."
 pnpm nx run infra-events:cdk-bootstrap:local
 
-echo
+log_newline
 
-echo -e "$INFO  Deploying base infrastructure..."
+log_info "Deploying base infrastructure..."
 NX_TUI=true pnpm nx run-many -t cdk-deploy -c local --projects=tag:local-infra
 
-echo
+log_newline
 
-echo -e "$INFO  Deploying workflow infrastructure..."
+log_info "Deploying workflow infrastructure..."
 NX_TUI=true pnpm nx run-many -t cdk-deploy -c local --projects=tag:local-workflow-infra
 
-echo -e "$CHECK Infrastructure deployed."
+log_success "Infrastructure deployed."
 
-echo
+log_newline
 
-echo -e "$ROCKET Bootstrap complete! Use ./scripts/run-apps.sh to start the apps." 
+log_rocket_bold_inline "Bootstrap complete! Use **pnpm run serve** to start the apps." 

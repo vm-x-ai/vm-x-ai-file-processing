@@ -6,6 +6,9 @@
 
 set -euo pipefail
 
+# Source shared logging functions
+source "$(dirname "$0")/shared/logging.sh"
+
 # Source .env file if it exists in the workspace root
 env_file="$(dirname "$0")/../.env"
 if [ -f "$env_file" ]; then
@@ -48,7 +51,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [ -z "$AWS_PROFILE" ]; then
-  echo "AWS profile must be specified with --aws-profile or AWS_PROFILE env var."
+  log_error "AWS profile must be specified with --aws-profile or AWS_PROFILE env var."
   exit 1
 fi
 
@@ -67,7 +70,7 @@ DB_PORT=$(aws ssm get-parameter \
   --name "/${RESOURCE_PREFIX}-app/${STAGE}/database/port" \
   --query 'Parameter.Value' --output text)
 
-echo "Starting port forwarding session to $DB_HOST:$DB_PORT on local port $LOCAL_PORT"
+log_info_bold_inline "Starting port forwarding session to **$DB_HOST:$DB_PORT** on local port **$LOCAL_PORT**"
 
 # Start SSM Port Forwarding Session
 aws ssm start-session \

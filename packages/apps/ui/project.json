@@ -75,13 +75,33 @@
       "configurations": {
         "dev": {
           "env": {
-            "ECR_REPO_NAME": "ui",
             "TAG_PREFIX": "dev-"
           }
         },
         "prd": {
           "env": {
-            "ECR_REPO_NAME": "ui",
+            "TAG_PREFIX": "prd-"
+          }
+        }
+      }
+    },
+    "helm-deploy": {
+      "configurations": {
+        "local": {
+          "env": {
+            "STAGE": "local",
+            "TAG_PREFIX": "dev-"
+          }
+        },
+        "dev": {
+          "env": {
+            "STAGE": "dev",
+            "TAG_PREFIX": "dev-"
+          }
+        },
+        "prd": {
+          "env": {
+            "STAGE": "prd",
             "TAG_PREFIX": "prd-"
           }
         }

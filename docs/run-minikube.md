@@ -10,7 +10,7 @@ You can also deploy the entire stack to your local Minikube cluster, this is use
 
 ## System Requirements
 
-- 8 CPU cores and 16GB of memory
+- The K8S cluster is configured with 8 CPU cores and 16GB of memory, so, make sure you have enough resources to run the stack.
 
 ## Getting Started
 
@@ -29,6 +29,12 @@ This will:
 - Install PostgreSQL
 - Build the Docker images
 - Deploy the stack to Minikube
+
+## Accessing Minikube Dashboard
+
+```bash
+minikube dashboard
+```
 
 ## Accessing the stack
 

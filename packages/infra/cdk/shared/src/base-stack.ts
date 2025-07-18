@@ -2,6 +2,7 @@ import { ICluster, KubernetesObjectValue } from '@aws-cdk/aws-eks-v2-alpha';
 import * as cdk from 'aws-cdk-lib';
 import { GitOps, RESOURCE_PREFIX } from './consts/index.js';
 import { Construct } from 'constructs';
+import assert from 'node:assert';
 
 export interface BaseStackProps extends cdk.StackProps {
   stage: string;
@@ -24,6 +25,7 @@ export class BaseStack extends cdk.Stack {
     appName: string,
     namespace: string
   ) {
+    assert(props.gitOps.enabled, 'GitOps is not enabled');
     const ingressGatewayAddress = new KubernetesObjectValue(
       this,
       'IngressGatewayAddress',

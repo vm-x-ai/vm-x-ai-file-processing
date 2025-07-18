@@ -11,6 +11,7 @@ import { KubectlV33Layer } from '@aws-cdk/lambda-layer-kubectl-v33';
 import * as yaml from 'js-yaml';
 import request, { Response, HttpVerb } from 'sync-request';
 import { GitOps, RESOURCE_PREFIX } from '@workspace/infra-cdk-shared';
+import assert from 'node:assert';
 
 interface EKSStackProps extends cdk.StackProps {
   stage: string;
@@ -255,7 +256,10 @@ export class EKSStack extends cdk.Stack {
     this.addVpcCni();
     this.addEbsCsiDriver();
     this.istioGateway = this.addIstio();
-    this.addArgoCD(props);
+
+    if (props.gitOps.enabled) {
+      this.addArgoCD(props);
+    }
 
     new ssm.StringParameter(this, 'ClusterSecurityGroupId', {
       parameterName: `/${this.resourcePrefix}-app/${this.stage}/eks-cluster/security-group-id`,
@@ -405,6 +409,8 @@ export class EKSStack extends cdk.Stack {
   }
 
   private addArgoCD(props: EKSStackProps) {
+    assert(props.gitOps.enabled, 'GitOps is not enabled');
+
     const namespace = new eks.KubernetesManifest(this, 'ArgoCDNamespace', {
       cluster: this.cluster,
       manifest: [

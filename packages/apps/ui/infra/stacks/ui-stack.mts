@@ -19,13 +19,6 @@ export class UIStack extends BaseStack {
       this.resourcePrefix
     );
 
-    const argoCDApp = this.registerArgoCDApplication(
-      eksCluster,
-      props,
-      'ui',
-      `${this.resourcePrefix}-app`
-    );
-
     const dbEncryptionKey = kms.Key.fromKeyArn(
       this,
       'DatabaseSecretKmsKey',
@@ -44,7 +37,15 @@ export class UIStack extends BaseStack {
       }
     );
 
-    argoCDApp.node.addDependency(serviceAccount);
+    if (props.gitOps.enabled) {
+      const argoCDApp = this.registerArgoCDApplication(
+        eksCluster,
+        props,
+        'ui',
+        `${this.resourcePrefix}-app`
+      );
+      argoCDApp.node.addDependency(serviceAccount);
+    }
 
     dbEncryptionKey.grantDecrypt(serviceAccount.role);
 

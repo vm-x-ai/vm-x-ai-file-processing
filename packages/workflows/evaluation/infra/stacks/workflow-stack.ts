@@ -43,13 +43,6 @@ export class EvaluationWorkflowStack extends BaseStack {
         this.resourcePrefix
       );
 
-      const argoCDApp = this.registerArgoCDApplication(
-        eksCluster,
-        props,
-        'evaluation-workflow-sqs-consumer',
-        `${this.resourcePrefix}-app`
-      );
-
       const serviceAccount = eksCluster.addServiceAccount(
         'EksEvaluationWorkflowServiceAccount',
         {
@@ -60,7 +53,15 @@ export class EvaluationWorkflowStack extends BaseStack {
 
       evaluationQueue.grantConsumeMessages(serviceAccount.role);
 
-      argoCDApp.node.addDependency(serviceAccount);
+      if (props.gitOps.enabled) {
+        const argoCDApp = this.registerArgoCDApplication(
+          eksCluster,
+          props,
+          'evaluation-workflow-sqs-consumer',
+          `${this.resourcePrefix}-app`
+        );
+        argoCDApp.node.addDependency(serviceAccount);
+      }
     }
   }
 }

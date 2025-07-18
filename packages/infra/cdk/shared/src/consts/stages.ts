@@ -1,15 +1,21 @@
 const gitOwner = 'vm-x-ai';
 const gitRepo = 'vm-x-ai-file-classifier';
 
-export type GitOps = {
-  owner: string;
-  repo: string;
-  repoUrl: string;
-  secretName: string;
-  targetRevision: string;
-};
+export type GitOps =
+  | {
+      enabled: true;
+      owner: string;
+      repo: string;
+      repoUrl: string;
+      secretName: string;
+      targetRevision: string;
+    }
+  | {
+      enabled: false;
+    };
 
 const gitOps: GitOps = {
+  enabled: true,
   owner: gitOwner,
   repo: gitRepo,
   repoUrl: `https://github.com/${gitOwner}/${gitRepo}`,

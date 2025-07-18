@@ -99,6 +99,7 @@
         }
       }
     },
+    "helm-deploy": {},
     "update-image-tag": {},
     "deploy": {
       "executor": "@workspace/workspace-plugins:proxy-executor",

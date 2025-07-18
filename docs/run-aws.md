@@ -17,9 +17,25 @@ By default, the resource prefix is `file-processing`, and it's used across the e
 
 You can change it by updating the `RESOURCE_PREFIX` in the root `.env` file.
 
-## Update the AWS Account IDs and GitHub Repo Details
+## GitOps
+
+This project uses ArgoCD for GitOps, and it's enabled by default.
+
+If you want to keep using GitOps, follow the steps below to update the Git details to your own.
+
+### Update the AWS Account IDs and GitHub Repo Details
 
 Update the `packages/infra/cdk/shared/src/consts/stages.ts` with your AWS accounts information and GitHub repo details.
+
+If you don't want to use GitOps, you can disable it by updating the `packages/infra/cdk/shared/src/consts/stages.ts` with the following:
+
+```ts
+gitOps: {
+  enabled: false,
+},
+```
+
+**NOTE:** You can always enable GitOps later by updating the `packages/infra/cdk/shared/src/consts/stages.ts` with your own details.
 
 ## CDK Bootstrap
 
@@ -56,6 +72,8 @@ pnpm nx run infra-secrets:cdk-deploy:dev
 ## Add Secrets
 
 Update the following file `secrets/secrets/dev.yaml` as follows:
+
+**NOTE:** If you disabled GitOps, remove the `argocd-github-token` secret.
 
 ```yaml
 kms:
@@ -216,7 +234,7 @@ pnpm nx run-many -t docker-build -c dev --tag "latest" --exclude 'tag:no-docker-
 pnpm nx run-many -t docker-push -c dev --tag "latest" --exclude 'tag:no-docker-build:dev'
 ```
 
-#### Deploy Applications
+#### Deploy Applications (Infra)
 
 ```bash
 pnpm nx run api:cdk-deploy:dev
@@ -224,6 +242,16 @@ pnpm nx run workflow-ingestion:cdk-deploy:dev
 pnpm nx run workflow-evaluation:cdk-deploy:dev
 pnpm nx run workflow-worker:cdk-deploy:dev
 pnpm nx run ui:cdk-deploy:dev
+```
+
+#### Helm Deploy
+
+If you configured the ArgoCD (GitOps) the application will be deployed automatically.
+
+But if you are not using GitOps, you can deploy the applications manually using the following commands:
+
+```bash
+pnpm nx run-many -t helm-deploy -c local --tag "latest"
 ```
 
 #### Access Applications
