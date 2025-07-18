@@ -1,0 +1,78 @@
+[tool.coverage.run]
+branch = true
+source = [ "internal_db_models" ]
+
+[tool.coverage.report]
+exclude_lines = ['if TYPE_CHECKING:']
+show_missing = true
+
+[tool.pytest.ini_options]
+addopts = """
+ --cov
+ --cov-report html:'../../../../../coverage/packages/libs/py/db/models/html'
+ --cov-report xml:'../../../../../coverage/packages/libs/py/db/models/coverage.xml'
+ --html='../../../../../reports/packages/libs/py/db/models/unittests/html/index.html'
+ --junitxml='../../../../../reports/packages/libs/py/db/models/unittests/junit.xml'
+"""
+
+[project]
+name = "py-db-models"
+version = "1.0.0"
+description = "Python Database Models"
+requires-python = ">=3.9,<4"
+readme = 'README.md'
+dependencies = [
+ "alembic>=1.15.2",
+ "boto3>=1.37.3",
+ "py-logger",
+ "numpydantic>=1.6.9",
+ "pgvector>=0.4.1",
+ "psycopg[binary]>=3.2.8",
+ "sqlalchemy[asyncio]>=2.0.40",
+ "sqlmodel>=0.0.24",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["internal_db_models"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+exclude = [
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  "dist",
+]
+
+line-length = 88
+indent-width = 4
+
+[tool.ruff.lint]
+select = [
+  # pycodestyle
+  "E",
+  # Pyflakes
+  "F",
+  # pyupgrade
+  "UP",
+  # flake8-bugbear
+  "B",
+  # flake8-simplify
+  "SIM",
+  # isort
+  "I",
+]
+ignore = []
+
+fixable = ["ALL"]
+unfixable = []
+
+[tool.uv.sources]
+py-logger = { workspace = true }

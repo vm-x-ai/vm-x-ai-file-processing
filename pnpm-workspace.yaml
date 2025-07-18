@@ -1,2 +1,18 @@
-packages: 
-  - "packages/*"
+packages:
+  - packages/*
+  - packages/apps/*
+  - packages/workflows/*
+  - tools/*
+  - packages/infra/cdk/*
+  - packages/infra/*
+  - secrets
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - '@scarf/scarf'
+  - '@swc/core'
+  - '@tailwindcss/oxide'
+  - esbuild
+  - nx
+  - sharp
+  - unrs-resolver
+  - yarn

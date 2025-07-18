@@ -1,0 +1,4 @@
+apiVersion: v2
+name: temporal-worker
+version: 0.1.0
+description: Helm chart for temporal-worker deployment

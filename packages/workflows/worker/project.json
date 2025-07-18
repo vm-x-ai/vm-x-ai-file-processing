@@ -1,0 +1,139 @@
+{
+  "name": "workflow-worker",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "packages/workflows/worker/workflow_worker",
+  "targets": {
+    "cdk-bootstrap": {},
+    "cdk-deploy": {},
+    "docker-compose-up": {},
+    "serve": {
+      "executor": "@nxlv/python:run-commands",
+      "continuous": true,
+      "options": {
+        "command": "python -m workflow_worker",
+        "cwd": "{projectRoot}"
+      },
+      "configurations": {
+        "watch": {
+          "command": "watchmedo auto-restart --patterns=\"*.py\" --recursive -- python -m workflow_worker"
+        }
+      }
+    },
+    "start-ngrok-tunnel": {
+      "continuous": true,
+      "command": "ngrok http --url=$(echo $INGESTION_CALLBACK_URL | sed -E 's#https?://([^/]+).*#\\1#') 8000"
+    },
+    "lock": {
+      "executor": "@nxlv/python:lock",
+      "options": {
+        "update": false
+      }
+    },
+    "sync": {
+      "executor": "@nxlv/python:sync",
+      "options": {}
+    },
+    "add": {
+      "executor": "@nxlv/python:add",
+      "options": {}
+    },
+    "update": {
+      "executor": "@nxlv/python:update",
+      "options": {}
+    },
+    "remove": {
+      "executor": "@nxlv/python:remove",
+      "options": {}
+    },
+    "build": {
+      "executor": "@nxlv/python:build",
+      "outputs": ["{projectRoot}/dist"],
+      "options": {
+        "outputPath": "{projectRoot}/dist",
+        "publish": false,
+        "lockedVersions": true,
+        "bundleLocalDependencies": true
+      },
+      "cache": true
+    },
+    "lint": {
+      "executor": "@nxlv/python:ruff-check",
+      "outputs": [],
+      "options": {
+        "lintFilePatterns": ["workflow_worker", "tests"]
+      },
+      "cache": true
+    },
+    "format": {
+      "executor": "@nxlv/python:ruff-format",
+      "outputs": [],
+      "options": {
+        "filePatterns": ["workflow_worker", "tests"]
+      },
+      "cache": true
+    },
+    "test": {
+      "executor": "@nxlv/python:run-commands",
+      "outputs": [
+        "{workspaceRoot}/reports/{projectRoot}/unittests",
+        "{workspaceRoot}/coverage/{projectRoot}"
+      ],
+      "options": {
+        "command": "uv run pytest tests/",
+        "cwd": "{projectRoot}"
+      },
+      "cache": true
+    },
+    "install": {
+      "executor": "@nxlv/python:install",
+      "options": {
+        "silent": false,
+        "args": "",
+        "verbose": false,
+        "debug": false
+      }
+    },
+    "docker-build": {
+      "options": {
+        "env": {
+          "ECR_REPO_NAME": "temporal-worker"
+        }
+      }
+    },
+    "docker-push": {
+      "options": {
+        "env": {
+          "ECR_REPO_NAME": "temporal-worker"
+        }
+      }
+    },
+    "helm-deploy": {},
+    "update-image-tag": {},
+    "deploy": {
+      "executor": "@workspace/workspace-plugins:proxy-executor",
+      "options": {
+        "target": "cdk-deploy"
+      },
+      "dependsOn": [
+        "^build",
+        {
+          "projects": "infra-database",
+          "target": "deploy",
+          "params": "forward"
+        },
+        {
+          "projects": "infra-eks",
+          "target": "deploy",
+          "params": "forward"
+        }
+      ]
+    }
+  },
+  "tags": ["temporal", "python", "workflow", "no-deploy:shared"],
+  "release": {
+    "version": {
+      "versionActions": "@nxlv/python/src/release/version-actions"
+    }
+  }
+}

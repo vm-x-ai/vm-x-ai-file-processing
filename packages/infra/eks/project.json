@@ -1,0 +1,26 @@
+{
+  "name": "infra-eks",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/infra/eks/src",
+  "projectType": "library",
+  "tags": ["typescript", "infra", "cdk", "shared", "no-deploy:shared"],
+  "// targets": "to see all targets run: nx show project @workspace/infra-eks --web",
+  "targets": {
+    "cdk-bootstrap": {},
+    "cdk-deploy": {},
+    "deploy": {
+      "executor": "@workspace/workspace-plugins:proxy-executor",
+      "options": {
+        "target": "cdk-deploy"
+      },
+      "dependsOn": [
+        "^build",
+        {
+          "projects": "infra-network",
+          "target": "deploy",
+          "params": "forward"
+        }
+      ]
+    }
+  }
+}

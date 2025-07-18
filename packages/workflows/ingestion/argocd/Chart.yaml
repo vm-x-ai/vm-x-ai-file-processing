@@ -1,0 +1,4 @@
+apiVersion: v2
+name: ingestion-workflow
+version: 0.1.0
+description: Helm chart for ingestion-workflow deployment

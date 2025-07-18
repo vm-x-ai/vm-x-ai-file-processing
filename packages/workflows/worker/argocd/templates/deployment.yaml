@@ -1,0 +1,138 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ .Values.resourcePrefix }}-temporal-worker"
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "{{ .Values.resourcePrefix }}-temporal-worker"
+  template:
+    metadata:
+      labels:
+        app: "{{ .Values.resourcePrefix }}-temporal-worker"
+    spec:
+      serviceAccountName: "{{ .Values.resourcePrefix }}-temporal-worker-service-account"
+      containers:
+        - name: "{{ .Values.resourcePrefix }}-temporal-worker"
+          image: "{{ .Values.ecrRepositoryName }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.resourcePrefix }}-app-database-secret"
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.resourcePrefix }}-app-database-secret"
+                  key: password
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.resourcePrefix }}-app-database-secret"
+                  key: host
+            - name: DB_RO_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.resourcePrefix }}-app-database-ro-host"
+                  key: "{{ .Values.resourcePrefix }}-app-database-ro-host"
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.resourcePrefix }}-app-database-secret"
+                  key: port
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.resourcePrefix }}-app-database-secret"
+                  key: dbname
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: "openai-credentials"
+                  key: api_key
+            - name: LANDING_S3_BUCKET_NAME
+              value: "{{ .Values.resourcePrefix }}-ingestion-landing-{{ .Values.awsAccountId }}-{{ .Values.awsRegion }}-{{ .Values.stage }}"
+            - name: THUMBNAIL_S3_BUCKET_NAME
+              value: "{{ .Values.resourcePrefix }}-file-thumbnail-{{ .Values.awsAccountId }}-{{ .Values.awsRegion }}-{{ .Values.stage }}"
+            - name: TEMPORAL_HOST
+              {{- if .Values.minikube }}
+              value: "temporal-frontend.temporal.svc.cluster.local:7233"
+              {{- else }}
+              value: "temporal-frontend.temporal:7233"
+              {{- end }}
+            - name: VMX_DOMAIN
+              valueFrom:
+                secretKeyRef:
+                  name: "vmx-credentials"
+                  key: domain
+            - name: VMX_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: "vmx-credentials"
+                  key: api_key
+            - name: VMX_WORKSPACE_ID
+              valueFrom:
+                secretKeyRef:
+                  name: "vmx-credentials"
+                  key: workspace_id
+            - name: VMX_ENVIRONMENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: "vmx-credentials"
+                  key: environment_id
+            - name: VMX_RESOURCE_ID
+              valueFrom:
+                secretKeyRef:
+                  name: "vmx-credentials"
+                  key: resource_id
+            - name: EVENT_BUS_NAME
+              value: "{{ .Values.resourcePrefix }}-event-bus-{{ .Values.stage }}"
+            - name: INGESTION_CALLBACK_URL
+              value: "http://{{ .Values.ingressGatewayAddress }}/api/ingestion-callback"
+            {{- if .Values.minikube }}
+            - name: AWS_DEFAULT_REGION
+              value: "{{ .Values.awsRegion }}"
+            - name: AWS_ACCESS_KEY_ID
+              value: "XXXX"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "XXXX"
+            - name: AWS_ENDPOINT_URL_S3
+              value: "http://localstack.localstack.svc.cluster.local:4566"
+            - name: AWS_ENDPOINT_URL_EVENTBRIDGE
+              value: "http://localstack.localstack.svc.cluster.local:4566"
+            {{- end }}
+          resources:
+            requests:
+              memory: {{ .Values.resources.requests.memory }}
+              cpu: {{ .Values.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.resources.limits.memory }}
+              cpu: {{ .Values.resources.limits.cpu }}
+          {{- if not .Values.minikube }}
+          volumeMounts:
+            - name: app-secrets-store-inline
+              mountPath: '/mnt/app-secrets-store'
+              readOnly: true
+            - name: vmx-secrets-store-inline
+              mountPath: '/mnt/vmx-secrets-store'
+              readOnly: true
+          {{- end }}
+      volumes:
+        {{- if not .Values.minikube }}
+        - name: app-secrets-store-inline
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "{{ .Values.resourcePrefix }}-app-secrets"
+        - name: vmx-secrets-store-inline
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "{{ .Values.resourcePrefix }}-vmx-secrets"
+        {{- end }}

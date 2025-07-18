@@ -1,0 +1,112 @@
+name: Deploy Workflow
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      ref:
+        required: false
+        type: string
+        default: ${{ github.sha }}
+
+permissions:
+  actions: write
+  contents: read
+  id-token: write
+
+env:
+  NODE_OPTIONS: '--max_old_space_size=4096'
+
+jobs:
+  deploy-shared:
+    name: Deploy Shared
+    runs-on: ubuntu-latest
+    environment: shared
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.ref }}
+      - uses: ./.github/actions/setup-monorepo
+      - uses: ./.github/actions/setup-aws-secrets-cli
+      - name: Configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOYMENT_ROLE }}
+          aws-region: ${{ vars.AWS_DEPLOYMENT_REGION }}
+          role-session-name: GitHub
+      - name: Deploy
+        run: pnpm nx affected -t deploy -c shared --exclude 'tag:no-deploy:shared'
+
+  deploy-env:
+    name: Deploy - ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    needs: deploy-shared
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.ref }}
+      - uses: ./.github/actions/setup-monorepo
+      - uses: ./.github/actions/setup-aws-secrets-cli
+      - name: Configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOYMENT_ROLE }}
+          aws-region: ${{ vars.AWS_DEPLOYMENT_REGION }}
+          role-session-name: GitHub
+      - name: Deploy CDK Projects
+        run: pnpm nx affected -t deploy -c ${{ inputs.environment }} --exclude 'tag:no-deploy:${{ inputs.environment }}'
+
+  build-docker-images:
+    name: Build Docker Images - ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    needs: deploy-shared
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.ref }}
+      - uses: ./.github/actions/setup-monorepo
+      - name: Configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOYMENT_ROLE }}
+          aws-region: ${{ vars.AWS_DEPLOYMENT_REGION }}
+          role-session-name: GitHub
+
+      - name: Build Docker Images
+        run: pnpm nx affected -t docker-build -c ${{ inputs.environment }} --tag "${GITHUB_SHA}" --exclude 'tag:no-docker-build:${{ inputs.environment }}'
+
+      - name: Docker Login
+        run: aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 838155147994.dkr.ecr.us-east-1.amazonaws.com
+
+      - name: Push Docker Images
+        run: pnpm nx affected -t docker-push -c ${{ inputs.environment }} --tag "${GITHUB_SHA}" --exclude 'tag:no-docker-build:${{ inputs.environment }}'
+
+  update-argocd-app:
+    name: Update ArgoCD App - ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    needs: build-docker-images
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: vm-x-ai/vm-x-ai-file-classifier/.github/actions/setup-github-app@main
+        with:
+          app-id: ${{ secrets.GITHUB_APP_ID }}
+          private-key: ${{ secrets.GITHUB_APP_PRIVATE_KEY }}
+
+      - uses: oNaiPs/secrets-to-env-action@v1.5
+        with:
+          secrets: ${{ toJSON(secrets) }}
+
+      - name: Update Image Tag
+        run: pnpm nx affected -t update-image-tag -c ${{ inputs.environment }} --value "${GITHUB_SHA}" --parallel 1
+
+      - name: Push changes
+        run: |
+          git commit -m "chore: update image tag for ${{ inputs.environment }} [skip ci]"
+          git push origin HEAD:refs/heads/${GITHUB_HEAD_REF}

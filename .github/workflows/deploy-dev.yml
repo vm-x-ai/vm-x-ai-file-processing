@@ -1,0 +1,23 @@
+name: Deploy DEV
+
+on:
+  # push:
+  #   branches:
+  #     - main
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+  id-token: write
+
+jobs:
+  checks:
+    uses: ./.github/workflows/checks.yml
+
+  deploy:
+    uses: ./.github/workflows/deploy-template.yml
+    needs: checks
+    secrets: inherit
+    with:
+      environment: dev

@@ -1,0 +1,1 @@
+startServices: s3,kms,iam,sts,sns,cloudformation,lambda,ssm,events,sqs

@@ -2,7 +2,15 @@
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "namedInputs": {
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
-    "production": ["default"],
+    "production": [
+      "default",
+      "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
+      "!{projectRoot}/tsconfig.spec.json",
+      "!{projectRoot}/src/test-setup.[jt]s",
+      "!{projectRoot}/test-setup.[jt]s",
+      "!{projectRoot}/.eslintrc.json",
+      "!{projectRoot}/eslint.config.mjs"
+    ],
     "sharedGlobals": []
   },
   "plugins": [
@@ -19,6 +27,206 @@
           "watchDepsName": "watch-deps"
         }
       }
+    },
+    {
+      "plugin": "@nxlv/python",
+      "options": {
+        "packageManager": "uv"
+      }
+    },
+    {
+      "plugin": "@nx/next/plugin",
+      "options": {
+        "startTargetName": "start",
+        "buildTargetName": "build",
+        "devTargetName": "dev",
+        "serveStaticTargetName": "serve-static",
+        "buildDepsTargetName": "build-deps",
+        "watchDepsTargetName": "watch-deps"
+      }
+    },
+    {
+      "plugin": "@nx/eslint/plugin",
+      "options": {
+        "targetName": "lint"
+      }
+    },
+    {
+      "plugin": "@nx/react/router-plugin",
+      "options": {
+        "buildTargetName": "build",
+        "devTargetName": "dev",
+        "startTargetName": "start",
+        "watchDepsTargetName": "watch-deps",
+        "buildDepsTargetName": "build-deps",
+        "typecheckTargetName": "typecheck"
+      }
+    },
+    {
+      "plugin": "@nx/webpack/plugin",
+      "options": {
+        "buildTargetName": "build",
+        "serveTargetName": "serve",
+        "previewTargetName": "preview",
+        "buildDepsTargetName": "build-deps",
+        "watchDepsTargetName": "watch-deps"
+      }
+    },
+    {
+      "plugin": "@nx/vite/plugin",
+      "options": {
+        "buildTargetName": "build",
+        "testTargetName": "test",
+        "serveTargetName": "serve",
+        "devTargetName": "dev",
+        "previewTargetName": "preview",
+        "serveStaticTargetName": "serve-static",
+        "typecheckTargetName": "typecheck",
+        "buildDepsTargetName": "build-deps",
+        "watchDepsTargetName": "watch-deps"
+      }
     }
-  ]
+  ],
+  "tui": {
+    "enabled": false,
+    "autoExit": true
+  },
+  "targetDefaults": {
+    "cdk-bootstrap": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cdk bootstrap",
+        "cwd": "{projectRoot}"
+      },
+      "configurations": {
+        "local": {
+          "command": "cdklocal bootstrap -c stage=local"
+        },
+        "dev": {
+          "command": "cdk bootstrap -c stage=dev"
+        },
+        "prd": {
+          "command": "cdk bootstrap -c stage=prd"
+        },
+        "shared": {
+          "command": "cdk bootstrap -c stage=shared"
+        }
+      },
+      "dependsOn": ["^build"]
+    },
+    "cdk-deploy": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cdk deploy",
+        "cwd": "{projectRoot}"
+      },
+      "configurations": {
+        "local": {
+          "command": "cdklocal deploy -c stage=local --require-approval never --all"
+        },
+        "dev": {
+          "command": "cdk deploy -c stage=dev --require-approval never --all"
+        },
+        "prd": {
+          "command": "cdk deploy -c stage=prd --require-approval never --all"
+        },
+        "shared": {
+          "command": "cdk deploy -c stage=shared --require-approval never --all"
+        }
+      },
+      "dependsOn": ["^build"]
+    },
+    "docker-build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docker build -t \"$SHARED_SERVICES_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/$RESOURCE_PREFIX-$ECR_REPO_NAME-ecr-shared:${TAG_PREFIX}{args.tag}\" .",
+        "cwd": "{projectRoot}",
+        "forwardAllArgs": false
+      },
+      "dependsOn": ["build"]
+    },
+    "docker-push": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docker push \"$SHARED_SERVICES_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/$RESOURCE_PREFIX-$ECR_REPO_NAME-ecr-shared:${TAG_PREFIX}{args.tag}\"",
+        "cwd": "{projectRoot}",
+        "forwardAllArgs": false
+      }
+    },
+    "helm-deploy": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "./scripts/deploy_helm_app.sh --project-root {projectRoot} --aws-region us-east-1 --image-tag=\"${TAG_PREFIX}{args.tag}\"",
+        "forwardAllArgs": false
+      },
+      "configurations": {
+        "local": {
+          "env": {
+            "STAGE": "local"
+          }
+        },
+        "dev": {
+          "env": {
+            "STAGE": "dev"
+          }
+        },
+        "prd": {
+          "env": {
+            "STAGE": "prd"
+          }
+        }
+      }
+    },
+    "docker-compose-up": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docker compose -f docker-compose.yml up -d",
+        "cwd": "{projectRoot}"
+      }
+    },
+    "deploy": {
+      "configurations": {
+        "dev": {},
+        "prd": {},
+        "shared": {}
+      }
+    },
+    "update-image-tag": {
+      "executor": "@workspace/workspace-plugins:update-yaml",
+      "options": {
+        "keyPath": "image.tag",
+        "gitAdd": true
+      },
+      "configurations": {
+        "dev": {
+          "filePath": "{projectRoot}/argocd/dev.values.yaml"
+        },
+        "prd": {
+          "filePath": "{projectRoot}/argocd/prd.values.yaml"
+        }
+      }
+    },
+    "test": {
+      "dependsOn": ["^build"]
+    },
+    "@nx/js:tsc": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"]
+    }
+  },
+  "generators": {
+    "@nx/next": {
+      "application": {
+        "style": "tailwind",
+        "linter": "eslint"
+      }
+    },
+    "@nxlv/python": {
+      "uv-project": {
+        "useNxReleaseLegacyVersioning": false,
+        "tags": "python"
+      }
+    }
+  }
 }

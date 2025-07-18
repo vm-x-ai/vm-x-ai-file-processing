@@ -1,0 +1,71 @@
+name: Set Up Monorepo
+description: Set up nx monorepo for CI workflows
+
+inputs:
+  use-python:
+    description: 'Enable Python'
+    required: true
+    default: true
+    type: boolean
+  pnpm-version:
+    description: 'PNPM version'
+    required: false
+    default: '10'
+    type: string
+  node-version:
+    description: 'Node version'
+    required: false
+    default: '24'
+    type: string
+  uv-version:
+    description: 'UV version'
+    required: false
+    default: '0.7.3'
+    type: string
+  python-version:
+    description: 'Python version'
+    required: false
+    default: '3.11.9'
+    type: string
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v4
+      if: ${{ inputs.use-python == 'true' }}
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Set up UV
+      uses: astral-sh/setup-uv@v6
+      if: ${{ inputs.use-python == 'true' }}
+      with:
+        version: ${{ inputs.uv-version }}
+        enable-cache: true
+
+    - name: Use PNPM ${{ inputs.pnpm-version }}.x
+      uses: pnpm/action-setup@v3
+      with:
+        version: ${{ inputs.pnpm-version }}
+
+    - name: Use Node.js ${{ inputs.node-version }}.x
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'pnpm'
+
+    - name: Install Node.js Dependencies
+      shell: bash
+      run: pnpm install
+
+    - name: Install Python Dependencies
+      if: ${{ inputs.use-python == 'true' }}
+      shell: bash
+      run: uv sync
+
+    - uses: nrwl/nx-set-shas@v4
+
+    - name: Build Plugins
+      shell: bash
+      run: pnpm nx build workspace-plugins

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "version": 2,
+  "title": "Update YAML executor",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "filePath": {
+      "type": "string",
+      "description": "The path to the YAML file to update."
+    },
+    "keyPath": {
+      "type": "string",
+      "description": "The key to update."
+    },
+    "gitAdd": {
+      "type": "boolean",
+      "description": "Whether to add the file to the git index.",
+      "default": false
+    },
+    "valuePrefix": {
+      "type": "string",
+      "description": "The prefix to add to the value."
+    },
+    "value": {
+      "type": "string",
+      "description": "The value to update."
+    }
+  },
+  "required": ["filePath", "keyPath", "value"]
+}

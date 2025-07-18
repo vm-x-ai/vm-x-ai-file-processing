@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: app-postgresql-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-postgresql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-postgresql
+  template:
+    metadata:
+      labels:
+        app: app-postgresql
+    spec:
+      containers:
+        - name: app-postgresql
+          image: ankane/pgvector
+          env:
+            - name: POSTGRES_PASSWORD
+              value: 'app'
+            - name: POSTGRES_USER
+              value: 'app'
+            - name: POSTGRES_DB
+              value: 'ingestion'
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: app-postgresql-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-postgresql
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+      targetPort: 5432
+      name: postgres
+  selector:
+    app: app-postgresql

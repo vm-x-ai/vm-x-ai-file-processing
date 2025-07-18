@@ -1,0 +1,19 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: "{{ .Values.resourcePrefix }}-ui"
+  namespace: {{ .Values.namespace }}
+spec:
+  hosts:
+    - '*'
+  gateways:
+    - {{ .Values.namespace }}/{{ .Values.resourcePrefix }}-ui-gateway
+  http:
+    - match:
+        - uri:
+            prefix: /ui
+      route:
+        - destination:
+            host: "{{ .Values.resourcePrefix }}-ui"
+            port:
+              number: 80

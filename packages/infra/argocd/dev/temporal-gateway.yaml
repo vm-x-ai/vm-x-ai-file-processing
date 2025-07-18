@@ -1,0 +1,39 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: temporal-ui-gateway
+  namespace: temporal
+  annotations:
+    argocd.argoproj.io/sync-wave: '1'
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - '*'
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: temporal-ui-virtualservice
+  namespace: temporal
+  annotations:
+    argocd.argoproj.io/sync-wave: '1'
+spec:
+  hosts:
+    - '*'
+  gateways:
+    - temporal-ui-gateway
+  http:
+    - match:
+        - uri:
+            prefix: /temporal
+      route:
+        - destination:
+            host: temporal-web
+            port:
+              number: 8080

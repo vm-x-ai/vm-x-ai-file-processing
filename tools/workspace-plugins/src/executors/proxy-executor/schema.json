@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "version": 2,
+  "title": "Proxy executor",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "target": {
+      "type": "string",
+      "description": "The target to run."
+    }
+  },
+  "required": ["target"]
+}

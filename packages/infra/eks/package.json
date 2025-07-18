@@ -1,0 +1,31 @@
+{
+  "name": "@workspace/infra-eks",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "development": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@aws-cdk/aws-eks-v2-alpha": "2.200.2-alpha.0",
+    "@aws-cdk/lambda-layer-kubectl-v33": "^2.0.0",
+    "@workspace/infra-cdk-shared": "workspace:*",
+    "aws-cdk-lib": "^2.200.1",
+    "constructs": "^10.4.2",
+    "js-yaml": "^4.1.0",
+    "sync-request": "^6.1.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9"
+  }
+}

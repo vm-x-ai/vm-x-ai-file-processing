@@ -1,0 +1,4 @@
+apiVersion: v2
+name: evaluation-workflow
+version: 0.1.0
+description: Helm chart for evaluation-workflow deployment

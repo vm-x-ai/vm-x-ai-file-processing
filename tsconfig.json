@@ -2,5 +2,51 @@
   "extends": "./tsconfig.base.json",
   "compileOnSave": false,
   "files": [],
-  "references": []
+  "references": [
+    {
+      "path": "./packages/apps/ui"
+    },
+    {
+      "path": "./tools/workspace-plugins"
+    },
+    {
+      "path": "./packages/infra/cdk/shared"
+    },
+    {
+      "path": "./packages/infra/network"
+    },
+    {
+      "path": "./packages/workflows/ingestion"
+    },
+    {
+      "path": "./packages/infra/event"
+    },
+    {
+      "path": "./packages/workflows/evaluation"
+    },
+    {
+      "path": "./packages/infra/eks"
+    },
+    {
+      "path": "./packages/infra/argocd"
+    },
+    {
+      "path": "./secrets"
+    },
+    {
+      "path": "./packages/infra/database"
+    },
+    {
+      "path": "./packages/infra/ecr"
+    },
+    {
+      "path": "./packages/apps/api"
+    },
+    {
+      "path": "./packages/workflows/worker"
+    },
+    {
+      "path": "./packages/infra/github-actions"
+    }
+  ]
 }

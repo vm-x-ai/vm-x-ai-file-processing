@@ -1,0 +1,15 @@
+image:
+  tag: latest
+  # Update to IfNotPresent when using proper image tags
+  pullPolicy: Always
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 200m
+  limits:
+    memory: 512Mi
+    cpu: 500m
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8000

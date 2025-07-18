@@ -1,0 +1,144 @@
+{
+  "name": "py-db-models",
+  "$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "packages/libs/py/db/models/internal_db_models",
+  "targets": {
+    "lock": {
+      "executor": "@nxlv/python:lock",
+      "options": {
+        "update": false
+      }
+    },
+    "sync": {
+      "executor": "@nxlv/python:sync",
+      "options": {}
+    },
+    "add": {
+      "executor": "@nxlv/python:add",
+      "options": {}
+    },
+    "update": {
+      "executor": "@nxlv/python:update",
+      "options": {}
+    },
+    "remove": {
+      "executor": "@nxlv/python:remove",
+      "options": {}
+    },
+    "build": {
+      "executor": "@nxlv/python:build",
+      "outputs": ["{projectRoot}/dist"],
+      "options": {
+        "outputPath": "{projectRoot}/dist",
+        "publish": false,
+        "lockedVersions": true,
+        "bundleLocalDependencies": true
+      },
+      "cache": true
+    },
+    "lint": {
+      "executor": "@nxlv/python:ruff-check",
+      "outputs": [],
+      "options": {
+        "lintFilePatterns": ["internal_db_models", "tests"]
+      },
+      "cache": true
+    },
+    "format": {
+      "executor": "@nxlv/python:ruff-format",
+      "outputs": [],
+      "options": {
+        "filePatterns": ["internal_db_models", "tests", "alembic"]
+      },
+      "cache": true
+    },
+    "test": {
+      "executor": "@nxlv/python:run-commands",
+      "outputs": [
+        "{workspaceRoot}/reports/{projectRoot}/unittests",
+        "{workspaceRoot}/coverage/{projectRoot}"
+      ],
+      "options": {
+        "command": "uv run pytest tests/",
+        "cwd": "{projectRoot}"
+      },
+      "cache": true
+    },
+    "install": {
+      "executor": "@nxlv/python:install",
+      "options": {
+        "silent": false,
+        "args": "",
+        "verbose": false,
+        "debug": false
+      }
+    },
+    "alembic-revision": {
+      "executor": "@nxlv/python:run-commands",
+      "options": {
+        "command": "alembic revision",
+        "cwd": "{projectRoot}"
+      }
+    },
+    "migrations-apply": {
+      "executor": "@nxlv/python:run-commands",
+      "options": {
+        "command": "alembic upgrade head",
+        "cwd": "{projectRoot}"
+      },
+      "configurations": {
+        "local": {
+          "envFile": "{projectRoot}/.env"
+        },
+        "minikube": {
+          "envFile": "{projectRoot}/.env.minikube"
+        },
+        "dev": {
+          "envFile": "{projectRoot}/.env.dev"
+        },
+        "prd": {
+          "envFile": "{projectRoot}/.env.prd"
+        }
+      }
+    },
+    "migrations-rollback": {
+      "executor": "@nxlv/python:run-commands",
+      "options": {
+        "command": "alembic downgrade",
+        "cwd": "{projectRoot}"
+      },
+      "configurations": {
+        "local": {
+          "envFile": "{projectRoot}/.env"
+        },
+        "dev": {
+          "envFile": "{projectRoot}/.env.dev"
+        },
+        "prd": {
+          "envFile": "{projectRoot}/.env.prd"
+        }
+      }
+    },
+    "deploy": {
+      "executor": "@workspace/workspace-plugins:proxy-executor",
+      "options": {
+        "target": "migrations-apply"
+      },
+      "dependsOn": [
+        "^build",
+        {
+          "projects": "infra-database",
+          "target": "deploy",
+          "params": "forward"
+        }
+      ]
+    }
+  },
+  "tags": ["shared", "db", "python", "no-deploy:shared"],
+  "release": {
+    "version": {
+      "versionActions": "@nxlv/python/src/release/version-actions"
+    }
+  }
+}

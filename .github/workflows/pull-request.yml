@@ -1,0 +1,21 @@
+name: Pull Request
+
+on:
+  pull_request:
+
+permissions:
+  actions: write
+  contents: read
+  id-token: write
+
+jobs:
+  checks:
+    uses: ./.github/workflows/checks.yml
+
+  deploy:
+    if: contains(github.event.pull_request.labels.*.name, 'deploy-to-dev')
+    uses: ./.github/workflows/deploy-template.yml
+    secrets: inherit
+    needs: checks
+    with:
+      environment: dev

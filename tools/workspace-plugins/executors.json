@@ -1,0 +1,19 @@
+{
+  "executors": {
+    "nest-build": {
+      "implementation": "./dist/executors/nest-build/executor",
+      "schema": "./dist/executors/nest-build/schema.json",
+      "description": "NestJs Builder"
+    },
+    "proxy-executor": {
+      "implementation": "./dist/executors/proxy-executor/executor",
+      "schema": "./dist/executors/proxy-executor/schema.json",
+      "description": "Proxy Executor"
+    },
+    "update-yaml": {
+      "implementation": "./dist/executors/update-yaml/executor",
+      "schema": "./dist/executors/update-yaml/schema.json",
+      "description": "Update YAML Executor"
+    }
+  }
+}

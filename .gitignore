@@ -40,3 +40,27 @@ Thumbs.db
 
 .nx/cache
 .nx/workspace-data
+
+__pycache__
+.venv
+.env.local
+
+# Next.js
+.next
+.nextjs-cdk
+out
+test-output
+.cursor/rules/nx-rules.mdc
+.github/instructions/nx.instructions.md
+
+vite.config.*.timestamp*
+vitest.config.*.timestamp*
+
+# CDK
+cdk.out
+
+# Pytest
+reports/
+.coverage
+
+.env.*.local

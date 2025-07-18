@@ -1,0 +1,92 @@
+[project]
+name = "nx-workspace"
+version = "1.0.0"
+dependencies = [
+  "workflow-worker",
+  "py-utils",
+  "api",
+  "py-db-models",
+  "py-db-repositories",
+  "py-services",
+  "py-db-services",
+  "py-temporal-utils",
+  "py-logger",
+  "py-schemas",
+  "workflow-ingestion",
+  "evaluation-workflow",
+  "workflow-shared-activities",
+  "py-aws-sqs-consumer"
+]
+
+[tool.uv.workspace]
+members = [
+  "packages/apps/api",
+  "packages/libs/py/utils",
+  "packages/libs/py/db/models",
+  "packages/workflows/worker",
+  "packages/libs/py/db/repositories",
+  "packages/libs/py/services",
+  "packages/libs/py/db/services",
+  "packages/libs/py/temporal/utils",
+  "packages/libs/py/logger",
+  "packages/libs/py/schemas",
+  "packages/workflows/ingestion",
+  "packages/workflows/evaluation",
+  "packages/workflows/shared-activities",
+  "packages/libs/py/aws/sqs-consumer"
+]
+
+[tool.uv.sources.workflow-worker]
+workspace = true
+
+[tool.uv.sources.py-utils]
+workspace = true
+
+[tool.uv.sources.api]
+workspace = true
+
+[tool.uv.sources.py-db-models]
+workspace = true
+
+[tool.uv.sources.py-db-repositories]
+workspace = true
+
+[tool.uv.sources.py-services]
+workspace = true
+
+[tool.uv.sources.py-db-services]
+workspace = true
+
+[tool.uv.sources.py-temporal-utils]
+workspace = true
+
+[tool.uv.sources.py-logger]
+workspace = true
+
+[tool.uv.sources.py-schemas]
+workspace = true
+
+[tool.uv.sources.workflow-ingestion]
+workspace = true
+
+[tool.uv.sources.evaluation-workflow]
+workspace = true
+
+[tool.uv.sources.workflow-shared-activities]
+workspace = true
+
+[tool.uv.sources.py-aws-sqs-consumer]
+workspace = true
+
+[dependency-groups]
+dev = [
+  "autopep8>=2.3.1",
+  "ruff>=0.8.2",
+  "pytest>=8.3.4",
+  "pytest-sugar>=1.0.0",
+  "pytest-cov>=6.0.0",
+  "pytest-html>=4.1.1",
+  "types-aioboto3[s3,events]>=14.3.0",
+  "types-aiobotocore[s3,events]>=2.22.0",
+  "watchdog>=6.0.0"
+]

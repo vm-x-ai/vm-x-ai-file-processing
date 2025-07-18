@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ .Values.resourcePrefix }}-ui"
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "{{ .Values.resourcePrefix }}-ui"
+  template:
+    metadata:
+      labels:
+        app: "{{ .Values.resourcePrefix }}-ui"
+    spec:
+      serviceAccountName: "{{ .Values.resourcePrefix }}-ui-service-account"
+      containers:
+        - name: "{{ .Values.resourcePrefix }}-ui"
+          image: "{{ .Values.ecrRepositoryName }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 3000
+          env:
+            - name: VMX_DOMAIN
+              valueFrom:
+                secretKeyRef:
+                  name: vmx-credentials
+                  key: domain
+            - name: VMX_PROTOCOL
+              value: https
+            - name: VMX_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: vmx-credentials
+                  key: api_key
+            - name: VMX_WORKSPACE_ID
+              valueFrom:
+                secretKeyRef:
+                  name: vmx-credentials
+                  key: workspace_id
+            - name: VMX_ENVIRONMENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: vmx-credentials
+                  key: environment_id
+            - name: VMX_RESOURCE
+              valueFrom:
+                secretKeyRef:
+                  name: vmx-credentials
+                  key: resource_id
+            - name: NEXT_PUBLIC_API_URL
+              {{- if .Values.minikube }}
+              value: "http://localhost:80/api"
+              {{- else }}
+              value: "http://{{ .Values.ingressGatewayAddress }}/api"
+              {{- end }}
+            - name: API_URL
+              {{- if .Values.minikube }}
+              value: "http://{{ .Values.resourcePrefix }}-api.{{ .Values.namespace }}.svc.cluster.local:80/api"
+              {{- else }}
+              value: "{{ .Values.ingressGatewayAddress }}/api"
+              {{- end }}
+          resources:
+            requests:
+              memory: {{ .Values.resources.requests.memory }}
+              cpu: {{ .Values.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.resources.limits.memory }}
+              cpu: {{ .Values.resources.limits.cpu }}
+          {{- if not .Values.minikube }}
+          volumeMounts:
+            - name: vmx-secrets-store-inline
+              mountPath: '/mnt/vmx-secrets-store'
+              readOnly: true
+          {{- end }}
+      volumes:
+        {{- if not .Values.minikube }}
+        - name: vmx-secrets-store-inline
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "{{ .Values.resourcePrefix }}-vmx-secrets"
+        {{- end }}

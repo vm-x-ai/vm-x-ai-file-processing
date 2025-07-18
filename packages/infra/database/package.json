@@ -1,0 +1,24 @@
+{
+  "name": "@workspace/infra-database",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "development": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@workspace/infra-cdk-shared": "workspace:*",
+    "aws-cdk-lib": "^2.200.1",
+    "constructs": "^10.4.2",
+    "tslib": "^2.3.0"
+  }
+}

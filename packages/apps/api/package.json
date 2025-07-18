@@ -1,0 +1,11 @@
+{
+  "name": "@workspace/api",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "aws-cdk-lib": "^2.200.1",
+    "constructs": "^10.4.2",
+    "@workspace/infra-cdk-shared": "workspace:*"
+  }
+}

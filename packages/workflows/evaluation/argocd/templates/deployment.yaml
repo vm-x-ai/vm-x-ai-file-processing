@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ .Values.resourcePrefix }}-evaluation-workflow"
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "{{ .Values.resourcePrefix }}-evaluation-workflow"
+  template:
+    metadata:
+      labels:
+        app: "{{ .Values.resourcePrefix }}-evaluation-workflow"
+    spec:
+      serviceAccountName: {{ .Values.resourcePrefix }}-evaluation-workflow-service-account
+      containers:
+        - name: "{{ .Values.resourcePrefix }}-evaluation-workflow"
+          image: "{{ .Values.ecrRepositoryName }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: TEMPORAL_HOST
+              {{- if .Values.minikube }}
+              value: "temporal-frontend.temporal.svc.cluster.local:7233"
+              {{- else }}
+              value: "temporal-frontend.temporal:7233"
+              {{- end }}
+            - name: SQS_CONSUMER_QUEUE_URL
+              {{- if .Values.minikube }}
+              value: "http://localstack.localstack.svc.cluster.local:4566/{{ .Values.awsAccountId }}/{{ .Values.resourcePrefix }}-evaluation-workflow-{{ .Values.awsRegion }}-{{ .Values.stage }}"
+              {{- else }}
+              value: "https://sqs.{{ .Values.awsRegion }}.amazonaws.com/{{ .Values.awsAccountId }}/{{ .Values.resourcePrefix }}-evaluation-workflow-{{ .Values.awsRegion }}-{{ .Values.stage }}"
+              {{- end }}
+            {{- if .Values.minikube }}
+            - name: AWS_DEFAULT_REGION
+              value: "{{ .Values.awsRegion }}"
+            - name: AWS_ACCESS_KEY_ID
+              value: "XXXX"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "XXXX"
+            - name: AWS_ENDPOINT_URL_SQS
+              value: "http://localstack.localstack.svc.cluster.local:4566"
+            {{- end }}
+          resources:
+            requests:
+              memory: {{ .Values.resources.requests.memory }}
+              cpu: {{ .Values.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.resources.limits.memory }}
+              cpu: {{ .Values.resources.limits.cpu }}
