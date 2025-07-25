@@ -1,4 +1,5 @@
 from os import environ
+from typing import Literal
 
 from internal_utils.pydantic_settings_jinja import jinja_template_validator
 from pydantic import Field
@@ -42,6 +43,7 @@ class Settings(BaseSettings):
     fastapi_hot_reload: bool = Field(
         False, description="FastAPI hot reload, only True on local env"
     )
-    temporal_host: str
+    temporal_host: str | None = None
     openai: OpenAI = OpenAI()
     landing: Landing = Landing()
+    stack_mode: Literal["kubernetes", "serverless", "serverless-neon"] = "kubernetes"

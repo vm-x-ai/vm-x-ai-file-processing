@@ -71,43 +71,48 @@ def setup_session_manager():
         ssm_client = boto3.client("ssm")
         secrets_client = boto3.client("secretsmanager")
 
-        bastion_instance_id = _get_parameter_value(
-            ssm_client, settings.bastion_host.instance_id_ssm_name
-        )
-
-        logger.info(f"Bastion instance ID: {bastion_instance_id}")
-
         remote_db_secret = _get_db_secret_value(
             secrets_client, settings.remote_db.secret_name
         )
 
-        logger.info(
-            "Opening port forwarding tunnel to remote database ",
-            f"host: {remote_db_secret['host']}",
-            f"port: {remote_db_secret['port']}",
-            f"username: {remote_db_secret['username']}",
-            f"dbname: {remote_db_secret['dbname']}",
-        )
+        is_rds = remote_db_secret["host"].endswith(".rds.amazonaws.com")
+        creds = f"{remote_db_secret['username']}:{remote_db_secret['password']}"
+        host = f"{remote_db_secret['host']}:{remote_db_secret['port']}"
 
-        local_port = 5499
+        if is_rds:
+            bastion_instance_id = _get_parameter_value(
+                ssm_client, settings.bastion_host.instance_id_ssm_name
+            )
 
-        with SessionManager(
-            boto3.client("ssm"),
-            Target=bastion_instance_id,
-            DocumentName="AWS-StartPortForwardingSessionToRemoteHost",
-            Parameters={
-                "host": [
-                    remote_db_secret["host"],
-                ],
-                "portNumber": [f"{remote_db_secret['port']}"],
-                "localPortNumber": [f"{local_port}"],
-            },
-        ):
-            logger.info("Port forwarding tunnel opened")
-            creds = f"{remote_db_secret['username']}:{remote_db_secret['password']}"
-            host = f"localhost:{local_port}"
-            db_url = f"postgresql+psycopg://{creds}@{host}/{remote_db_secret['dbname']}"
-            yield db_url
+            logger.info(f"Bastion instance ID: {bastion_instance_id}")
+
+            logger.info(
+                "Opening port forwarding tunnel to remote database ",
+                f"host: {remote_db_secret['host']}",
+                f"port: {remote_db_secret['port']}",
+                f"username: {remote_db_secret['username']}",
+                f"dbname: {remote_db_secret['dbname']}",
+            )
+
+            local_port = 5499
+
+            with SessionManager(
+                boto3.client("ssm"),
+                Target=bastion_instance_id,
+                DocumentName="AWS-StartPortForwardingSessionToRemoteHost",
+                Parameters={
+                    "host": [
+                        remote_db_secret["host"],
+                    ],
+                    "portNumber": [f"{remote_db_secret['port']}"],
+                    "localPortNumber": [f"{local_port}"],
+                },
+            ):
+                logger.info("Port forwarding tunnel opened")
+                host = f"localhost:{local_port}"
+
+        db_url = f"postgresql+psycopg://{creds}@{host}/{remote_db_secret['dbname']}"
+        yield db_url
 
 
 def run_migrations_offline() -> None:

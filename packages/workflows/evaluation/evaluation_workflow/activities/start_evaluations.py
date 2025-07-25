@@ -197,7 +197,7 @@ class StartEvaluationsActivity:
 
                 requests.append(request)
 
-        callback_url = f"{self._ingestion_callback_url}/{workflow_id}"
+        callback_url = f"{self._ingestion_callback_url}?workflow_id={workflow_id}"
 
         batch_response = await self._vmx_client.completion_batch_callback(
             requests=requests,

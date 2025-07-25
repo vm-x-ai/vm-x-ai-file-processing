@@ -255,12 +255,15 @@ dependencies = [
     { name = "py-logger" },
     { name = "py-schemas" },
     { name = "py-services" },
-    { name = "py-temporal-utils" },
     { name = "py-utils" },
     { name = "pydantic-settings" },
-    { name = "temporalio" },
     { name = "uvicorn" },
     { name = "vm-x-ai-sdk" },
+]
+
+[package.optional-dependencies]
+temporal = [
+    { name = "py-services", extra = ["temporal"] },
 ]
 
 [package.metadata]
@@ -274,13 +277,13 @@ requires-dist = [
     { name = "py-logger", editable = "packages/libs/py/logger" },
     { name = "py-schemas", editable = "packages/libs/py/schemas" },
     { name = "py-services", editable = "packages/libs/py/services" },
-    { name = "py-temporal-utils", editable = "packages/libs/py/temporal/utils" },
+    { name = "py-services", extras = ["temporal"], marker = "extra == 'temporal'", editable = "packages/libs/py/services" },
     { name = "py-utils", editable = "packages/libs/py/utils" },
     { name = "pydantic-settings", specifier = ">=2.9.1" },
-    { name = "temporalio", specifier = ">=1.11.1" },
     { name = "uvicorn", specifier = ">=0.34.2" },
     { name = "vm-x-ai-sdk", specifier = ">=1.6.2" },
 ]
+provides-extras = ["temporal"]
 
 [[package]]
 name = "async-timeout"
@@ -1636,8 +1639,10 @@ dev = [
     { name = "pytest-html" },
     { name = "pytest-sugar" },
     { name = "ruff" },
-    { name = "types-aioboto3", extra = ["events", "s3"] },
-    { name = "types-aiobotocore", extra = ["events", "s3"] },
+    { name = "types-aioboto3", extra = ["events", "s3", "secretsmanager", "ssm"] },
+    { name = "types-aiobotocore", extra = ["events", "s3", "secretsmanager", "ssm"] },
+    { name = "types-boto3", extra = ["events", "s3", "secretsmanager", "ssm"] },
+    { name = "types-botocore" },
     { name = "watchdog" },
 ]
 
@@ -1667,8 +1672,10 @@ dev = [
     { name = "pytest-html", specifier = ">=4.1.1" },
     { name = "pytest-sugar", specifier = ">=1.0.0" },
     { name = "ruff", specifier = ">=0.8.2" },
-    { name = "types-aioboto3", extras = ["s3", "events"], specifier = ">=14.3.0" },
-    { name = "types-aiobotocore", extras = ["s3", "events"], specifier = ">=2.22.0" },
+    { name = "types-aioboto3", extras = ["s3", "events", "secretsmanager", "ssm"], specifier = ">=14.3.0" },
+    { name = "types-aiobotocore", extras = ["s3", "events", "secretsmanager", "ssm"], specifier = ">=2.22.0" },
+    { name = "types-boto3", extras = ["s3", "events", "secretsmanager", "ssm"], specifier = ">=1.39.14" },
+    { name = "types-botocore", extras = ["s3", "events", "secretsmanager", "ssm"], specifier = ">=1.0.2" },
     { name = "watchdog", specifier = ">=6.0.0" },
 ]
 
@@ -2210,6 +2217,12 @@ dependencies = [
     { name = "jinja2" },
     { name = "py-db-models" },
     { name = "py-db-repositories" },
+    { name = "vm-x-ai-sdk" },
+]
+
+[package.optional-dependencies]
+temporal = [
+    { name = "py-temporal-utils" },
 ]
 
 [package.metadata]
@@ -2217,7 +2230,10 @@ requires-dist = [
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "py-db-models", editable = "packages/libs/py/db/models" },
     { name = "py-db-repositories", editable = "packages/libs/py/db/repositories" },
+    { name = "py-temporal-utils", marker = "extra == 'temporal'", editable = "packages/libs/py/temporal/utils" },
+    { name = "vm-x-ai-sdk", specifier = ">=1.6.2" },
 ]
+provides-extras = ["temporal"]
 
 [[package]]
 name = "py-temporal-utils"
@@ -2240,12 +2256,14 @@ version = "1.0.0"
 source = { editable = "packages/libs/py/utils" }
 dependencies = [
     { name = "aioboto3" },
+    { name = "cachetools" },
     { name = "jinja2" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "aioboto3", specifier = ">=14.3.0" },
+    { name = "cachetools", specifier = ">=5.5.2" },
     { name = "jinja2", specifier = ">=3.1.6" },
 ]
 
@@ -2974,6 +2992,12 @@ events = [
 s3 = [
     { name = "types-aiobotocore-s3" },
 ]
+secretsmanager = [
+    { name = "types-aiobotocore-secretsmanager" },
+]
+ssm = [
+    { name = "types-aiobotocore-ssm" },
+]
 
 [[package]]
 name = "types-aiobotocore"
@@ -2994,6 +3018,12 @@ events = [
 ]
 s3 = [
     { name = "types-aiobotocore-s3" },
+]
+secretsmanager = [
+    { name = "types-aiobotocore-secretsmanager" },
+]
+ssm = [
+    { name = "types-aiobotocore-ssm" },
 ]
 
 [[package]]
@@ -3021,12 +3051,124 @@ wheels = [
 ]
 
 [[package]]
+name = "types-aiobotocore-secretsmanager"
+version = "2.22.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions", marker = "python_full_version < '3.12'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/cd/d8/abc4fc955c6c1481725b784bdfa27974b1590ef2ad6de947d80d85ab79d4/types_aiobotocore_secretsmanager-2.22.0.tar.gz", hash = "sha256:6b07112510f22252351e89439e3524c948b6073c4838b2a0bea6ecb0aa3156bb", size = 19996, upload-time = "2025-05-02T01:41:08.099Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/47/62/75b687178bb5c3940d5ede9db0db36a3cfe463580029db11cf5d704f1d78/types_aiobotocore_secretsmanager-2.22.0-py3-none-any.whl", hash = "sha256:06885a939fd6066617efdd8ad17bb1044cd211719150c50da6b478f63c36b3dc", size = 27300, upload-time = "2025-05-02T01:41:07.203Z" },
+]
+
+[[package]]
+name = "types-aiobotocore-ssm"
+version = "2.22.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions", marker = "python_full_version < '3.12'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/76/fc/237d8a045b5055fea9c905da72cd1468550c8780fb9d4ef347427a4891c5/types_aiobotocore_ssm-2.22.0.tar.gz", hash = "sha256:9efa96c67c4d946026f7aecb9d2817ab62b8835a068ede861ff27e6bc6a0e8c8", size = 93638, upload-time = "2025-05-02T01:41:47.134Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f0/ce/233a57b09d2c8adab405721ef297a8a4240d17f8eec7bc8de297dc7db8d7/types_aiobotocore_ssm-2.22.0-py3-none-any.whl", hash = "sha256:8888d6a272bc125a058d8d1ed63da38808c340ba16f23e5816999b983c6e8312", size = 95569, upload-time = "2025-05-02T01:41:45.586Z" },
+]
+
+[[package]]
 name = "types-awscrt"
 version = "0.27.1"
 source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/f9/21/4d519305ec33f9bcd3c317e76aa860a1962fa40ded99c39ec49e1d5cdebe/types_awscrt-0.27.1.tar.gz", hash = "sha256:3c2bee52ee45022daaf4f106d5d1b5f0ff0a8e3e6093dda65f5315b7669bc418", size = 16085, upload-time = "2025-05-09T23:16:01.375Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d9/27/1eee2967759b1c28ba683d81c12e5efe52d5a4f9264498bea70955326afc/types_awscrt-0.27.1-py3-none-any.whl", hash = "sha256:e86b83d0fd8c770f985b8c458c28e232dae9adee0689d0a9671868a8bf397b0a", size = 37296, upload-time = "2025-05-09T23:15:59.905Z" },
+]
+
+[[package]]
+name = "types-boto3"
+version = "1.39.14"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "botocore-stubs" },
+    { name = "types-s3transfer" },
+    { name = "typing-extensions", marker = "python_full_version < '3.12'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/38/93/ea98f2121b80ff67723121ab52ad036f67f685ccfe8e8c2cd2613df14026/types_boto3-1.39.14.tar.gz", hash = "sha256:d710979d8b65ca195ce643d87125f9854c9e64783637e33f9888df60b4ad0890", size = 101067, upload-time = "2025-07-25T19:30:09.554Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4f/df/13d9e67278ddbbd2f5110d17f279092919eae9c9d91f5c8ba2314bf13609/types_boto3-1.39.14-py3-none-any.whl", hash = "sha256:59cbf4d47bf9a7bf2bf7f685ab1bc82998f383796f8cfb9ab200faf2c3188608", size = 69506, upload-time = "2025-07-25T19:30:04.537Z" },
+]
+
+[package.optional-dependencies]
+events = [
+    { name = "types-boto3-events" },
+]
+s3 = [
+    { name = "types-boto3-s3" },
+]
+secretsmanager = [
+    { name = "types-boto3-secretsmanager" },
+]
+ssm = [
+    { name = "types-boto3-ssm" },
+]
+
+[[package]]
+name = "types-boto3-events"
+version = "1.39.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions", marker = "python_full_version < '3.12'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/23/2c/0e8e773d03c2f2abdf4867c045492ff255706a7514fa76cec94e8555892b/types_boto3_events-1.39.5.tar.gz", hash = "sha256:cef775efa212af2b78d3e76ac2870960cffb7d0813fd67f0a84df370d6341357", size = 34111, upload-time = "2025-07-15T22:39:03.343Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c8/95/c1c42d116f1154c977544433f5b7955a2deb95ed516168d98ffb0e3d3f73/types_boto3_events-1.39.5-py3-none-any.whl", hash = "sha256:f7f943737b9a4588b136b83aea6264cd6c8e115c5afeffed20d69b2d587b888a", size = 37604, upload-time = "2025-07-15T22:39:00.317Z" },
+]
+
+[[package]]
+name = "types-boto3-s3"
+version = "1.39.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions", marker = "python_full_version < '3.12'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/fd/68/184e6cf84d6e2f7bb54a8bdc01b3a23ab4b99db0b8c1cc02fdb529d10420/types_boto3_s3-1.39.5.tar.gz", hash = "sha256:34150a4ee656b74e939962869e8b73f29e9dcc7511b0102215f27e004bcbdc72", size = 75545, upload-time = "2025-07-15T22:39:12.201Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c7/10/3c8867dcc9f7dc70f0664389aca96ea149af89dd87acd62b330fb05fd8d4/types_boto3_s3-1.39.5-py3-none-any.whl", hash = "sha256:c49e103249f03948589387537a7964a30e50c3e971d0f2a9600fa3766406b196", size = 82504, upload-time = "2025-07-15T22:39:10.207Z" },
+]
+
+[[package]]
+name = "types-boto3-secretsmanager"
+version = "1.39.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions", marker = "python_full_version < '3.12'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/56/6a/c10f14a4e570528de4946c615c07dbe939f62b02b4561d8c4e205c954bb0/types_boto3_secretsmanager-1.39.0.tar.gz", hash = "sha256:bb97fef55fcdbb18bd9915305d241cf42257da429f6840bd84b2498f8817fb97", size = 19949, upload-time = "2025-06-30T19:47:16.781Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/09/fb/d64146a7e5f5d6a7e9f02afc4ce276b357624182eb59d7a8300271fb42df/types_boto3_secretsmanager-1.39.0-py3-none-any.whl", hash = "sha256:e63d1fbc07d581d0f7a7bbfd4395e1833502f9bd9b9a103f66b8f41ea169c134", size = 26759, upload-time = "2025-06-30T19:47:15.649Z" },
+]
+
+[[package]]
+name = "types-boto3-ssm"
+version = "1.39.9"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions", marker = "python_full_version < '3.12'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/92/1f/11342626bde1e24e9ac55fc3697502565690a2eab486e3845e5fbd59fede/types_boto3_ssm-1.39.9.tar.gz", hash = "sha256:126b74cee8455208c073cb721ca9be229d48516ca63487f7d57880a6b4ff5b48", size = 94570, upload-time = "2025-07-18T19:29:39.168Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a4/f5/e1d088938364a993e420963ea0fd1b3c0f841d28fb2c1274e06cf945122f/types_boto3_ssm-1.39.9-py3-none-any.whl", hash = "sha256:3ee202ba66dd79625307d6f8afeeb274b9344c6c3bc3c5711aa9cad5b33042f2", size = 96017, upload-time = "2025-07-18T19:29:36.804Z" },
+]
+
+[[package]]
+name = "types-botocore"
+version = "1.0.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "botocore-stubs" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/18/e0/2fc05f11a376ee73b4fa71684e57c599a3b49698fe708ea8347664af2184/types-botocore-1.0.2.tar.gz", hash = "sha256:885d4ceb8d0594b73d08d5feb12b6bbd1ef9e7333531acb80477dc7904f02304", size = 5050, upload-time = "2022-04-01T13:50:22.228Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bd/98/f8ce0e9beb5b877969cbb2330f457a8ef066debc486082ee28ad7cb8f9bc/types_botocore-1.0.2-py3-none-any.whl", hash = "sha256:453fc52a1da8ac162793323d5f0f0dbaa40a3cd9dad915f5a3de79a07fd65674", size = 5152, upload-time = "2022-04-01T13:50:20.491Z" },
 ]
 
 [[package]]
@@ -3215,7 +3357,6 @@ dependencies = [
     { name = "py-schemas" },
     { name = "py-temporal-utils" },
     { name = "pypdf" },
-    { name = "temporalio" },
     { name = "tiktoken" },
     { name = "workflow-shared-activities" },
 ]
@@ -3233,7 +3374,6 @@ requires-dist = [
     { name = "py-schemas", editable = "packages/libs/py/schemas" },
     { name = "py-temporal-utils", editable = "packages/libs/py/temporal/utils" },
     { name = "pypdf", specifier = ">=5.5.0" },
-    { name = "temporalio", specifier = ">=1.11.1" },
     { name = "tiktoken", specifier = ">=0.9.0" },
     { name = "workflow-shared-activities", editable = "packages/workflows/shared-activities" },
 ]
@@ -3274,11 +3414,10 @@ dependencies = [
     { name = "py-db-services" },
     { name = "py-logger" },
     { name = "py-schemas" },
-    { name = "py-services" },
+    { name = "py-services", extra = ["temporal"] },
     { name = "py-temporal-utils" },
     { name = "py-utils" },
     { name = "pypdf" },
-    { name = "temporalio" },
     { name = "tiktoken" },
     { name = "vm-x-ai-sdk" },
     { name = "workflow-ingestion" },
@@ -3298,11 +3437,10 @@ requires-dist = [
     { name = "py-db-services", editable = "packages/libs/py/db/services" },
     { name = "py-logger", editable = "packages/libs/py/logger" },
     { name = "py-schemas", editable = "packages/libs/py/schemas" },
-    { name = "py-services", editable = "packages/libs/py/services" },
+    { name = "py-services", extras = ["temporal"], editable = "packages/libs/py/services" },
     { name = "py-temporal-utils", editable = "packages/libs/py/temporal/utils" },
     { name = "py-utils", editable = "packages/libs/py/utils" },
     { name = "pypdf", specifier = ">=5.5.0" },
-    { name = "temporalio", specifier = ">=1.11.1" },
     { name = "tiktoken", specifier = ">=0.9.0" },
     { name = "vm-x-ai-sdk", specifier = "==1.6.2" },
     { name = "workflow-ingestion", editable = "packages/workflows/ingestion" },

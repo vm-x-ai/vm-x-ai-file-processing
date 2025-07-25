@@ -31,12 +31,15 @@ dependencies = [
     "py-logger",
     "py-services",
     "py-utils",
-    "temporalio>=1.11.1",
     "uvicorn>=0.34.2",
     "pydantic-settings>=2.9.1",
-    "py-temporal-utils",
     "vm-x-ai-sdk>=1.6.2",
     "langchain-openai>=0.3.16",
+]
+
+[project.optional-dependencies]
+temporal = [
+    "py-services[temporal]",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -76,7 +79,7 @@ select = [
   # isort
   "I",
 ]
-ignore = [ "B008" ]
+ignore = [ "B008", "E402" ]
 
 fixable = ["ALL"]
 unfixable = []

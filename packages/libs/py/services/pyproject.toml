@@ -25,6 +25,12 @@ dependencies = [
     "jinja2>=3.1.6",
     "py-db-models",
     "py-db-repositories",
+    "vm-x-ai-sdk>=1.6.2",
+]
+
+[project.optional-dependencies]
+temporal = [
+    "py-temporal-utils",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -72,3 +78,4 @@ unfixable = []
 [tool.uv.sources]
 py-db-models = { workspace = true }
 py-db-repositories = { workspace = true }
+py-temporal-utils = { workspace = true }

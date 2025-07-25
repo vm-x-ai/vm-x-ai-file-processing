@@ -36,7 +36,69 @@
         "outputPath": "{projectRoot}/dist",
         "publish": false,
         "lockedVersions": true,
-        "bundleLocalDependencies": true
+        "bundleLocalDependencies": true,
+        "ignorePaths": [
+          "**/__pycache__/**/*",
+          ".*",
+          "dist",
+          "tests",
+          "node_modules",
+          "cdk.out",
+          "infra",
+          "argocd",
+          "*.json",
+          "Dockerfile"
+        ]
+      },
+      "cache": true
+    },
+    "lambda-package-dependencies": {
+      "executor": "@nxlv/python:package-dependencies",
+      "outputs": ["{projectRoot}/.aws-lambda-package/dependencies.zip"],
+      "options": {
+        "outputPath": "{projectRoot}/.aws-lambda-package/dependencies.zip",
+        "outputSubdirectory": "python/",
+        "platform": "x86_64",
+        "ignoreDependencies": [
+          "awslambdaric",
+          "boto3",
+          "botocore",
+          "dateutil",
+          "jmespath",
+          "s3transfer",
+          "runtime_client",
+          "simplejson",
+          "six",
+          "snapshot_restore_py"
+        ]
+      },
+      "cache": true,
+      "inputs": ["!{projectRoot}/**/*", "{workspaceRoot}/uv.lock"]
+    },
+    "lambda-package-project": {
+      "executor": "@nxlv/python:package-project",
+      "outputs": ["{projectRoot}/.aws-lambda-package/project.zip"],
+      "options": {
+        "outputPath": "{projectRoot}/.aws-lambda-package/project.zip",
+        "includeFiles": [
+          {
+            "source": "{projectRoot}/scripts/lambda_web_adapter.sh",
+            "destination": "run.sh"
+          }
+        ],
+        "ignorePaths": [
+          ".*",
+          "dist",
+          "tests",
+          "node_modules",
+          "cdk.out",
+          "infra",
+          "argocd",
+          "*.json",
+          "*.md",
+          "*.mjs",
+          "Dockerfile"
+        ]
       },
       "cache": true
     },

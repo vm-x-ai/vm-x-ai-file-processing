@@ -22,7 +22,7 @@
     },
     "start-ngrok-tunnel": {
       "continuous": true,
-      "command": "ngrok http --url=$(echo $INGESTION_CALLBACK_URL | sed -E 's#https?://([^/]+).*#\\1#') 8000"
+      "command": "ngrok http --url=$(echo $INGESTION_CALLBACK_URL | sed -E 's#https?://([^/]+).*#\\1#') 8000 --log=stdout --log-format=json"
     },
     "lock": {
       "executor": "@nxlv/python:lock",

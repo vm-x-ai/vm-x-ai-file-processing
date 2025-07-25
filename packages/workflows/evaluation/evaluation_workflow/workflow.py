@@ -5,6 +5,7 @@ from typing import Optional
 from uuid import UUID
 
 import internal_db_models
+from pydantic import BaseModel
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 from temporalio.exceptions import ApplicationError
@@ -112,18 +113,22 @@ class EvaluationWorkflow:
             self.evaluations_map[evaluation_key] = evaluation_id
 
 
+class UpdateEvaluationWorkflowPayload(BaseModel):
+    evaluation: internal_db_models.EvaluationRead
+    old_evaluation: internal_db_models.EvaluationRead | None = None
+
+
 @workflow.defn(name="UpdateEvaluationWorkflow")
 class UpdateEvaluationWorkflow:
     @workflow.run
     async def run(
         self,
-        evaluation: internal_db_models.EvaluationRead,
-        old_evaluation: internal_db_models.EvaluationRead | None = None,
+        payload: UpdateEvaluationWorkflowPayload,
     ):
         try:
             files_to_evaluate = await workflow.execute_activity(
                 activities.GetFilesToEvaluateActivity.run,
-                args=[evaluation, old_evaluation],
+                args=[payload.evaluation, payload.old_evaluation],
                 start_to_close_timeout=DEFAULT_TIMEOUT,
                 retry_policy=DEFAULT_RETRY_POLICY,
             )
@@ -131,7 +136,7 @@ class UpdateEvaluationWorkflow:
             self.evaluations_map: dict[str, UUID] = {}
 
             for file_id in files_to_evaluate:
-                await self.process_evaluations(file_id, evaluation.id)
+                await self.process_evaluations(file_id, payload.evaluation.id)
 
             await asyncio.gather(
                 *[

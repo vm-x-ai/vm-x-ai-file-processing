@@ -1,8 +1,8 @@
 import logging
 
 from dependency_injector.wiring import Provide, inject
-from fastapi import APIRouter, Depends
-from temporalio.client import Client
+from fastapi import APIRouter, Depends, Request
+from internal_services import WorkflowEngineService
 from vmxai.types import CompletionBatchItemUpdateCallbackPayload
 
 from api.containers import Container
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.post(
-    "/ingestion-callback/{workflow_id}",
+    "/ingestion-callback",
     operation_id="ingestionCallback",
     description=(
         "Receives the callback from VM-X when a task is completed "
@@ -23,11 +23,12 @@ logger = logging.getLogger(__name__)
 )
 @inject
 async def ingestion_callback(
-    workflow_id: str,
+    request: Request,
     payload: CompletionBatchItemUpdateCallbackPayload,
-    temporal_client: Client = Depends(Provide[Container.temporal_client]),
+    workflow_engine_service: WorkflowEngineService = Depends(
+        Provide[Container.workflow_engine_service]
+    ),
 ) -> None:
-    logger.info(f"Ingestion callback for {workflow_id}")
-    workflow_handle = temporal_client.get_workflow_handle(workflow_id)
-    if payload.event == "ITEM_UPDATE":
-        await workflow_handle.signal("evaluate_item", payload)
+    await workflow_engine_service.receive_batch_item_update_callback(
+        request.query_params, payload
+    )

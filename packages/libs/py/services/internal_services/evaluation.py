@@ -43,7 +43,10 @@ class EvaluationService:
         ]
 
     async def get(self, id: UUID) -> internal_db_models.EvaluationRead:
-        evaluation = await super().get(id)
+        evaluation = await self._repo.get(id)
+        if not evaluation:
+            raise ValueError(f"Evaluation with id {id} not found")
+
         if not evaluation.template_id:
             return evaluation
 

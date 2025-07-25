@@ -1,6 +1,25 @@
-# Deploy to AWS
+# Deploy to AWS (Kubernetes Version)
 
-You can also deploy this entire stack to your AWS account.
+The Kubernetes version uses the following stack:
+
+- EKS Cluster (Kubernetes)
+- RDS Database (Aurora PostgreSQL)
+- Temporal Workflow Engine (Deployed in the EKS cluster)
+- ArgoCD (GitOps)
+- API (FastAPI Deployed in the EKS cluster)
+- UI (Next.js Deployed in the EKS cluster)
+- SQS Queue
+- S3 Bucket
+- SQS Consumers (Deployed in the EKS cluster)
+  - Workflow Ingestion
+  - Workflow Evaluation
+- Temporal Worker (Deployed in the EKS cluster)
+
+This version is more complex and more expensive than the Serverless version, but it's recommended for the following cases:
+
+- You already use Kubernetes in your organization.
+- The files are big and extracting require more compute and time (+15 minutes).
+- You want to use the Temporal Workflow Engine.
 
 **IMPORTANT:** Be aware that will cost money since it creates, RDS, EKS and EC2 instances.
 

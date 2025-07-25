@@ -6,7 +6,7 @@ COPY dist /app
 
 RUN python -m venv venv
 
-RUN . venv/bin/activate && TAR_FILE=$(ls *.tar.gz) && pip install $TAR_FILE
+RUN . venv/bin/activate && TAR_FILE=$(ls *.tar.gz) && pip install "$TAR_FILE[temporal]"
 
 EXPOSE 8000
 
