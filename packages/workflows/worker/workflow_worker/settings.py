@@ -6,17 +6,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 env_file = f".env.{environ.get('ENV', 'local')}"
 
 
-class OpenAISettings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file=env_file,
-        env_file_encoding="utf-8",
-        extra="ignore",
-        env_prefix="OPENAI_",
-    )
-
-    api_key: str
-
-
 class VMXSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=env_file,
@@ -79,7 +68,6 @@ class Settings(BaseSettings):
     )
     log_level: str = "INFO"
     sqlalchemy_log_level: str = "INFO"
-    openai: OpenAISettings = OpenAISettings()
     vmx: VMXSettings = VMXSettings()
     thumbnail: ThumbnailSettings = ThumbnailSettings()
     landing: Landing = Landing()

@@ -123,5 +123,10 @@ export class DatabaseStack extends cdk.Stack {
       parameterName: `/${this.resourcePrefix}-app/${props.stage}/database/secret/kms-key/arn`,
       stringValue: encryptionKey.keyArn,
     });
+
+    new ssm.StringParameter(this, 'DatabaseSecurityGroupId', {
+      parameterName: `/${this.resourcePrefix}-app/${props.stage}/database/security-group-id`,
+      stringValue: securityGroup.securityGroupId,
+    });
   }
 }

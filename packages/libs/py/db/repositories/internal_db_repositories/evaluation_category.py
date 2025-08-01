@@ -1,11 +1,10 @@
-from contextlib import AbstractAsyncContextManager
-from typing import Callable, cast
+from typing import cast
 from uuid import UUID, uuid4
 
 import internal_db_models
+from internal_db_services.database import Database
 from sqlalchemy import Column, ColumnExpressionArgument, select
 from sqlmodel import col
-from sqlmodel.ext.asyncio.session import AsyncSession
 
 from .base import BaseRepository
 
@@ -20,12 +19,10 @@ class EvaluationCategoryRepository(
 ):
     def __init__(
         self,
-        session_factory: Callable[..., AbstractAsyncContextManager[AsyncSession]],
-        write_session_factory: Callable[..., AbstractAsyncContextManager[AsyncSession]],
+        db: Database,
     ):
         super().__init__(
-            session_factory,
-            write_session_factory,
+            db,
             internal_db_models.EvaluationCategory,
             internal_db_models.EvaluationCategoryRead,
             internal_db_models.EvaluationCategoryCreate,

@@ -1,8 +1,8 @@
-from contextlib import AbstractAsyncContextManager
-from typing import Callable, Literal, cast
+from typing import Literal, cast
 from uuid import UUID
 
 import internal_db_models
+from internal_db_services.database import Database
 from pydantic import BaseModel
 from sqlalchemy import (
     Column,
@@ -15,7 +15,6 @@ from sqlalchemy import (
 )
 from sqlalchemy.engine.result import TupleResult
 from sqlmodel import col
-from sqlmodel.ext.asyncio.session import AsyncSession
 
 from .base import BaseRepository
 
@@ -50,12 +49,10 @@ class FileRepository(
 ):
     def __init__(
         self,
-        session_factory: Callable[..., AbstractAsyncContextManager[AsyncSession]],
-        write_session_factory: Callable[..., AbstractAsyncContextManager[AsyncSession]],
+        db: Database,
     ):
         super().__init__(
-            session_factory,
-            write_session_factory,
+            db,
             internal_db_models.File,
             internal_db_models.FileRead,
             internal_db_models.FileCreate,

@@ -7,13 +7,23 @@
   "// targets": "to see all targets run: nx show project ui --web",
   "targets": {
     "cdk-bootstrap": {},
-    "cdk-deploy": {},
+    "cdk-deploy": {
+      "dependsOn": ["lambda-build"]
+    },
     "build": {
       "cache": false,
       "configurations": {
         "dev": {},
         "prd": {}
       }
+    },
+    "lambda-build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cp scripts/lambda_web_adapter.sh .next/standalone/run.sh && cd .next/standalone && zip -r --symlinks ../standalone-server.zip *",
+        "cwd": "{projectRoot}"
+      },
+      "dependsOn": ["build"]
     },
     "dev": {
       "continuous": true,

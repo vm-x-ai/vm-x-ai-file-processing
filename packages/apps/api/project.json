@@ -5,7 +5,9 @@
   "sourceRoot": "packages/apps/api/api",
   "targets": {
     "cdk-bootstrap": {},
-    "cdk-deploy": {},
+    "cdk-deploy": {
+      "dependsOn": ["lambda-package-dependencies", "lambda-package-project"]
+    },
     "docker-compose-up": {},
     "lock": {
       "executor": "@nxlv/python:lock",
@@ -59,6 +61,9 @@
         "outputPath": "{projectRoot}/.aws-lambda-package/dependencies.zip",
         "outputSubdirectory": "python/",
         "platform": "x86_64",
+        "ignorePatterns": [
+          "**/__pycache__/**/*"
+        ],
         "ignoreDependencies": [
           "awslambdaric",
           "boto3",
@@ -97,7 +102,8 @@
           "*.json",
           "*.md",
           "*.mjs",
-          "Dockerfile"
+          "Dockerfile",
+          "**/__pycache__/**/*"
         ]
       },
       "cache": true

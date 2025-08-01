@@ -37,6 +37,18 @@ const nextConfig = {
       },
     ];
   },
+  outputFileTracingExcludes: {
+    '*': [
+      'node_modules/@rspack/*',
+      'node_modules/esbuild/*',
+      'node_modules/@swc/core',
+      'node_modules/@swc/core*/*',
+      'node_modules/@swc+helpers',
+      'node_modules/webpack',
+      'node_modules/sass',
+      'node_modules/caniuse-lite',
+    ],
+  },
 };
 
 const plugins = [

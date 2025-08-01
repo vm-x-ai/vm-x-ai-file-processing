@@ -228,6 +228,8 @@ EVENT_BUS_NAME="{{ RESOURCE_PREFIX }}-event-bus-local"
 EOF
 
 cat > $API_ENV <<EOF
+ENV=local
+
 DB_USER=app
 DB_PASSWORD=app
 DB_HOST=localhost

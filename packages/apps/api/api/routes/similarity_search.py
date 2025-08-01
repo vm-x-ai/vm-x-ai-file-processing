@@ -12,7 +12,6 @@ from langchain_openai import OpenAIEmbeddings
 from pydantic import BaseModel
 
 from api.containers import Container
-from api.settings import Settings
 
 router = APIRouter()
 
@@ -32,13 +31,13 @@ async def similarity_search(
     file_embedding_repository: FileEmbeddingRepository = Depends(
         Provide[Container.file_embedding_repository]
     ),
-    settings: Settings = Depends(Provide[Container.settings]),
+    openai_key: str = Depends(Provide[Container.openai_key]),
 ) -> (
     list[internal_db_models.FileEmbeddingRead]
     | list[internal_db_models.FileContentReadWithChunkScore]
 ):
     embeddings = OpenAIEmbeddings(
-        model="text-embedding-3-small", api_key=settings.openai.api_key
+        model="text-embedding-3-small", api_key=openai_key
     )
 
     query_embedding = await embeddings.aembed_query(payload.query)

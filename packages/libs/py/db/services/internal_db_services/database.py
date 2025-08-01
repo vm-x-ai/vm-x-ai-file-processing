@@ -1,10 +1,14 @@
 """Database module."""
 
+import json
 import logging
 from asyncio import current_task
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
+import aioboto3
+from dependency_injector import resources
+from internal_db_models.settings import DatabaseSettings
 from pydantic import PostgresDsn
 from sqlalchemy.ext.asyncio import (
     async_scoped_session,
@@ -22,13 +26,34 @@ MAX_OVERFLOW = 20
 POOL_RECYCLE = 3600
 
 
-class Database:
-    def __init__(
+class Database(resources.AsyncResource):
+    async def init(
         self,
-        db_url: PostgresDsn,
-        db_ro_url: PostgresDsn,
+        aioboto3_session: aioboto3.Session,
+        db_settings: DatabaseSettings,
         logging_name: str = "",
     ) -> None:
+        if not db_settings.host:
+            async with aioboto3_session.client("secretsmanager") as client:
+                raw_secret_value = await client.get_secret_value(
+                    SecretId=db_settings.secret_name
+                )
+                secret_value = json.loads(raw_secret_value["SecretString"])
+                db_settings.host = secret_value["host"]
+                db_settings.port = int(secret_value["port"])
+                db_settings.user = secret_value["username"]
+                db_settings.password = secret_value["password"]
+                db_settings.name = secret_value["dbname"]
+
+        db_url = PostgresDsn.build(
+            scheme=db_settings.scheme,
+            username=db_settings.user,
+            password=db_settings.password,
+            host=db_settings.host,
+            port=db_settings.port,
+            path=db_settings.name,
+        )
+
         engine = create_async_engine(
             str(db_url),
             logging_name=logging_name,
@@ -39,8 +64,9 @@ class Database:
             pool_recycle=POOL_RECYCLE,
         )
         self._engine = engine
+
         ro_engine = create_async_engine(
-            str(db_ro_url),
+            str(db_settings.ro_url) if db_settings.ro_host else str(db_url),
             logging_name=f"{logging_name}-ro",
             echo=ENGINE_ECHO,
             echo_pool=POOL_ECHO,
@@ -69,6 +95,8 @@ class Database:
             ),
             scopefunc=current_task,
         )
+
+        return self
 
     async def shutdown(self) -> None:
         await self._engine.dispose()

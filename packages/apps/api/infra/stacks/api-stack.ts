@@ -2,6 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as kms from 'aws-cdk-lib/aws-kms';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import type { Construct } from 'constructs';
 import {
   BaseStack,
@@ -67,12 +68,62 @@ export class APIStack extends BaseStack {
     const functionRole = new iam.Role(this, 'FunctionRole', {
       roleName: `${this.resourcePrefix}-api-lambda-${this.region}-${props.stage}`,
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
-      managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')],
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName(
+          'service-role/AWSLambdaBasicExecutionRole'
+        ),
+      ],
     });
 
     this.grantApplicationPermissions(functionRole, props);
 
+    let additionalFunctionProps: Partial<lambda.FunctionProps> = {};
+
+    if (props.stackMode === 'serverless') {
+      const vpc = ec2.Vpc.fromLookup(this, 'Vpc', {
+        vpcName: `${this.resourcePrefix}-app-vpc-${props.stage}`,
+      });
+
+      const securityGroup = new ec2.SecurityGroup(this, 'LambdaSecurityGroup', {
+        vpc,
+        description: 'Security group for the lambda',
+        securityGroupName: `${this.resourcePrefix}-app-api-lambda-security-group-${props.stage}`,
+      });
+
+      const dbSecurityGroupId = ssm.StringParameter.fromStringParameterName(
+        this,
+        'DatabaseSecurityGroupId',
+        `/${this.resourcePrefix}-app/${props.stage}/database/security-group-id`
+      ).stringValue;
+      const dbPort = ssm.StringParameter.fromStringParameterName(
+        this,
+        'DatabasePort',
+        `/${this.resourcePrefix}-app/${props.stage}/database/port`
+      ).stringValue;
+
+      const dbSecurityGroup = ec2.SecurityGroup.fromSecurityGroupId(
+        this,
+        'DatabaseSecurityGroup',
+        dbSecurityGroupId
+      );
+
+      dbSecurityGroup.addIngressRule(
+        securityGroup,
+        ec2.Port.tcp(parseInt(dbPort)),
+        'Allow access to the database'
+      );
+
+      additionalFunctionProps = {
+        vpc,
+        vpcSubnets: {
+          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+        },
+        securityGroups: [securityGroup],
+      };
+    }
+
     const apiFunction = new lambda.Function(this, 'API', {
+      ...additionalFunctionProps,
       functionName: `${this.resourcePrefix}-api-${props.stage}`,
       runtime: lambda.Runtime.PYTHON_3_11,
       code: lambda.Code.fromAsset('.aws-lambda-package/project.zip'),
@@ -84,17 +135,16 @@ export class APIStack extends BaseStack {
       memorySize: 1024,
       environment: {
         ENV: props.stage,
-        RUST_LOG: 'info',
         AWS_LWA_INVOKE_MODE: 'response_stream',
         AWS_LAMBDA_EXEC_WRAPPER: '/opt/bootstrap',
         AWS_LWA_PORT: '8000',
-        AWS_LWA_READINESS_CHECK_PATH: '/health',
         AWS_LWA_ASYNC_INIT: 'true',
         LANDING_S3_BUCKET_NAME: `${this.resourcePrefix}-ingestion-landing-${this.account}-${this.region}-${props.stage}`,
 
         // Secrets
         DB_SECRET_NAME: `${this.resourcePrefix}-app-database-secret-${props.stage}`,
-        OPENAI_API_KEY_SECRET_NAME: 'openai-credentials',
+        OPENAI_SECRET_NAME: 'openai-credentials',
+        ...(additionalFunctionProps.environment ?? {}),
       },
       layers: [
         lambda.LayerVersion.fromLayerVersionArn(
@@ -110,15 +160,21 @@ export class APIStack extends BaseStack {
           removalPolicy: cdk.RemovalPolicy.DESTROY,
           compatibleArchitectures: [lambda.Architecture.X86_64],
         }),
+        ...(additionalFunctionProps.layers ?? []),
       ],
     });
 
-    apiFunction.addFunctionUrl({
+    const apiFunctionUrl = apiFunction.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE,
       cors: {
         allowedOrigins: ['*'],
       },
       invokeMode: lambda.InvokeMode.RESPONSE_STREAM,
+    });
+
+    new ssm.StringParameter(this, 'APIURLParameter', {
+      parameterName: `/${this.resourcePrefix}-app/${props.stage}/api/url`,
+      stringValue: `${apiFunctionUrl.url}api`,
     });
   }
 
@@ -136,12 +192,6 @@ export class APIStack extends BaseStack {
               `arn:aws:secretsmanager:${this.region}:${this.account}:secret:${this.resourcePrefix}-app-database-secret-${props.stage}*`,
               `arn:aws:secretsmanager:${this.region}:${this.account}:secret:openai-credentials*`,
               `arn:aws:secretsmanager:${this.region}:${this.account}:secret:vmx-credentials*`,
-            ],
-          }),
-          new iam.PolicyStatement({
-            actions: ['secretsmanager:BatchGetSecretValue'],
-            resources: [
-              `*`,
             ],
           }),
         ],

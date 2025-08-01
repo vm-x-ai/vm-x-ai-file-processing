@@ -1,4 +1,3 @@
-import aioboto3
 import evaluation_workflow.activities as evaluation_activities
 import ingestion_workflow.activities as ingestion_activities
 import workflow_shared_actitivies
@@ -14,11 +13,7 @@ from workflow_worker.settings import Settings
 class Container(RepositoriesContainer, ServicesContainer, TemporalContainer):
     settings = providers.Singleton(Settings)
 
-    aioboto3_session = providers.Singleton(
-        aioboto3.Session,
-    )
-
-    vmx_client = providers.Factory(
+    vmx_client = providers.Singleton(
         VMXClient,
         domain=settings.provided.vmx.domain,
         api_key=settings.provided.vmx.api_key,
@@ -27,27 +22,27 @@ class Container(RepositoriesContainer, ServicesContainer, TemporalContainer):
     )
 
     activities = providers.List(
-        providers.Factory(
+        providers.Singleton(
             ingestion_activities.LoadS3FileActivity,
             file_repository=RepositoriesContainer.file_repository,
             project_repository=RepositoriesContainer.project_repository,
             file_content_repository=RepositoriesContainer.file_content_repository,
-            aioboto3_session=aioboto3_session,
+            aioboto3_session=ServicesContainer.aioboto3_session,
             thumbnail_s3_bucket_name=settings.provided.thumbnail.s3_bucket_name,
         ),
-        providers.Factory(
+        providers.Singleton(
             ingestion_activities.ChunkDocumentActivity,
             file_repository=RepositoriesContainer.file_repository,
             file_content_repository=RepositoriesContainer.file_content_repository,
             file_embedding_repository=RepositoriesContainer.file_embedding_repository,
         ),
-        providers.Factory(
+        providers.Singleton(
             ingestion_activities.CreateChunkEmbeddingsActivity,
             file_embedding_repository=RepositoriesContainer.file_embedding_repository,
             file_repository=RepositoriesContainer.file_repository,
-            openai_api_key=settings.provided.openai.api_key,
+            openai_api_key=ServicesContainer.openai_key,
         ),
-        providers.Factory(
+        providers.Singleton(
             evaluation_activities.StartEvaluationsActivity,
             evaluation_service=ServicesContainer.evaluation_service,
             file_repository=RepositoriesContainer.file_repository,
@@ -56,22 +51,22 @@ class Container(RepositoriesContainer, ServicesContainer, TemporalContainer):
             vmx_resource_id=settings.provided.vmx.resource_id,
             ingestion_callback_url=settings.provided.ingestion_callback.url,
         ),
-        providers.Factory(
+        providers.Singleton(
             evaluation_activities.StoreEvaluationActivity,
             file_repository=RepositoriesContainer.file_repository,
             evaluation_repository=RepositoriesContainer.evaluation_repository,
             file_evaluation_repository=RepositoriesContainer.file_evaluation_repository,
         ),
-        providers.Factory(
+        providers.Singleton(
             workflow_shared_actitivies.UpdateFileStatusActivity,
             file_repository=RepositoriesContainer.file_repository,
         ),
-        providers.Factory(
+        providers.Singleton(
             workflow_shared_actitivies.SendEventActivity,
-            aioboto3_session=aioboto3_session,
+            aioboto3_session=ServicesContainer.aioboto3_session,
             event_bus_name=settings.provided.event_bus_name,
         ),
-        providers.Factory(
+        providers.Singleton(
             evaluation_activities.GetFilesToEvaluateActivity,
             file_evaluation_repository=RepositoriesContainer.file_evaluation_repository,
             file_repository=RepositoriesContainer.file_repository,
