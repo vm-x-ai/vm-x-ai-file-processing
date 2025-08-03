@@ -5,6 +5,14 @@ import * as snsSubscriptions from 'aws-cdk-lib/aws-sns-subscriptions';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
+import * as cdk from 'aws-cdk-lib';
+import * as logs from 'aws-cdk-lib/aws-logs';
+import * as pipes from '@aws-cdk/aws-pipes-alpha';
+import * as pipesSources from '@aws-cdk/aws-pipes-sources-alpha';
+import * as pipesTargets from '@aws-cdk/aws-pipes-targets-alpha';
 import {
   BaseStack,
   BaseStackProps,
@@ -14,6 +22,7 @@ import {
 export class IngestionWorkflowStack extends BaseStack {
   public readonly landingBucket: s3.Bucket;
   public readonly thumbnailBucket: s3.Bucket;
+  public readonly ingestionQueue: sqs.Queue;
 
   constructor(scope: Construct, id: string, props: BaseStackProps) {
     super(scope, id, props);
@@ -94,51 +103,206 @@ export class IngestionWorkflowStack extends BaseStack {
       }
     );
 
-    const ingestionQueue = new sqs.Queue(this, 'IngestionWorkflowQueue', {
+    this.ingestionQueue = new sqs.Queue(this, 'IngestionWorkflowQueue', {
       queueName: `${this.resourcePrefix}-ingestion-workflow-${this.region}-${props.stage}`,
     });
 
     workflowTopic.addSubscription(
-      new snsSubscriptions.SqsSubscription(ingestionQueue)
+      new snsSubscriptions.SqsSubscription(this.ingestionQueue)
     );
 
     new ssm.StringParameter(this, 'IngestionWorkflowQueueUrl', {
       parameterName: `/${this.resourcePrefix}-app/${props.stage}/ingestion/workflow/queue/url`,
-      stringValue: ingestionQueue.queueUrl,
+      stringValue: this.ingestionQueue.queueUrl,
     });
 
     new ssm.StringParameter(this, 'IngestionWorkflowQueueArn', {
       parameterName: `/${this.resourcePrefix}-app/${props.stage}/ingestion/workflow/queue/arn`,
-      stringValue: ingestionQueue.queueArn,
+      stringValue: this.ingestionQueue.queueArn,
     });
 
     if (props.stage !== 'local') {
-      const eksCluster = importEksCluster(
-        this,
-        'EKSCluster',
-        props.stage,
-        this.resourcePrefix
-      );
-
-      const serviceAccount = eksCluster.addServiceAccount(
-        'EksIngestionWorkflowServiceAccount',
-        {
-          name: `${this.resourcePrefix}-ingestion-workflow-service-account`,
-          namespace: `${this.resourcePrefix}-app`,
-        }
-      );
-
-      ingestionQueue.grantConsumeMessages(serviceAccount.role);
-
-      if (props.gitOps.enabled) {
-        const argoCDApp = this.registerArgoCDApplication(
-          eksCluster,
-          props,
-          'ingestion-workflow-sqs-consumer',
-          `${this.resourcePrefix}-app`
-        );
-        argoCDApp.node.addDependency(serviceAccount);
+      if (props.stackMode === 'kubernetes') {
+        this.addKubernetesResources(props);
+      } else {
+        this.addServerlessResources(props);
       }
     }
+  }
+
+  private addKubernetesResources(props: BaseStackProps) {
+    const eksCluster = importEksCluster(
+      this,
+      'EKSCluster',
+      props.stage,
+      this.resourcePrefix
+    );
+
+    const serviceAccount = eksCluster.addServiceAccount(
+      'EksIngestionWorkflowServiceAccount',
+      {
+        name: `${this.resourcePrefix}-ingestion-workflow-service-account`,
+        namespace: `${this.resourcePrefix}-app`,
+      }
+    );
+
+    this.ingestionQueue.grantConsumeMessages(serviceAccount.role);
+
+    if (props.gitOps.enabled) {
+      const argoCDApp = this.registerArgoCDApplication(
+        eksCluster,
+        props,
+        'ingestion-workflow-sqs-consumer',
+        `${this.resourcePrefix}-app`
+      );
+      argoCDApp.node.addDependency(serviceAccount);
+    }
+  }
+
+  private addServerlessResources(props: BaseStackProps) {
+    const functionRole = new iam.Role(this, 'FunctionRole', {
+      roleName: `${this.resourcePrefix}-ingestion-workflow-lambda-${this.region}-${props.stage}`,
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName(
+          'service-role/AWSLambdaBasicExecutionRole'
+        ),
+      ],
+    });
+
+    let additionalFunctionProps: Partial<lambda.FunctionProps> = {};
+
+    if (props.stackMode === 'serverless') {
+      const vpc = ec2.Vpc.fromLookup(this, 'Vpc', {
+        vpcName: `${this.resourcePrefix}-app-vpc-${props.stage}`,
+      });
+
+      const securityGroup = new ec2.SecurityGroup(this, 'LambdaSecurityGroup', {
+        vpc,
+        description: 'Security group for the lambda',
+        securityGroupName: `${this.resourcePrefix}-app-api-lambda-security-group-${props.stage}`,
+      });
+
+      const dbSecurityGroupId = ssm.StringParameter.fromStringParameterName(
+        this,
+        'DatabaseSecurityGroupId',
+        `/${this.resourcePrefix}-app/${props.stage}/database/security-group-id`
+      ).stringValue;
+      const dbPort = ssm.StringParameter.fromStringParameterName(
+        this,
+        'DatabasePort',
+        `/${this.resourcePrefix}-app/${props.stage}/database/port`
+      ).stringValue;
+
+      const dbSecurityGroup = ec2.SecurityGroup.fromSecurityGroupId(
+        this,
+        'DatabaseSecurityGroup',
+        dbSecurityGroupId
+      );
+
+      dbSecurityGroup.addIngressRule(
+        securityGroup,
+        ec2.Port.tcp(parseInt(dbPort)),
+        'Allow access to the database'
+      );
+
+      additionalFunctionProps = {
+        vpc,
+        vpcSubnets: {
+          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+        },
+        securityGroups: [securityGroup],
+      };
+    }
+
+    const dependenciesLayer = new lambda.LayerVersion(
+      this,
+      'DependenciesLayer',
+      {
+        code: lambda.Code.fromAsset('.aws-lambda-package/dependencies.zip'),
+        compatibleRuntimes: [
+          lambda.Runtime.PYTHON_3_11,
+          lambda.Runtime.PYTHON_3_12,
+          lambda.Runtime.PYTHON_3_13,
+        ],
+        description: 'Dependencies for the API',
+        layerVersionName: `${this.resourcePrefix}-ingestion-workflow-dependencies-${props.stage}`,
+        removalPolicy: cdk.RemovalPolicy.DESTROY,
+        compatibleArchitectures: [
+          lambda.Architecture.X86_64,
+          lambda.Architecture.ARM_64,
+        ],
+      }
+    );
+
+    new lambda.Function(
+      this,
+      'IngestionWorkflowActivityProxy',
+      {
+        ...additionalFunctionProps,
+        functionName: `${this.resourcePrefix}-ingestion-workflow-activity-proxy-${props.stage}`,
+        runtime: lambda.Runtime.PYTHON_3_13,
+        code: lambda.Code.fromAsset('.aws-lambda-package/project.zip'),
+        handler: 'ingestion_workflow.lambda_functions.activity_proxy.handler',
+        description: 'Load S3 File',
+        architecture: lambda.Architecture.ARM_64,
+        timeout: cdk.Duration.minutes(15),
+        role: functionRole,
+        memorySize: 4096,
+        environment: {
+          ENV: props.stage,
+          ...(additionalFunctionProps.environment ?? {}),
+        },
+        layers: [dependenciesLayer, ...(additionalFunctionProps.layers ?? [])],
+      }
+    );
+
+    const stateMachineName = `${this.resourcePrefix}-ingestion-workflow-state-machine-${props.stage}`;
+
+    const stateMachineRole = new iam.Role(this, 'StateMachineRole', {
+      roleName: `${stateMachineName}-role-${props.stage}`,
+      assumedBy: new iam.ServicePrincipal('states.amazonaws.com'),
+    });
+
+    stateMachineRole.addToPolicy(
+      new iam.PolicyStatement({
+        actions: [
+          'states:StartExecution',
+          'states:DescribeExecution',
+          'states:StopExecution',
+        ],
+        resources: ['*'],
+      })
+    );
+
+    const logGroup = new logs.LogGroup(this, 'StateMachineLogGroup', {
+      logGroupName: `/aws/stepfunctions/states/${stateMachineName}`,
+      retention: logs.RetentionDays.ONE_MONTH,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    const stateMachine = new sfn.StateMachine(
+      this,
+      'IngestionWorkflowStateMachine',
+      {
+        stateMachineName,
+        role: stateMachineRole,
+        logs: {
+          level: sfn.LogLevel.ALL,
+          destination: logGroup,
+        },
+        tracingEnabled: true,
+        definition: new sfn.Pass(this, 'Pass'),
+      }
+    );
+
+    new pipes.Pipe(this, 'IngestionWorkflowPipe', {
+      pipeName: `${this.resourcePrefix}-ingestion-workflow-pipe-${props.stage}`,
+      description: 'Pipe to trigger the ingestion workflow',
+      source: new pipesSources.SqsSource(this.ingestionQueue),
+      target: new pipesTargets.SfnStateMachine(stateMachine, {
+        invocationType: pipesTargets.StateMachineInvocationType.FIRE_AND_FORGET,
+      }),
+    });
   }
 }

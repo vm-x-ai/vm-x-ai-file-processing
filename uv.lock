@@ -3352,12 +3352,24 @@ dependencies = [
     { name = "langchain-openai" },
     { name = "langchain-text-splitters" },
     { name = "pdf2image" },
-    { name = "py-aws-sqs-consumer" },
     { name = "py-logger" },
     { name = "py-schemas" },
-    { name = "py-temporal-utils" },
     { name = "pypdf" },
     { name = "tiktoken" },
+]
+
+[package.optional-dependencies]
+aws-lambda = [
+    { name = "py-db-models" },
+    { name = "py-db-repositories" },
+    { name = "py-db-services" },
+    { name = "py-services" },
+    { name = "py-utils" },
+    { name = "pydantic-settings" },
+]
+temporal = [
+    { name = "py-aws-sqs-consumer" },
+    { name = "py-temporal-utils" },
     { name = "workflow-shared-activities" },
 ]
 
@@ -3369,14 +3381,21 @@ requires-dist = [
     { name = "langchain-openai", specifier = ">=0.3.16" },
     { name = "langchain-text-splitters", specifier = ">=0.3.8" },
     { name = "pdf2image", specifier = ">=1.17.0" },
-    { name = "py-aws-sqs-consumer", editable = "packages/libs/py/aws/sqs-consumer" },
+    { name = "py-aws-sqs-consumer", marker = "extra == 'temporal'", editable = "packages/libs/py/aws/sqs-consumer" },
+    { name = "py-db-models", marker = "extra == 'aws-lambda'", editable = "packages/libs/py/db/models" },
+    { name = "py-db-repositories", marker = "extra == 'aws-lambda'", editable = "packages/libs/py/db/repositories" },
+    { name = "py-db-services", marker = "extra == 'aws-lambda'", editable = "packages/libs/py/db/services" },
     { name = "py-logger", editable = "packages/libs/py/logger" },
     { name = "py-schemas", editable = "packages/libs/py/schemas" },
-    { name = "py-temporal-utils", editable = "packages/libs/py/temporal/utils" },
+    { name = "py-services", marker = "extra == 'aws-lambda'", editable = "packages/libs/py/services" },
+    { name = "py-temporal-utils", marker = "extra == 'temporal'", editable = "packages/libs/py/temporal/utils" },
+    { name = "py-utils", marker = "extra == 'aws-lambda'", editable = "packages/libs/py/utils" },
+    { name = "pydantic-settings", marker = "extra == 'aws-lambda'", specifier = ">=2.9.1" },
     { name = "pypdf", specifier = ">=5.5.0" },
     { name = "tiktoken", specifier = ">=0.9.0" },
-    { name = "workflow-shared-activities", editable = "packages/workflows/shared-activities" },
+    { name = "workflow-shared-activities", marker = "extra == 'temporal'", editable = "packages/workflows/shared-activities" },
 ]
+provides-extras = ["temporal", "aws-lambda"]
 
 [[package]]
 name = "workflow-shared-activities"

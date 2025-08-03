@@ -2,13 +2,12 @@
 
 import json
 import logging
+import time
 from asyncio import current_task
-from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING
 
-import aioboto3
 from dependency_injector import resources
-from internal_db_models.settings import DatabaseSettings
 from pydantic import PostgresDsn
 from sqlalchemy.ext.asyncio import (
     async_scoped_session,
@@ -16,6 +15,12 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlmodel.ext.asyncio.session import AsyncSession
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
+
+    import aioboto3
+    from internal_db_models.settings import DatabaseSettings
 
 logger = logging.getLogger(__name__)
 
@@ -29,11 +34,15 @@ POOL_RECYCLE = 3600
 class Database(resources.AsyncResource):
     async def init(
         self,
-        aioboto3_session: aioboto3.Session,
-        db_settings: DatabaseSettings,
+        aioboto3_session: "aioboto3.Session",
+        db_settings: "DatabaseSettings",
         logging_name: str = "",
     ) -> None:
+        
+
         if not db_settings.host:
+            logger.info("Getting secrets from secretsmanager")
+            start_time = time.time()
             async with aioboto3_session.client("secretsmanager") as client:
                 raw_secret_value = await client.get_secret_value(
                     SecretId=db_settings.secret_name
@@ -44,6 +53,7 @@ class Database(resources.AsyncResource):
                 db_settings.user = secret_value["username"]
                 db_settings.password = secret_value["password"]
                 db_settings.name = secret_value["dbname"]
+            logger.info(f"Secrets fetched in {(time.time() - start_time):.2f} seconds")
 
         db_url = PostgresDsn.build(
             scheme=db_settings.scheme,
@@ -103,7 +113,7 @@ class Database(resources.AsyncResource):
         await self._ro_engine.dispose()
 
     @asynccontextmanager
-    async def session(self, **kwargs) -> AsyncGenerator[AsyncSession, None]:
+    async def session(self, **kwargs) -> "AsyncGenerator[AsyncSession, None]":
         session: AsyncSession = self._session_factory(**kwargs)
 
         try:
@@ -116,7 +126,7 @@ class Database(resources.AsyncResource):
             await session.close()
 
     @asynccontextmanager
-    async def writer_session(self, **kwargs) -> AsyncGenerator[AsyncSession, None]:
+    async def writer_session(self, **kwargs) -> "AsyncGenerator[AsyncSession, None]":
         session: AsyncSession = self._writer_session_factory(**kwargs)
 
         try:

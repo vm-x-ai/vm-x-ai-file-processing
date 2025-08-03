@@ -43,6 +43,9 @@ class LoadS3FileActivity:
         self._aioboto3_session = aioboto3_session
         self._thumbnail_s3_bucket_name = thumbnail_s3_bucket_name
 
+    async def parse_args(self, s3_event: dict) -> S3Event:
+        return S3Event.model_validate(s3_event)
+
     @activity.defn(name="LoadS3FileActivity")
     async def run(
         self,

@@ -7,13 +7,22 @@ import { headers } from 'next/headers';
 import z from 'zod';
 import { fileClassifierApi } from '@/api';
 import { FileRead } from '@/file-classifier-api';
+import { createCache } from 'cache-manager';
+import {
+  SecretsManagerClient,
+  GetSecretValueCommand,
+} from '@aws-sdk/client-secrets-manager';
+
+const cache = createCache();
 
 export async function POST(request: NextRequest) {
   const { messages, projectId, files } = await request.json();
 
+  await loadSecrets();
+
   const actionHeaders = await headers();
   const headerMetadata: Record<string, JSONValue> = {};
-  const baseURL = `${process.env.VMX_PROTOCOL}://api.${process.env.VMX_DOMAIN}/completion/${process.env.VMX_WORKSPACE_ID}/${process.env.VMX_ENVIRONMENT_ID}/${process.env.VMX_RESOURCE}/openai-adapter`;
+  const baseURL = `${process.env.VMX_PROTOCOL ?? 'https'}://api.${process.env.VMX_DOMAIN}/completion/${process.env.VMX_WORKSPACE_ID}/${process.env.VMX_ENVIRONMENT_ID}/${process.env.VMX_RESOURCE}/openai-adapter`;
   const model = getLanguageModel(baseURL, actionHeaders, headerMetadata);
 
   const result = streamText({
@@ -155,6 +164,42 @@ export async function POST(request: NextRequest) {
   });
 
   return result.toDataStreamResponse();
+}
+
+async function loadSecrets() {
+  if (process.env.VMX_SECRET_NAME && !process.env.VMX_API_KEY) {
+    const secretData = await cache.get<Record<string, string>>(
+      process.env.VMX_SECRET_NAME
+    );
+    if (secretData) {
+      process.env = {
+        ...process.env,
+        ...secretData,
+      };
+    }
+
+    const client = new SecretsManagerClient();
+    const response = await client.send(
+      new GetSecretValueCommand({
+        SecretId: process.env.VMX_SECRET_NAME,
+      })
+    );
+
+    const parsedSecret = JSON.parse(response.SecretString ?? '{}');
+    const secretEnv = {
+      VMX_DOMAIN: parsedSecret.domain,
+      VMX_API_KEY: parsedSecret.api_key,
+      VMX_WORKSPACE_ID: parsedSecret.workspace_id,
+      VMX_ENVIRONMENT_ID: parsedSecret.environment_id,
+      VMX_RESOURCE: parsedSecret.resource_id,
+    };
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    await cache.set(process.env.VMX_SECRET_NAME!, secretEnv);
+    process.env = {
+      ...process.env,
+      ...secretEnv,
+    };
+  }
 }
 
 function getLanguageModel(

@@ -76,22 +76,7 @@ export class UIStack extends BaseStack {
 
     dbEncryptionKey.grantDecrypt(serviceAccount.role);
 
-    serviceAccount.role.attachInlinePolicy(
-      new iam.Policy(this, 'SecretsPolicy', {
-        statements: [
-          new iam.PolicyStatement({
-            actions: [
-              'secretsmanager:GetSecretValue',
-              'secretsmanager:DescribeSecret',
-            ],
-            resources: [
-              `arn:aws:secretsmanager:${this.region}:${this.account}:secret:vmx-credentials*`,
-              `arn:aws:secretsmanager:${this.region}:${this.account}:secret:${this.resourcePrefix}-credentials*`,
-            ],
-          }),
-        ],
-      })
-    );
+    this.grantApplicationPermissions(serviceAccount.role);
   }
 
   private addServerlessResources(props: BaseStackProps) {
@@ -120,25 +105,42 @@ export class UIStack extends BaseStack {
         : `arn:aws:lambda:${this.region}:753240598075:layer:LambdaAdapterLayerX86:25`
     );
 
+    const functionRole = new iam.Role(this, 'FunctionRole', {
+      roleName: `${this.resourcePrefix}-ui-nextjs-server-${this.region}-${props.stage}`,
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName(
+          'service-role/AWSLambdaBasicExecutionRole'
+        ),
+      ],
+    });
+
+    this.grantApplicationPermissions(functionRole);
+
     const nextJsHandler = new lambda.Function(this, 'NextJsServerHandler', {
       functionName: `${this.resourcePrefix}-ui-nextjs-server-handler-${props.stage}`,
       description: `UI Next.js handler for ${props.stage}`,
       architecture,
       handler: 'run.sh',
       runtime: lambda.Runtime.NODEJS_22_X,
+      role: functionRole,
       environment: {
         ENV: props.stage,
+        NODE_ENV: 'production',
         AWS_XRAY_CONTEXT_MISSING: 'IGNORE_ERROR',
         AWS_LWA_INVOKE_MODE: 'response_stream',
         PORT: '3000',
         AWS_LAMBDA_EXEC_WRAPPER: '/opt/bootstrap',
-        AWS_LWA_ENABLE_COMPRESSION: 'true',
+        AWS_LWA_ENABLE_COMPRESSION: 'false',
 
         NEXT_PUBLIC_API_URL: ssm.StringParameter.fromStringParameterName(
           this,
           'APIURLParameter',
           `/${this.resourcePrefix}-app/${props.stage}/api/url`
         ).stringValue,
+
+        // Secrets
+        VMX_SECRET_NAME: 'vmx-credentials',
       },
       memorySize: 1024,
       timeout: cdk.Duration.minutes(1),
@@ -289,5 +291,24 @@ export class UIStack extends BaseStack {
     );
 
     nextStaticDeploy.node.addDependency(publicDeploy);
+  }
+
+  private grantApplicationPermissions(role: iam.IRole) {
+    role.attachInlinePolicy(
+      new iam.Policy(this, 'SecretsPolicy', {
+        statements: [
+          new iam.PolicyStatement({
+            actions: [
+              'secretsmanager:GetSecretValue',
+              'secretsmanager:DescribeSecret',
+            ],
+            resources: [
+              `arn:aws:secretsmanager:${this.region}:${this.account}:secret:vmx-credentials*`,
+              `arn:aws:secretsmanager:${this.region}:${this.account}:secret:${this.resourcePrefix}-credentials*`,
+            ],
+          }),
+        ],
+      })
+    );
   }
 }

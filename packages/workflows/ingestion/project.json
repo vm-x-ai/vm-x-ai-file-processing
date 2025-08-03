@@ -5,7 +5,9 @@
   "sourceRoot": "packages/workflows/ingestion/ingestion_workflow",
   "targets": {
     "cdk-bootstrap": {},
-    "cdk-deploy": {},
+    "cdk-deploy": {
+      "dependsOn": ["lambda-package-dependencies", "lambda-package-project"]
+    },
     "lock": {
       "executor": "@nxlv/python:lock",
       "options": {
@@ -113,7 +115,13 @@
           "params": "forward"
         }
       ]
-    }
+    },
+    "lambda-package-dependencies": {
+      "options": {
+        "extras": ["aws_lambda"]
+      }
+    },
+    "lambda-package-project": {}
   },
   "tags": [
     "workflow",

@@ -1,4 +1,5 @@
 import logging
+import time
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,8 +19,11 @@ from api.routes import (
 
 setup_logger()
 
+logger = logging.getLogger(__name__)
+
 
 async def lifespan(app: FastAPI):
+    start_time = time.time()
     container = Container()
     await container.init_resources()
 
@@ -37,6 +41,8 @@ async def lifespan(app: FastAPI):
         ]
     )
     app.container = container  # type: ignore
+
+    logger.info(f"API started in {(time.time() - start_time):.2f} seconds")
     yield
 
 

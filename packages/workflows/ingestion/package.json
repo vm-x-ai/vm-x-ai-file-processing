@@ -4,9 +4,14 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@workspace/infra-cdk-shared": "workspace:*",
     "aws-cdk-lib": "^2.200.1",
     "constructs": "^10.4.2",
-    "tslib": "^2.3.0",
-    "@workspace/infra-cdk-shared": "workspace:*"
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@aws-cdk/aws-pipes-alpha": "2.208.0-alpha.0",
+    "@aws-cdk/aws-pipes-sources-alpha": "2.208.0-alpha.0",
+    "@aws-cdk/aws-pipes-targets-alpha": "2.208.0-alpha.0"
   }
 }

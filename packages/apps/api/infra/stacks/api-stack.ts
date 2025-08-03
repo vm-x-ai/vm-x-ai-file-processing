@@ -125,14 +125,14 @@ export class APIStack extends BaseStack {
     const apiFunction = new lambda.Function(this, 'API', {
       ...additionalFunctionProps,
       functionName: `${this.resourcePrefix}-api-${props.stage}`,
-      runtime: lambda.Runtime.PYTHON_3_11,
+      runtime: lambda.Runtime.PYTHON_3_13,
       code: lambda.Code.fromAsset('.aws-lambda-package/project.zip'),
       handler: 'run.sh',
       description: 'File Processing FastAPI',
-      architecture: lambda.Architecture.X86_64,
+      architecture: lambda.Architecture.ARM_64,
       timeout: cdk.Duration.minutes(15),
       role: functionRole,
-      memorySize: 1024,
+      memorySize: 512,
       environment: {
         ENV: props.stage,
         AWS_LWA_INVOKE_MODE: 'response_stream',
@@ -140,6 +140,7 @@ export class APIStack extends BaseStack {
         AWS_LWA_PORT: '8000',
         AWS_LWA_ASYNC_INIT: 'true',
         LANDING_S3_BUCKET_NAME: `${this.resourcePrefix}-ingestion-landing-${this.account}-${this.region}-${props.stage}`,
+        AWS_LWA_READINESS_CHECK_PATH: '/health',
 
         // Secrets
         DB_SECRET_NAME: `${this.resourcePrefix}-app-database-secret-${props.stage}`,
@@ -150,15 +151,22 @@ export class APIStack extends BaseStack {
         lambda.LayerVersion.fromLayerVersionArn(
           this,
           'LambdaWebAdapter',
-          `arn:aws:lambda:${this.region}:753240598075:layer:LambdaAdapterLayerX86:25`
+          `arn:aws:lambda:${this.region}:753240598075:layer:LambdaAdapterLayerArm64:25`
         ),
         new lambda.LayerVersion(this, 'DependenciesLayer', {
           code: lambda.Code.fromAsset('.aws-lambda-package/dependencies.zip'),
-          compatibleRuntimes: [lambda.Runtime.PYTHON_3_11],
+          compatibleRuntimes: [
+            lambda.Runtime.PYTHON_3_11,
+            lambda.Runtime.PYTHON_3_12,
+            lambda.Runtime.PYTHON_3_13,
+          ],
           description: 'Dependencies for the API',
           layerVersionName: `${this.resourcePrefix}-api-dependencies-${props.stage}`,
           removalPolicy: cdk.RemovalPolicy.DESTROY,
-          compatibleArchitectures: [lambda.Architecture.X86_64],
+          compatibleArchitectures: [
+            lambda.Architecture.X86_64,
+            lambda.Architecture.ARM_64,
+          ],
         }),
         ...(additionalFunctionProps.layers ?? []),
       ],
