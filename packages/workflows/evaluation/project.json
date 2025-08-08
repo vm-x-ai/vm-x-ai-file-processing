@@ -101,7 +101,13 @@
           "params": "forward"
         }
       ]
-    }
+    },
+    "lambda-package-dependencies": {
+      "options": {
+        "extras": ["aws_lambda"]
+      }
+    },
+    "lambda-package-project": {}
   },
   "tags": ["workflow", "python", "no-deploy:shared", "local-workflow-infra"],
   "release": {

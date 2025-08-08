@@ -19,7 +19,7 @@ addopts = """
 name = "api"
 version = "1.0.0"
 description = "API"
-requires-python = ">=3.9,<4"
+requires-python = ">=3.10,<4"
 readme = 'README.md'
 dependencies = [
     "dependency-injector>=4.46.0",
