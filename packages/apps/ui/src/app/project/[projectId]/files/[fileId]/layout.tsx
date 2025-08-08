@@ -1,5 +1,5 @@
-import { StoreProvider } from '@/store/provider';
-import { fileClassifierApi } from '@/api';
+import { getFile } from '@/clients/api';
+import { PartialZustandStoreProvider } from '@/store/provider';
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -10,14 +10,16 @@ type LayoutProps = {
 };
 export default async function Layout({ children, params }: LayoutProps) {
   const { projectId, fileId } = await params;
-  const file = await fileClassifierApi.getFile({
-    project_id: projectId,
-    file_id: fileId,
+  const file = await getFile({
+    path: {
+      project_id: projectId,
+      file_id: fileId,
+    },
   });
 
   if (!file.data) {
     return <div>File not found</div>;
   }
 
-  return <StoreProvider state={{ file: file.data }}>{children}</StoreProvider>;
+  return <PartialZustandStoreProvider state={{ file: file.data }}>{children}</PartialZustandStoreProvider>;
 }

@@ -174,9 +174,6 @@ export class APIStack extends BaseStack {
 
     const apiFunctionUrl = apiFunction.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE,
-      cors: {
-        allowedOrigins: ['*'],
-      },
       invokeMode: lambda.InvokeMode.RESPONSE_STREAM,
     });
 

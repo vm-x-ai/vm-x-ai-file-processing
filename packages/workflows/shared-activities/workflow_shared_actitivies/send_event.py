@@ -1,9 +1,9 @@
 import json
 import logging
 from datetime import datetime, timezone
+from typing import Callable
 
 import aioboto3
-from temporalio import activity
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,19 @@ class SendEventActivity:
         self._aioboto3_session = aioboto3_session
         self._event_bus_name = event_bus_name
 
-    @activity.defn(name="SendEventActivity")
+    def temporal_factory(self) -> Callable:
+        from temporalio import activity
+
+        @activity.defn(name="SendEventActivity")
+        async def _activity(source: str, event_type: str, data: dict):
+            return await self.run(
+                source,
+                event_type,
+                data,
+            )
+
+        return _activity
+
     async def run(self, source: str, event_type: str, data: dict):
         async with self._aioboto3_session.client("events") as client:
             logger.info(f"Sending event {event_type} to {self._event_bus_name}")

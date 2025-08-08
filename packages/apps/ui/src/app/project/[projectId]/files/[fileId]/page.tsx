@@ -1,4 +1,4 @@
-import { fileClassifierApi } from '@/api';
+import { FileEvaluationReadWithFile, getFile, getFileEvaluations } from '@/clients/api';
 import FileEvaluationGraph from '@/components/evaluation/graph';
 import FileCard from '@/components/file-card';
 import {
@@ -7,9 +7,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
-import { FileEvaluationReadWithFile } from '@/file-classifier-api';
 import { ReactFlowProvider } from '@xyflow/react';
+import { AlertCircleIcon } from 'lucide-react';
+import { getErrorMessageFromResponse } from '@/clients/api-utils';
 
 type PageProps = {
   params: Promise<{
@@ -20,17 +22,45 @@ type PageProps = {
 
 export default async function Page({ params }: PageProps) {
   const { fileId, projectId } = await params;
-  const { data: file } = await fileClassifierApi.getFile({
-    project_id: projectId,
-    file_id: fileId,
+  const file = await getFile({
+    path: {
+      project_id: projectId,
+      file_id: fileId,
+    },
   });
 
-  const { data: fileEvaluations } = await fileClassifierApi.getFileEvaluations({
-    project_id: projectId,
-    file_id: fileId,
+  const fileEvaluations = await getFileEvaluations({
+    path: {
+      project_id: projectId,
+      file_id: fileId,
+    },
   });
 
-  const fileEvaluationsByPage = fileEvaluations.reduce((acc, evaluation) => {
+  if (!file.data) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircleIcon />
+        <AlertTitle>Error loading file</AlertTitle>
+        <AlertDescription>
+          {getErrorMessageFromResponse(file.error)}
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (!fileEvaluations.data) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircleIcon />
+        <AlertTitle>Error loading file evaluations</AlertTitle>
+        <AlertDescription>
+          {getErrorMessageFromResponse(fileEvaluations.error)}
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  const fileEvaluationsByPage = fileEvaluations.data.reduce((acc, evaluation) => {
     const pageNumber = evaluation.content.content_number;
     if (!acc[pageNumber]) {
       acc[pageNumber] = [];
@@ -45,7 +75,7 @@ export default async function Page({ params }: PageProps) {
       <div className="col-span-3 space-y-4">
         <h4 className="text-lg font-bold">File Details:</h4>
         <Separator />
-        <FileCard file={file} readOnly />
+        <FileCard file={file.data} readOnly />
       </div>
       <div className="col-span-9 space-y-4">
         <h4 className="text-lg font-bold">File Evaluations:</h4>

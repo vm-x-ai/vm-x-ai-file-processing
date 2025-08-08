@@ -133,7 +133,7 @@ export class UIStack extends BaseStack {
         AWS_LAMBDA_EXEC_WRAPPER: '/opt/bootstrap',
         AWS_LWA_ENABLE_COMPRESSION: 'false',
 
-        NEXT_PUBLIC_API_URL: ssm.StringParameter.fromStringParameterName(
+        API_URL: ssm.StringParameter.fromStringParameterName(
           this,
           'APIURLParameter',
           `/${this.resourcePrefix}-app/${props.stage}/api/url`

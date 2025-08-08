@@ -1,4 +1,4 @@
-import { EvaluationTemplateRead } from '@/file-classifier-api';
+import { EvaluationTemplateRead } from '@/clients/api/types.gen';
 import { FormActionState } from '@/types/form';
 import { z } from 'zod';
 

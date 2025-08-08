@@ -1,14 +1,24 @@
-import { FileRead, ProjectRead } from '@/file-classifier-api';
-import { create } from 'zustand';
+import { FileRead, ProjectRead } from '@/clients/api/types.gen';
+import { createStore } from 'zustand';
+import { subscribeWithSelector } from 'zustand/middleware';
 
 export type Store = {
   project?: ProjectRead;
   file?: FileRead;
+};
+
+export type AppActions = {
   setState: (state: Partial<Store>) => void;
 };
 
-export const useStore = create<Store>((set, get) => ({
-  project: undefined,
-  file: undefined,
-  setState: (state: Partial<Store>) => set({ ...get(), ...state }),
-}));
+export type AppStore = Store & AppActions;
+
+const initialState: Store = {};
+
+export const createAppStore = (initState: Store = initialState) =>
+  createStore<AppStore>()(
+    subscribeWithSelector((set, get) => ({
+      ...initState,
+      setState: (state: Partial<Store>) => set({ ...get(), ...state }),
+    }))
+  );

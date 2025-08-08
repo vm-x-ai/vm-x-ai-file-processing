@@ -1,5 +1,6 @@
 import logging
 import uuid
+from typing import Callable
 from uuid import UUID
 
 import internal_db_models
@@ -9,7 +10,6 @@ from internal_db_repositories.file_embedding import FileEmbeddingRepository
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pydantic import BaseModel
-from temporalio import activity
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,19 @@ class ChunkDocumentActivity:
         self._file_content_repository = file_content_repository
         self._file_embedding_repository = file_embedding_repository
 
-    @activity.defn(name="ChunkDocumentActivity")
+    def temporal_factory(self) -> Callable:
+        from temporalio import activity
+
+        @activity.defn(name="ChunkDocumentActivity")
+        async def _activity(
+            file_id: UUID,
+            project_id: UUID,
+            file_content_id: UUID,
+        ) -> ChunkDocumentOutput:
+            return await self.run(file_id, project_id, file_content_id)
+
+        return _activity
+
     async def run(
         self,
         file_id: UUID,

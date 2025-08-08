@@ -1,7 +1,13 @@
-import { fileClassifierApi } from '@/api';
+import {
+  FileSearchEvaluationGroup,
+  getEvaluations,
+  searchFiles,
+} from '@/clients/api';
 import { Explore } from '@/components/explore';
-import { FileSearchEvaluationGroup } from '@/file-classifier-api';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircleIcon } from 'lucide-react';
 import { parseAsString, parseAsJson } from 'nuqs/server';
+import { getErrorMessageFromResponse } from '@/clients/api-utils';
 
 type PageProps = {
   params: Promise<{
@@ -25,8 +31,10 @@ export default async function Page({ params, searchParams }: PageProps) {
   const { projectId } = await params;
   const queryParams = await searchParams;
 
-  const { data: evaluationsDef } = await fileClassifierApi.getEvaluations({
-    project_id: projectId,
+  const evaluationsDef = await getEvaluations({
+    path: {
+      project_id: projectId,
+    },
   });
 
   const evaluationsFilters: FileSearchEvaluationGroup =
@@ -36,22 +44,46 @@ export default async function Page({ params, searchParams }: PageProps) {
     queryParams?.search_query
   );
 
-  const { data: files } = await fileClassifierApi.searchFiles(
-    {
+  const files = await searchFiles({
+    path: {
       project_id: projectId,
     },
-    {
+    body: {
       search_query: searchQuery,
       evaluations: evaluationsFilters,
-    }
-  );
+    },
+  });
+
+  if (!evaluationsDef.data) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircleIcon />
+        <AlertTitle>Error loading evaluations</AlertTitle>
+        <AlertDescription>
+          {getErrorMessageFromResponse(evaluationsDef.error)}
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (!files.data) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircleIcon />
+        <AlertTitle>Error loading files</AlertTitle>
+        <AlertDescription>
+          {getErrorMessageFromResponse(files.error)}
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <div className="grid grid-cols-12 gap-4">
       <Explore
         projectId={projectId}
-        evaluations={evaluationsDef}
-        files={files}
+        evaluations={evaluationsDef.data}
+        files={files.data}
       />
     </div>
   );

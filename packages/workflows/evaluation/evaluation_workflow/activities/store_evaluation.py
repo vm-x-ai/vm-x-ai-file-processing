@@ -1,6 +1,7 @@
 import json
 import logging
 import uuid
+from typing import Callable
 from uuid import UUID
 
 import internal_db_models
@@ -8,7 +9,6 @@ from google.protobuf.json_format import MessageToDict
 from internal_db_repositories.evaluation import EvaluationRepository
 from internal_db_repositories.file import FileRepository
 from internal_db_repositories.file_evaluation import FileEvaluationRepository
-from temporalio import activity
 from vmxai.types import (
     CompletionBatchItemUpdateCallbackPayload,
     CompletionBatchRequestStatus,
@@ -28,7 +28,20 @@ class StoreEvaluationActivity:
         self._evaluation_repository = evaluation_repository
         self._file_evaluation_repository = file_evaluation_repository
 
-    @activity.defn(name="StoreEvaluationActivity")
+    def temporal_factory(self) -> Callable:
+        from temporalio import activity
+
+        @activity.defn(name="StoreEvaluationActivity")
+        async def _activity(
+            file_id: UUID,
+            evaluation_id: UUID,
+            file_content_id: UUID,
+            result: CompletionBatchItemUpdateCallbackPayload,
+        ):
+            return await self.run(file_id, evaluation_id, file_content_id, result)
+
+        return _activity
+
     async def run(
         self,
         file_id: UUID,

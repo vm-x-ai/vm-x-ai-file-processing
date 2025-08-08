@@ -264,7 +264,7 @@ fi
 
 # Export shared services and API environment variables for use in builds and deployments
 export SHARED_SERVICES_ACCOUNT_ID=000000000000
-export NEXT_PUBLIC_API_URL=http://localhost:80/api
+export API_URL=http://localhost:80/api
 
 # Configure Docker to use Minikube's Docker daemon
 eval $(minikube docker-env --shell=bash)

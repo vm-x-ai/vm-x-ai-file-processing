@@ -36,9 +36,7 @@ async def similarity_search(
     list[internal_db_models.FileEmbeddingRead]
     | list[internal_db_models.FileContentReadWithChunkScore]
 ):
-    embeddings = OpenAIEmbeddings(
-        model="text-embedding-3-small", api_key=openai_key
-    )
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-small", api_key=openai_key)
 
     query_embedding = await embeddings.aembed_query(payload.query)
     return await file_embedding_repository.similarity_search(

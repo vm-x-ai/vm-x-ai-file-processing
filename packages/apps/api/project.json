@@ -101,20 +101,8 @@
         "cwd": "{projectRoot}"
       }
     },
-    "docker-build": {
-      "options": {
-        "env": {
-          "ECR_REPO_NAME": "api"
-        }
-      }
-    },
-    "docker-push": {
-      "options": {
-        "env": {
-          "ECR_REPO_NAME": "api"
-        }
-      }
-    },
+    "docker-build": {},
+    "docker-push": {},
     "helm-deploy": {},
     "update-image-tag": {},
     "deploy": {

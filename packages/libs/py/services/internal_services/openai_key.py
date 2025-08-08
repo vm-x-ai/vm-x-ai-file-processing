@@ -21,7 +21,7 @@ class OpenAIKeyResource(resources.AsyncResource):
 
         return self._key
 
-    async def shutdown(self): ...
+    async def shutdown(self, key: str): ...
 
     @property
     def key(self) -> str:

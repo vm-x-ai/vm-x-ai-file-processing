@@ -37,7 +37,7 @@ dependencies = [
 [project.optional-dependencies]
 temporal = [
   "py-aws-sqs-consumer",
-  "workflow-shared-activities",
+  "workflow-shared-activities[temporal]",
   "py-temporal-utils",
 ]
 aws_lambda = [
@@ -47,6 +47,7 @@ aws_lambda = [
   "py-services",
   "py-utils",
   "pydantic-settings>=2.9.1",
+  "workflow-shared-activities",
 ]
 
 [tool.hatch.build.targets.wheel]

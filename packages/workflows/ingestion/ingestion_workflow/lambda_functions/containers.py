@@ -1,3 +1,4 @@
+import workflow_shared_actitivies
 from dependency_injector import providers
 from internal_db_repositories.containers import RepositoriesContainer
 from internal_services.containers import ServicesContainer
@@ -16,4 +17,29 @@ class LambdaContainer(RepositoriesContainer, ServicesContainer):
         file_content_repository=RepositoriesContainer.file_content_repository,
         aioboto3_session=ServicesContainer.aioboto3_session,
         thumbnail_s3_bucket_name=settings.provided.thumbnail.s3_bucket_name,
+    )
+
+    chunk_document_activity = providers.Singleton(
+        activities.ChunkDocumentActivity,
+        file_repository=RepositoriesContainer.file_repository,
+        file_content_repository=RepositoriesContainer.file_content_repository,
+        file_embedding_repository=RepositoriesContainer.file_embedding_repository,
+    )
+
+    create_chunk_embeddings_activity = providers.Singleton(
+        activities.CreateChunkEmbeddingsActivity,
+        file_embedding_repository=RepositoriesContainer.file_embedding_repository,
+        file_repository=RepositoriesContainer.file_repository,
+        openai_api_key=ServicesContainer.openai_key,
+    )
+
+    update_file_status_activity = providers.Singleton(
+        workflow_shared_actitivies.UpdateFileStatusActivity,
+        file_repository=RepositoriesContainer.file_repository,
+    )
+
+    send_event_activity = providers.Singleton(
+        workflow_shared_actitivies.SendEventActivity,
+        aioboto3_session=ServicesContainer.aioboto3_session,
+        event_bus_name=settings.provided.event_bus_name,
     )

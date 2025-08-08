@@ -18,7 +18,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { ProjectRead } from '@/file-classifier-api';
+import { ProjectRead } from '@/clients/api/types.gen';
 import { FolderRoot } from 'lucide-react';
 
 export type ProjectSwitcherProps = {

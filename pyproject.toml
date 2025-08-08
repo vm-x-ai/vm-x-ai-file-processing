@@ -90,5 +90,5 @@ dev = [
   "types-aiobotocore[s3,events,secretsmanager,ssm]>=2.22.0",
   "watchdog>=6.0.0",
   "types-boto3[s3,events,secretsmanager,ssm]>=1.39.14",
-  "types-botocore[s3,events,secretsmanager,ssm]>=1.0.2",
+  "types-botocore>=1.0.2",
 ]

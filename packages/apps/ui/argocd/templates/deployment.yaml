@@ -48,7 +48,7 @@ spec:
                 secretKeyRef:
                   name: vmx-credentials
                   key: resource_id
-            - name: NEXT_PUBLIC_API_URL
+            - name: API_URL
               {{- if .Values.minikube }}
               value: "http://localhost:80/api"
               {{- else }}

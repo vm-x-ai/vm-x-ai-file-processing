@@ -1,10 +1,13 @@
 'use server';
 
-import { fileClassifierApi } from '@/api';
 import { FormAction, FormSchema, schema } from '@/components/project/schema';
-import { ProjectCreateRequest } from '@/file-classifier-api';
+import { createProject, ProjectCreateRequest } from '@/clients/api';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { ensureServerClientsInitialized } from '@/clients/server-api-utils';
+import { getErrorMessageFromResponse } from '@/clients/api-utils';
+
+ensureServerClientsInitialized();
 
 export async function submitForm(
   prevState: FormAction,
@@ -25,7 +28,19 @@ export async function submitForm(
     description: data.description,
   };
 
-  const newProject = await fileClassifierApi.createProject({}, createPayload);
+  const newProject = await createProject({
+    body: createPayload,
+  });
+
+  if (!newProject.data) {
+    return {
+      ...prevState,
+      success: false,
+      message:
+        getErrorMessageFromResponse(newProject.error) ||
+        'Failed to create project',
+    };
+  }
 
   revalidatePath('/');
   revalidatePath('/project');

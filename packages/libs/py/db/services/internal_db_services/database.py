@@ -38,8 +38,6 @@ class Database(resources.AsyncResource):
         db_settings: "DatabaseSettings",
         logging_name: str = "",
     ) -> None:
-        
-
         if not db_settings.host:
             logger.info("Getting secrets from secretsmanager")
             start_time = time.time()
@@ -55,13 +53,19 @@ class Database(resources.AsyncResource):
                 db_settings.name = secret_value["dbname"]
             logger.info(f"Secrets fetched in {(time.time() - start_time):.2f} seconds")
 
-        db_url = PostgresDsn.build(
-            scheme=db_settings.scheme,
-            username=db_settings.user,
-            password=db_settings.password,
-            host=db_settings.host,
-            port=db_settings.port,
-            path=db_settings.name,
+        def _build_db_url(host: str) -> PostgresDsn:
+            return PostgresDsn.build(
+                scheme=db_settings.scheme,
+                username=db_settings.user,
+                password=db_settings.password,
+                host=host,
+                port=db_settings.port,
+                path=db_settings.name,
+            )
+
+        db_url = _build_db_url(db_settings.host)
+        db_ro_url = (
+            _build_db_url(db_settings.ro_host) if db_settings.ro_host else db_url
         )
 
         engine = create_async_engine(
@@ -76,7 +80,7 @@ class Database(resources.AsyncResource):
         self._engine = engine
 
         ro_engine = create_async_engine(
-            str(db_settings.ro_url) if db_settings.ro_host else str(db_url),
+            str(db_ro_url),
             logging_name=f"{logging_name}-ro",
             echo=ENGINE_ECHO,
             echo_pool=POOL_ECHO,
@@ -108,9 +112,9 @@ class Database(resources.AsyncResource):
 
         return self
 
-    async def shutdown(self) -> None:
-        await self._engine.dispose()
-        await self._ro_engine.dispose()
+    async def shutdown(self, instance: "Database") -> None:
+        await instance._engine.dispose()
+        await instance._ro_engine.dispose()
 
     @asynccontextmanager
     async def session(self, **kwargs) -> "AsyncGenerator[AsyncSession, None]":

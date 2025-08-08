@@ -4,6 +4,7 @@ import time
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from internal_logger import setup_logger
+from pydantic import BaseModel
 
 from api.containers import Container
 from api.routes import (
@@ -46,17 +47,25 @@ async def lifespan(app: FastAPI):
     yield
 
 
+class ErrorResponse(BaseModel):
+    message: str
+
+
 app = FastAPI(
     title="VM-X AI File Processing API",
     version="0.1.0",
     lifespan=lifespan,
     root_path="/api",
+    responses={
+        400: {"model": ErrorResponse},
+        500: {"model": ErrorResponse},
+    },
 )
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )

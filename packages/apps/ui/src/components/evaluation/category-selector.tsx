@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { ControllerRenderProps, FieldPath, FieldValues } from 'react-hook-form';
-import { fileClassifierApi } from '@/api';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -20,10 +19,9 @@ import {
   CommandSeparator,
 } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
-import { Components } from '@/file-classifier-api';
 import { shouldShowEmptyCategory } from '@/lib/category-utils';
-
-type EvaluationCategoryRead = Components.Schemas.EvaluationCategoryRead;
+import { useQuery } from '@tanstack/react-query';
+import { getEvaluationCategoriesOptions } from '@/clients/api/@tanstack/react-query.gen';
 
 export type CategorySelectorProps = {
   projectId: string;
@@ -46,36 +44,24 @@ export function CategorySelector({
   popoverClassName,
   hideEmptyDefault = false,
 }: CategorySelectorProps) {
-  const [categories, setCategories] = useState<EvaluationCategoryRead[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: categories, isLoading } = useQuery({
+    ...getEvaluationCategoriesOptions({
+      path: {
+        project_id: projectId,
+      },
+    }),
+  });
   const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
 
-  useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const { data } = await fileClassifierApi.getEvaluationCategories({
-          project_id: projectId,
-        });
-        setCategories(data);
-      } catch (error) {
-        console.error('Failed to fetch categories:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchCategories();
-  }, [projectId]);
-
   const selectedCategory = useMemo(
-    () => categories.find((cat) => cat.id === value),
+    () => categories?.find((cat) => cat.id === value),
     [categories, value]
   );
 
   const filteredCategories = useMemo(
     () =>
-      categories.filter((cat) => {
+      categories?.filter((cat) => {
         // Filter by search term
         const matchesSearch = cat.name
           .toLowerCase()
@@ -94,7 +80,7 @@ export function CategorySelector({
 
   const exactMatch = useMemo(
     () =>
-      categories.find(
+      categories?.find(
         (cat) => cat.name.toLowerCase() === searchValue.toLowerCase()
       ),
     [categories, searchValue]
@@ -111,7 +97,7 @@ export function CategorySelector({
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return <div className="w-48 h-10 bg-muted animate-pulse rounded-md" />;
   }
 
@@ -153,9 +139,9 @@ export function CategorySelector({
                 ? 'No categories found.'
                 : 'No categories available.'}
             </CommandEmpty>
-            {filteredCategories.length > 0 && (
+            {filteredCategories?.length && (
               <CommandGroup>
-                {filteredCategories.map((category) => (
+                {filteredCategories?.map((category) => (
                   <CommandItem
                     key={category.id}
                     value={category.id}
@@ -178,7 +164,7 @@ export function CategorySelector({
             )}
             {showCreateOption && (
               <>
-                {filteredCategories.length > 0 && <CommandSeparator />}
+                {filteredCategories?.length && <CommandSeparator />}
                 <CommandGroup>
                   <CommandItem onSelect={handleCreateCategory}>
                     <Plus className="mr-2 h-4 w-4" />

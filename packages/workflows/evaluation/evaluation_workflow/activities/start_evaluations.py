@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import Callable, Optional
 from uuid import UUID
 
 import internal_db_models
@@ -81,7 +81,22 @@ class StartEvaluationsActivity:
         self._vmx_resource_id = vmx_resource_id
         self._ingestion_callback_url = ingestion_callback_url
 
-    @activity.defn(name="StartEvaluationsActivity")
+    def temporal_factory(self) -> Callable:
+        from temporalio import activity
+
+        @activity.defn(name="StartEvaluationsActivity")
+        async def _activity(
+            file_id: UUID,
+            evaluation_id: Optional[UUID] = None,
+            parent_evaluation_id: Optional[UUID] = None,
+            parent_evaluation_option: Optional[str] = None,
+        ) -> StartEvaluationOutput:
+            return await self.run(
+                file_id, evaluation_id, parent_evaluation_id, parent_evaluation_option
+            )
+
+        return _activity
+
     async def run(
         self,
         file_id: UUID,

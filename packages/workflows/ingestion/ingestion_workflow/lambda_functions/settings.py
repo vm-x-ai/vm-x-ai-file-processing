@@ -28,3 +28,4 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     sqlalchemy_log_level: str = "INFO"
     thumbnail: ThumbnailSettings = ThumbnailSettings()
+    event_bus_name: str

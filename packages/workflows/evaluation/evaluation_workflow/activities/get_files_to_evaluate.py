@@ -1,10 +1,10 @@
 import logging
+from typing import Callable
 from uuid import UUID
 
 import internal_db_models
 from internal_db_repositories.file import FileRepository
 from internal_db_repositories.file_evaluation import FileEvaluationRepository
-from temporalio import activity
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,18 @@ class GetFilesToEvaluateActivity:
         self._file_evaluation_repository = file_evaluation_repository
         self._file_repository = file_repository
 
-    @activity.defn(name="GetFilesToEvaluateActivity")
+    def temporal_factory(self) -> Callable:
+        from temporalio import activity
+
+        @activity.defn(name="GetFilesToEvaluateActivity")
+        async def _activity(
+            evaluation: internal_db_models.EvaluationRead,
+            old_evaluation: internal_db_models.EvaluationRead | None = None,
+        ) -> list[UUID]:
+            return await self.run(evaluation, old_evaluation)
+
+        return _activity
+
     async def run(
         self,
         evaluation: internal_db_models.EvaluationRead,

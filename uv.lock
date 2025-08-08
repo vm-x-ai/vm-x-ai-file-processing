@@ -1675,7 +1675,7 @@ dev = [
     { name = "types-aioboto3", extras = ["s3", "events", "secretsmanager", "ssm"], specifier = ">=14.3.0" },
     { name = "types-aiobotocore", extras = ["s3", "events", "secretsmanager", "ssm"], specifier = ">=2.22.0" },
     { name = "types-boto3", extras = ["s3", "events", "secretsmanager", "ssm"], specifier = ">=1.39.14" },
-    { name = "types-botocore", extras = ["s3", "events", "secretsmanager", "ssm"], specifier = ">=1.0.2" },
+    { name = "types-botocore", specifier = ">=1.0.2" },
     { name = "watchdog", specifier = ">=6.0.0" },
 ]
 
@@ -3366,11 +3366,12 @@ aws-lambda = [
     { name = "py-services" },
     { name = "py-utils" },
     { name = "pydantic-settings" },
+    { name = "workflow-shared-activities" },
 ]
 temporal = [
     { name = "py-aws-sqs-consumer" },
     { name = "py-temporal-utils" },
-    { name = "workflow-shared-activities" },
+    { name = "workflow-shared-activities", extra = ["temporal"] },
 ]
 
 [package.metadata]
@@ -3393,7 +3394,8 @@ requires-dist = [
     { name = "pydantic-settings", marker = "extra == 'aws-lambda'", specifier = ">=2.9.1" },
     { name = "pypdf", specifier = ">=5.5.0" },
     { name = "tiktoken", specifier = ">=0.9.0" },
-    { name = "workflow-shared-activities", marker = "extra == 'temporal'", editable = "packages/workflows/shared-activities" },
+    { name = "workflow-shared-activities", marker = "extra == 'aws-lambda'", editable = "packages/workflows/shared-activities" },
+    { name = "workflow-shared-activities", extras = ["temporal"], marker = "extra == 'temporal'", editable = "packages/workflows/shared-activities" },
 ]
 provides-extras = ["temporal", "aws-lambda"]
 
@@ -3401,6 +3403,18 @@ provides-extras = ["temporal", "aws-lambda"]
 name = "workflow-shared-activities"
 version = "1.0.0"
 source = { editable = "packages/workflows/shared-activities" }
+dependencies = [
+    { name = "aioboto3" },
+    { name = "py-db-models" },
+    { name = "py-db-repositories" },
+    { name = "py-logger" },
+    { name = "py-utils" },
+]
+
+[package.optional-dependencies]
+temporal = [
+    { name = "py-temporal-utils" },
+]
 
 [package.dev-dependencies]
 dev = [
@@ -3409,6 +3423,15 @@ dev = [
 ]
 
 [package.metadata]
+requires-dist = [
+    { name = "aioboto3", specifier = ">=14.3.0" },
+    { name = "py-db-models", editable = "packages/libs/py/db/models" },
+    { name = "py-db-repositories", editable = "packages/libs/py/db/repositories" },
+    { name = "py-logger", editable = "packages/libs/py/logger" },
+    { name = "py-temporal-utils", marker = "extra == 'temporal'", editable = "packages/libs/py/temporal/utils" },
+    { name = "py-utils", editable = "packages/libs/py/utils" },
+]
+provides-extras = ["temporal"]
 
 [package.metadata.requires-dev]
 dev = [

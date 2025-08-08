@@ -1,11 +1,11 @@
 import logging
 import uuid
+from typing import Callable
 
 import internal_db_models
 from internal_db_repositories.file import FileRepository
 from internal_db_repositories.file_embedding import FileEmbeddingRepository
 from langchain_openai import OpenAIEmbeddings
-from temporalio import activity
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,19 @@ class CreateChunkEmbeddingsActivity:
         self._file_repository = file_repository
         self._openai_api_key = openai_api_key
 
-    @activity.defn(name="CreateChunkEmbeddingsActivity")
+    def temporal_factory(self) -> Callable:
+        from temporalio import activity
+
+        @activity.defn(name="CreateChunkEmbeddingsActivity")
+        async def _activity(
+            file_id: uuid.UUID,
+            chunk_id: uuid.UUID,
+            chunk_number: int,
+        ) -> None:
+            return await self.run(file_id, chunk_id, chunk_number)
+
+        return _activity
+
     async def run(
         self,
         file_id: uuid.UUID,

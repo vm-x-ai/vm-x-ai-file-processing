@@ -80,24 +80,12 @@
       "continuous": true,
       "executor": "@nxlv/python:run-commands",
       "options": {
-        "command": "python -m evaluation_workflow",
+        "command": "watchmedo auto-restart --patterns=\"*.py\" --recursive -- python -m evaluation_workflow",
         "cwd": "{projectRoot}"
       }
     },
-    "docker-build": {
-      "options": {
-        "env": {
-          "ECR_REPO_NAME": "evaluation-workflow-sqs-consumer"
-        }
-      }
-    },
-    "docker-push": {
-      "options": {
-        "env": {
-          "ECR_REPO_NAME": "evaluation-workflow-sqs-consumer"
-        }
-      }
-    },
+    "docker-build": {},
+    "docker-push": {},
     "helm-deploy": {},
     "update-image-tag": {},
     "deploy": {

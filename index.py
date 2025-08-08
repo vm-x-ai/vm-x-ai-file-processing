@@ -1,44 +1,41 @@
+from uuid import UUID
 
+from pydantic import BaseModel
+import inspect
 
-import asyncio
+class MyModel(BaseModel):
+    project_id: UUID
 
+class Test:
+    def run(self, file_id: UUID, model: MyModel):
+        return {
+            "file_id": type(file_id),
+            "model": type(model),
+        }
+    
+instance = Test()
+result = instance.run(
+    UUID("123e4567-e89b-12d3-a456-426614174000"),
+    MyModel(project_id=UUID("123e4567-e89b-12d3-a456-426614174000")),
+)
 
-class Target:
-    async def greet(self, name):
-        return f"Hello, {name}!"
+print(result)
 
-    async def add(self, x, y):
-        return x + y
+raw_args = {
+    "file_id": "123e4567-e89b-12d3-a456-426614174000",
+    "model": {
+        "project_id": "123e4567-e89b-12d3-a456-426614174000",
+    }
+}
 
+parsed_args = {}
+for param_name, param_type in inspect.signature(instance.run).parameters.items():
+    if param_name not in raw_args:
+        raise ValueError(f"Missing argument: {param_name}")
 
-class AsyncProxy:
-    def __init__(self, get_delegate_async):
-        self._get_delegate_async = get_delegate_async
+    if issubclass(param_type.annotation, BaseModel):
+        parsed_args[param_name] = param_type.annotation.model_validate(raw_args[param_name])
+    else:
+        parsed_args[param_name] = param_type.annotation(raw_args[param_name])
 
-    def __getattr__(self, name):
-        async def method_proxy(*args, **kwargs):
-            delegate = await self._get_delegate_async()
-            attr = getattr(delegate, name)
-            if not callable(attr):
-                return attr
-            return await attr(*args, **kwargs)
-
-        return method_proxy
-
-
-async def resolve_delegate():
-    await asyncio.sleep(0.1)  # simulate I/O
-    return Target()
-
-async def main():
-    proxy = AsyncProxy(resolve_delegate)
-
-    result1 = await proxy.greet("Lucas")
-    print(result1)
-
-    result2 = await proxy.add(2, 3)
-    print(result2)
-
-    print(proxy._get_delegate_async)
-
-asyncio.run(main())
+print(parsed_args)

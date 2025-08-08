@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
 import { schema } from './schema';
 import type { FormSchema, FormAction } from './schema';
-import { ProjectRead } from '@/file-classifier-api';
+import { ProjectRead } from '@/clients/api/types.gen';
 import { useTransition } from 'react';
 import { Separator } from '../ui/separator';
 import { SaveIcon } from 'lucide-react';

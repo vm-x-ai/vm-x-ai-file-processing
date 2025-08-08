@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { fileClassifierApi } from '@/api';
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -10,9 +9,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ChevronDown } from 'lucide-react';
-import { Components } from '@/file-classifier-api';
-
-type EvaluationCategoryRead = Components.Schemas.EvaluationCategoryRead;
+import { useQuery } from '@tanstack/react-query';
+import { getEvaluationCategoriesOptions } from '@/clients/api/@tanstack/react-query.gen';
 
 interface CategoryFilterProps {
   projectId: string;
@@ -25,38 +23,31 @@ export function CategoryFilter({
   selectedCategoryId,
   onCategoryChange,
 }: CategoryFilterProps) {
-  const [categories, setCategories] = useState<EvaluationCategoryRead[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: categories, isLoading } = useQuery({
+    ...getEvaluationCategoriesOptions({
+      path: {
+        project_id: projectId,
+      },
+    }),
+  });
 
   useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const { data } = await fileClassifierApi.getEvaluationCategories({
-          project_id: projectId,
-        });
-        setCategories(data);
+    if (!categories) return;
 
-        // Auto-select the first category if none is selected
-        if (data.length > 0 && !selectedCategoryId) {
-          onCategoryChange(data[0].id);
-        }
-      } catch (error) {
-        console.error('Failed to fetch categories:', error);
-      } finally {
-        setLoading(false);
-      }
+    // Auto-select the first category if none is selected
+    if (categories?.length > 0 && !selectedCategoryId) {
+      onCategoryChange(categories[0].id);
     }
+  }, [projectId, selectedCategoryId, onCategoryChange, categories]);
 
-    fetchCategories();
-  }, [projectId, selectedCategoryId, onCategoryChange]);
-
-  if (loading) {
+  if (isLoading) {
     return <div className="w-48 h-10 bg-muted animate-pulse rounded-md" />;
   }
 
-  const selectedCategory = categories.find(
+  const selectedCategory = categories?.find(
     (cat) => cat.id === selectedCategoryId
   );
+
   const displayText = selectedCategory
     ? selectedCategory.name
     : 'Select Category';
@@ -70,7 +61,7 @@ export function CategoryFilter({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-48">
-        {categories.map((category) => (
+        {categories?.map((category) => (
           <DropdownMenuItem
             key={category.id}
             onClick={() => onCategoryChange(category.id)}

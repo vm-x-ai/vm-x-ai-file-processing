@@ -11,13 +11,16 @@
       "executor": "@nxlv/python:run-commands",
       "continuous": true,
       "options": {
+        "command": "watchmedo auto-restart --patterns=\"*.py\" --recursive -- python -m workflow_worker",
+        "cwd": "{projectRoot}"
+      }
+    },
+    "start": {
+      "executor": "@nxlv/python:run-commands",
+      "continuous": true,
+      "options": {
         "command": "python -m workflow_worker",
         "cwd": "{projectRoot}"
-      },
-      "configurations": {
-        "watch": {
-          "command": "watchmedo auto-restart --patterns=\"*.py\" --recursive -- python -m workflow_worker"
-        }
       }
     },
     "start-ngrok-tunnel": {
@@ -94,20 +97,8 @@
         "debug": false
       }
     },
-    "docker-build": {
-      "options": {
-        "env": {
-          "ECR_REPO_NAME": "temporal-worker"
-        }
-      }
-    },
-    "docker-push": {
-      "options": {
-        "env": {
-          "ECR_REPO_NAME": "temporal-worker"
-        }
-      }
-    },
+    "docker-build": {},
+    "docker-push": {},
     "helm-deploy": {},
     "update-image-tag": {},
     "deploy": {

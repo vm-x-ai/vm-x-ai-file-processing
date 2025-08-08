@@ -82,24 +82,12 @@
       "continuous": true,
       "executor": "@nxlv/python:run-commands",
       "options": {
-        "command": "python -m ingestion_workflow",
+        "command": "watchmedo auto-restart --patterns=\"*.py\" --recursive -- python -m ingestion_workflow",
         "cwd": "{projectRoot}"
       }
     },
-    "docker-build": {
-      "options": {
-        "env": {
-          "ECR_REPO_NAME": "ingestion-workflow-sqs-consumer"
-        }
-      }
-    },
-    "docker-push": {
-      "options": {
-        "env": {
-          "ECR_REPO_NAME": "ingestion-workflow-sqs-consumer"
-        }
-      }
-    },
+    "docker-build": {},
+    "docker-push": {},
     "helm-deploy": {},
     "update-image-tag": {},
     "deploy": {

@@ -244,18 +244,20 @@ async def delete_evaluation(
     "/projects/{project_id}/evaluation-categories",
     operation_id="getEvaluationCategories",
     description="Get all evaluation categories for a project",
-    response_model=list[internal_db_models.EvaluationCategoryRead],
+    response_model=list[internal_db_models.EvaluationCategoryWithEvaluations],
     tags=["evaluation-categories"],
 )
 @inject
 async def get_evaluation_categories(
     project_id: UUID,
+    has_evaluations: bool | None = Query(default=None),
     evaluation_category_repository: EvaluationCategoryRepository = Depends(
         Provide[Container.evaluation_category_repository]
     ),
-) -> list[internal_db_models.EvaluationCategoryRead]:
+) -> list[internal_db_models.EvaluationCategoryWithEvaluations]:
     return await evaluation_category_repository.get_by_project_id(
         project_id=project_id,
+        has_evaluations=has_evaluations,
     )
 
 

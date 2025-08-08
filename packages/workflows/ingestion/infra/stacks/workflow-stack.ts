@@ -8,11 +8,13 @@ import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
+import * as sfnTasks from 'aws-cdk-lib/aws-stepfunctions-tasks';
 import * as cdk from 'aws-cdk-lib';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as pipes from '@aws-cdk/aws-pipes-alpha';
 import * as pipesSources from '@aws-cdk/aws-pipes-sources-alpha';
 import * as pipesTargets from '@aws-cdk/aws-pipes-targets-alpha';
+import * as events from 'aws-cdk-lib/aws-events';
 import {
   BaseStack,
   BaseStackProps,
@@ -170,6 +172,13 @@ export class IngestionWorkflowStack extends BaseStack {
       ],
     });
 
+    const eventBus = events.EventBus.fromEventBusName(
+      this,
+      'EventBus',
+      `${this.resourcePrefix}-event-bus-${props.stage}`
+    );
+    eventBus.grantPutEventsTo(functionRole);
+
     let additionalFunctionProps: Partial<lambda.FunctionProps> = {};
 
     if (props.stackMode === 'serverless') {
@@ -235,7 +244,7 @@ export class IngestionWorkflowStack extends BaseStack {
       }
     );
 
-    new lambda.Function(
+    const activityProxy = new lambda.Function(
       this,
       'IngestionWorkflowActivityProxy',
       {
@@ -244,17 +253,55 @@ export class IngestionWorkflowStack extends BaseStack {
         runtime: lambda.Runtime.PYTHON_3_13,
         code: lambda.Code.fromAsset('.aws-lambda-package/project.zip'),
         handler: 'ingestion_workflow.lambda_functions.activity_proxy.handler',
-        description: 'Load S3 File',
+        description: 'Ingestion Workflow Activity Proxy Lambda Function',
         architecture: lambda.Architecture.ARM_64,
         timeout: cdk.Duration.minutes(15),
         role: functionRole,
         memorySize: 4096,
         environment: {
           ENV: props.stage,
+          LOG_LEVEL: 'INFO',
+          THUMBNAIL_S3_BUCKET_NAME: this.thumbnailBucket.bucketName,
+          DB_SECRET_NAME: `${this.resourcePrefix}-app-database-secret-${props.stage}`,
+          OPENAI_SECRET_NAME: 'openai-credentials',
+          POPPLER_INSTALLED: 'false',
+          EVENT_BUS_NAME: eventBus.eventBusName,
           ...(additionalFunctionProps.environment ?? {}),
         },
         layers: [dependenciesLayer, ...(additionalFunctionProps.layers ?? [])],
       }
+    );
+
+    functionRole.attachInlinePolicy(
+      new iam.Policy(this, 'SecretsPolicy', {
+        statements: [
+          new iam.PolicyStatement({
+            actions: [
+              'secretsmanager:BatchGetSecretValue',
+              'secretsmanager:GetSecretValue',
+              'secretsmanager:DescribeSecret',
+            ],
+            resources: [
+              `arn:aws:secretsmanager:${this.region}:${this.account}:secret:${this.resourcePrefix}-app-database-secret-${props.stage}*`,
+              `arn:aws:secretsmanager:${this.region}:${this.account}:secret:openai-credentials*`,
+              `arn:aws:secretsmanager:${this.region}:${this.account}:secret:vmx-credentials*`,
+            ],
+          }),
+        ],
+      })
+    );
+
+    functionRole.attachInlinePolicy(
+      new iam.Policy(this, 'SSMPolicy', {
+        statements: [
+          new iam.PolicyStatement({
+            actions: ['ssm:GetParameter*'],
+            resources: [
+              `arn:aws:ssm:${this.region}:${this.account}:parameter/${this.resourcePrefix}-app/${props.stage}/database/ro-endpoint`,
+            ],
+          }),
+        ],
+      })
     );
 
     const stateMachineName = `${this.resourcePrefix}-ingestion-workflow-state-machine-${props.stage}`;
@@ -275,11 +322,224 @@ export class IngestionWorkflowStack extends BaseStack {
       })
     );
 
+    activityProxy.grantInvoke(stateMachineRole);
+    this.thumbnailBucket.grantReadWrite(functionRole);
+    this.landingBucket.grantRead(functionRole);
+
     const logGroup = new logs.LogGroup(this, 'StateMachineLogGroup', {
       logGroupName: `/aws/stepfunctions/states/${stateMachineName}`,
       retention: logs.RetentionDays.ONE_MONTH,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
+
+    const parseSnsBody = new sfn.Pass(this, 'Parse SNS Body', {
+      parameters: {
+        sns_body: sfn.JsonPath.stringToJson(sfn.JsonPath.stringAt('$[0].body')),
+      },
+    });
+
+    const parseS3Event = new sfn.Pass(this, 'Parse S3 Event', {
+      parameters: {
+        s3_event: sfn.JsonPath.stringToJson(
+          sfn.JsonPath.stringAt('$.sns_body.Message')
+        ),
+      },
+    });
+
+    const loadS3File = new sfnTasks.LambdaInvoke(this, 'Load S3 File', {
+      lambdaFunction: activityProxy,
+      payload: sfn.TaskInput.fromObject({
+        activity: 'load_s3_file_activity',
+        args: {
+          s3_event: sfn.JsonPath.stringAt('$.s3_event'),
+        },
+      }),
+      resultSelector: {
+        load_s3_file_result: sfn.JsonPath.stringAt('$.Payload'),
+      },
+    });
+
+    const processingBucket = new s3.Bucket(this, 'ProcessingBucket', {
+      bucketName: `${this.resourcePrefix}-ingestion-processing-${this.account}-${this.region}-${props.stage}`,
+      versioned: true,
+    });
+
+    processingBucket.grantRead(functionRole);
+    processingBucket.grantReadWrite(stateMachineRole);
+
+    const fileContentMap = new sfn.DistributedMap(this, 'File Content Map', {
+      itemsPath: sfn.JsonPath.stringAt(
+        '$.load_s3_file_result.file_content_ids'
+      ),
+      itemSelector: {
+        file_id: sfn.JsonPath.stringAt('$.load_s3_file_result.file_id'),
+        project_id: sfn.JsonPath.stringAt('$.load_s3_file_result.project_id'),
+        file_content_id: sfn.JsonPath.stringAt('$$.Map.Item.Value'),
+      },
+      resultWriterV2: new sfn.ResultWriterV2({
+        bucket: processingBucket,
+        prefix: sfn.JsonPath.format(
+          'chunks/{}/',
+          sfn.JsonPath.stringAt('$.load_s3_file_result.file_id')
+        ),
+        writerConfig: {
+          outputType: sfn.OutputType.JSONL,
+          transformation: sfn.Transformation.COMPACT,
+        },
+      }),
+      resultSelector: {
+        bucket: sfn.JsonPath.stringAt('$.ResultWriterDetails.Bucket'),
+        key: sfn.JsonPath.stringAt('$.ResultWriterDetails.Key'),
+      },
+      resultPath: '$.file_chunk_map',
+    });
+
+    const chunkFileContent = new sfnTasks.LambdaInvoke(
+      this,
+      'Chunk File Content',
+      {
+        lambdaFunction: activityProxy,
+        payload: sfn.TaskInput.fromObject({
+          activity: 'chunk_document_activity',
+          args: {
+            file_id: sfn.JsonPath.stringAt('$.file_id'),
+            project_id: sfn.JsonPath.stringAt('$.project_id'),
+            file_content_id: sfn.JsonPath.stringAt('$.file_content_id'),
+          },
+        }),
+        resultSelector: {
+          result: sfn.JsonPath.stringAt('$.Payload'),
+        },
+        resultPath: '$.chunk_document',
+      }
+    );
+
+    const parseChunkResults = new lambda.Function(this, 'ParseChunkResults', {
+      functionName: `${this.resourcePrefix}-ingestion-workflow-parse-chunk-results-${props.stage}`,
+      runtime: lambda.Runtime.PYTHON_3_13,
+      code: lambda.Code.fromAsset('.aws-lambda-package/project.zip'),
+      handler:
+        'ingestion_workflow.lambda_functions.parse_chunk_results.handler',
+      description: 'Ingestion Workflow Parse Chunk Results Lambda Function',
+      architecture: lambda.Architecture.ARM_64,
+      timeout: cdk.Duration.minutes(15),
+      role: functionRole,
+      memorySize: 4096,
+      environment: {
+        ENV: props.stage,
+        LOG_LEVEL: 'INFO',
+      },
+    });
+
+    processingBucket.grantReadWrite(parseChunkResults);
+
+    const parseChunkResultsTask = new sfnTasks.LambdaInvoke(
+      this,
+      'Parse Chunk Results',
+      {
+        lambdaFunction: parseChunkResults,
+        payload: sfn.TaskInput.fromObject({
+          bucket: sfn.JsonPath.stringAt('$.file_chunk_map.bucket'),
+          key: sfn.JsonPath.stringAt('$.file_chunk_map.key'),
+          file_id: sfn.JsonPath.stringAt('$.load_s3_file_result.file_id'),
+          execution_id: sfn.JsonPath.stringAt('$$.Execution.Id'),
+        }),
+        resultSelector: {},
+        resultPath: '$.parse_chunk_results',
+      }
+    );
+
+    fileContentMap.itemProcessor(chunkFileContent);
+
+    const fileContentChunksMap = new sfn.DistributedMap(
+      this,
+      'File Content Chunks Map',
+      {
+        itemReader: new sfn.S3ObjectsItemReader({
+          bucket: processingBucket,
+          prefix: sfn.JsonPath.format(
+            'numbered_chunks/{}/{}',
+            sfn.JsonPath.stringAt('$.load_s3_file_result.file_id'),
+            sfn.JsonPath.stringAt('$$.Execution.Id')
+          ),
+        }),
+        resultSelector: {},
+        resultPath: '$.file_content_chunks',
+      }
+    );
+
+    const chunkMap = new sfn.DistributedMap(this, 'Chunk Map', {
+      itemReader: new sfn.S3JsonItemReader({
+        bucket: processingBucket,
+        key: sfn.JsonPath.stringAt('$.Key'),
+      }),
+      resultSelector: {}
+    });
+
+    fileContentChunksMap.itemProcessor(chunkMap);
+
+    const createChunkEmbeddings = new sfnTasks.LambdaInvoke(
+      this,
+      'Create Chunk Embeddings',
+      {
+        lambdaFunction: activityProxy,
+        payload: sfn.TaskInput.fromObject({
+          activity: 'create_chunk_embeddings_activity',
+          args: {
+            file_id: sfn.JsonPath.stringAt('$.file_id'),
+            chunk_id: sfn.JsonPath.stringAt('$.chunk_id'),
+            chunk_number: sfn.JsonPath.numberAt('$.chunk_number'),
+          },
+        }),
+        resultSelector: {},
+      }
+    );
+
+    chunkMap.itemProcessor(createChunkEmbeddings);
+
+    const updateFileStatus = new sfnTasks.LambdaInvoke(
+      this,
+      'Update File Status',
+      {
+        lambdaFunction: activityProxy,
+        payload: sfn.TaskInput.fromObject({
+          activity: 'update_file_status_activity',
+          args: {
+            file_id: sfn.JsonPath.stringAt('$.load_s3_file_result.file_id'),
+            status: 'completed',
+          },
+        }),
+        resultSelector: {},
+        resultPath: '$.update_file_status',
+      }
+    );
+
+    const sendEvent = new sfnTasks.LambdaInvoke(this, 'Send Event', {
+      lambdaFunction: activityProxy,
+      payload: sfn.TaskInput.fromObject({
+        activity: 'send_event_activity',
+        args: {
+          source: 'ingestion',
+          event_type: 'file_ingested_successfully',
+          data: {
+            file_id: sfn.JsonPath.stringAt('$.load_s3_file_result.file_id'),
+          },
+        },
+      }),
+      resultSelector: {},
+      resultPath: '$.send_event',
+    });
+
+    const definitionBody = sfn.DefinitionBody.fromChainable(
+      parseSnsBody
+        .next(parseS3Event)
+        .next(loadS3File)
+        .next(fileContentMap)
+        .next(parseChunkResultsTask)
+        .next(fileContentChunksMap)
+        .next(updateFileStatus)
+        .next(sendEvent)
+    );
 
     const stateMachine = new sfn.StateMachine(
       this,
@@ -292,7 +552,7 @@ export class IngestionWorkflowStack extends BaseStack {
           destination: logGroup,
         },
         tracingEnabled: true,
-        definition: new sfn.Pass(this, 'Pass'),
+        definitionBody,
       }
     );
 

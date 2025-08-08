@@ -1,11 +1,15 @@
 'use server';
 
-import { fileClassifierApi } from '@/api';
 import { FormAction, FormSchema, schema } from '@/components/evaluation/schema';
 import {
   HttpEvaluationCreate,
   HttpEvaluationUpdate,
-} from '@/file-classifier-api';
+} from '@/clients/api/types.gen';
+import { createEvaluation, updateEvaluation } from '@/clients/api';
+import { ensureServerClientsInitialized } from '@/clients/server-api-utils';
+import { getErrorMessageFromResponse } from '@/clients/api-utils';
+
+ensureServerClientsInitialized();
 
 export async function submitForm(
   prevState: FormAction,
@@ -38,12 +42,22 @@ export async function submitForm(
       template_id: data.template_id,
     };
 
-    const newEvaluation = await fileClassifierApi.createEvaluation(
-      {
+    const newEvaluation = await createEvaluation({
+      path: {
         project_id: data.project_id,
       },
-      createPayload
-    );
+      body: createPayload,
+    });
+
+    if (!newEvaluation.data) {
+      return {
+        ...prevState,
+        success: false,
+        message:
+          getErrorMessageFromResponse(newEvaluation.error) ??
+          'Failed to create evaluation',
+      };
+    }
 
     return {
       ...prevState,
@@ -80,13 +94,23 @@ export async function submitForm(
       template_id: data.template_id,
     };
 
-    const updatedEvaluation = await fileClassifierApi.updateEvaluation(
-      {
+    const updatedEvaluation = await updateEvaluation({
+      path: {
         project_id: data.project_id,
         evaluation_id: data.id,
       },
-      updatePayload
-    );
+      body: updatePayload,
+    });
+
+    if (!updatedEvaluation.data) {
+      return {
+        ...prevState,
+        success: false,
+        message:
+          getErrorMessageFromResponse(updatedEvaluation.error) ??
+          'Failed to update evaluation',
+      };
+    }
 
     return {
       ...prevState,

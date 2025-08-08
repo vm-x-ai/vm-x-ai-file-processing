@@ -6,7 +6,7 @@ import {
   FileReadWithEvaluations,
   FileSearchEvaluationGroup,
   FileSearchEvaluationOperation,
-} from '@/file-classifier-api';
+} from '@/clients/api/types.gen';
 import { Separator } from './ui/separator';
 import {
   Card,

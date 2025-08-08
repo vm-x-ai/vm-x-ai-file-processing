@@ -2,23 +2,22 @@ import asyncio
 import logging
 from typing import Any
 
+from workflow_shared_actitivies.activity_proxy import proxy_activity
+
 from ingestion_workflow.lambda_functions.containers import LambdaContainer
 
 logger = logging.getLogger(__name__)
 
 container = LambdaContainer()
 
+
 async def main(event: dict):
     await container.init_resources()
-
-    activity_provider = getattr(container, event["activity"], None)
-    if not activity_provider:
-        raise ValueError(f"Activity {event['activity']} not found")
-    
-    activity = activity_provider()
-    args = await activity.parse_args(**event["args"])
-    result = await activity.run(**args)
-    return result.model_dump(mode="json")
+    return await proxy_activity(
+        container,
+        event["activity"],
+        event["args"],
+    )
 
 
 def handler(event: dict, context: Any):

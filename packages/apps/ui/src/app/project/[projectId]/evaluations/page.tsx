@@ -1,6 +1,15 @@
-import { fileClassifierApi } from '@/api';
+import {
+  deleteEvaluation,
+  getEvaluationCategories,
+  getEvaluationsTree,
+  getEvaluationTemplates,
+} from '@/clients/api';
 import { submitForm } from './actions';
 import EvaluationRoot from '@/components/evaluation/root';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircleIcon } from 'lucide-react';
+import { getErrorMessageFromResponse } from '@/clients/api-utils';
+import { ensureServerClientsInitialized } from '@/clients/server-api-utils';
 
 type PageProps = {
   params: Promise<{
@@ -11,16 +20,58 @@ type PageProps = {
 export default async function Page({ params }: PageProps) {
   const { projectId } = await params;
   const [evaluations, categories, evaluationTemplates] = await Promise.all([
-    fileClassifierApi.getEvaluationsTree({
-      project_id: projectId,
+    getEvaluationsTree({
+      path: {
+        project_id: projectId,
+      },
     }),
-    fileClassifierApi.getEvaluationCategories({
-      project_id: projectId,
+    getEvaluationCategories({
+      path: {
+        project_id: projectId,
+      },
     }),
-    fileClassifierApi.getEvaluationTemplates({
-      project_id: projectId,
+    getEvaluationTemplates({
+      path: {
+        project_id: projectId,
+      },
     }),
   ]);
+
+  if (!evaluations.data) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircleIcon />
+        <AlertTitle>Error loading evaluations</AlertTitle>
+        <AlertDescription>
+          {getErrorMessageFromResponse(evaluations.error)}
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (!categories.data) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircleIcon />
+        <AlertTitle>Error loading categories</AlertTitle>
+        <AlertDescription>
+          {getErrorMessageFromResponse(categories.error)}
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (!evaluationTemplates.data) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircleIcon />
+        <AlertTitle>Error loading evaluation templates</AlertTitle>
+        <AlertDescription>
+          {getErrorMessageFromResponse(evaluationTemplates.error)}
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -36,9 +87,14 @@ export default async function Page({ params }: PageProps) {
           submitAction={submitForm}
           onDeleteAction={async (evaluation) => {
             'use server';
-            await fileClassifierApi.deleteEvaluation({
-              project_id: projectId,
-              evaluation_id: evaluation.id,
+
+            ensureServerClientsInitialized()
+
+            await deleteEvaluation({
+              path: {
+                project_id: projectId,
+                evaluation_id: evaluation.id,
+              },
             });
           }}
         />

@@ -1,4 +1,4 @@
-import { ProjectRead } from '@/file-classifier-api';
+import { ProjectRead } from '@/clients/api/types.gen';
 import { FormActionState } from '@/types/form';
 import { z } from 'zod';
 

@@ -63,60 +63,9 @@
         "prd": {}
       }
     },
-    "docker-build": {
-      "options": {
-        "env": {}
-      },
-      "configurations": {
-        "dev": {
-          "env": {
-            "TAG_PREFIX": "dev-"
-          }
-        },
-        "prd": {
-          "env": {
-            "TAG_PREFIX": "prd-"
-          }
-        }
-      }
-    },
-    "docker-push": {
-      "options": {},
-      "configurations": {
-        "dev": {
-          "env": {
-            "TAG_PREFIX": "dev-"
-          }
-        },
-        "prd": {
-          "env": {
-            "TAG_PREFIX": "prd-"
-          }
-        }
-      }
-    },
-    "helm-deploy": {
-      "configurations": {
-        "local": {
-          "env": {
-            "STAGE": "local",
-            "TAG_PREFIX": "dev-"
-          }
-        },
-        "dev": {
-          "env": {
-            "STAGE": "dev",
-            "TAG_PREFIX": "dev-"
-          }
-        },
-        "prd": {
-          "env": {
-            "STAGE": "prd",
-            "TAG_PREFIX": "prd-"
-          }
-        }
-      }
-    },
+    "docker-build": {},
+    "docker-push": {},
+    "helm-deploy": {},
     "update-image-tag": {
       "configurations": {
         "dev": {
@@ -130,7 +79,7 @@
       }
     },
     "openapi-gen": {
-      "command": "pnpm exec openapi typegen http://localhost:8000/openapi.json --client > src/file-classifier-api.d.ts",
+      "command": "npx @hey-api/openapi-ts -f openapi.config.ts -d",
       "options": {
         "cwd": "{projectRoot}"
       }

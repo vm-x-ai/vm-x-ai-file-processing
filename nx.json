@@ -213,9 +213,6 @@
         "outputPath": "{projectRoot}/.aws-lambda-package/dependencies.zip",
         "outputSubdirectory": "python/",
         "platform": "manylinux_2_17_aarch64",
-        "ignorePatterns": [
-          "**/__pycache__/**/*"
-        ],
         "ignoreDependencies": [
           "awslambdaric",
           "boto3",

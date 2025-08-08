@@ -79,9 +79,7 @@ def setup_session_manager():
         ssm_client = boto3.client("ssm")
         secrets_client = boto3.client("secretsmanager")
 
-        remote_db_secret = _get_db_secret_value(
-            secrets_client, settings.db.secret_name
-        )
+        remote_db_secret = _get_db_secret_value(secrets_client, settings.db.secret_name)
 
         is_rds = remote_db_secret["host"].endswith(".rds.amazonaws.com")
 
@@ -118,11 +116,11 @@ def setup_session_manager():
 
         db_url = PostgresDsn.build(
             scheme=settings.db.scheme,
-            username=remote_db_secret['username'],
-            password=remote_db_secret['password'],
+            username=remote_db_secret["username"],
+            password=remote_db_secret["password"],
             host="localhost",
             port=local_port,
-            path=remote_db_secret['dbname'],
+            path=remote_db_secret["dbname"],
         )
         yield db_url
 

@@ -4,6 +4,7 @@ import os
 import tempfile
 import uuid
 from io import BytesIO
+from typing import Callable
 from uuid import UUID
 
 import aioboto3
@@ -13,9 +14,7 @@ from internal_db_repositories.file_content import FileContentRepository
 from internal_db_repositories.project import ProjectRepository
 from internal_schemas.s3 import S3Event
 from langchain_community.document_loaders import PyPDFLoader
-from pdf2image import convert_from_path
 from pydantic import BaseModel
-from temporalio import activity
 
 logger = logging.getLogger(__name__)
 
@@ -43,14 +42,7 @@ class LoadS3FileActivity:
         self._aioboto3_session = aioboto3_session
         self._thumbnail_s3_bucket_name = thumbnail_s3_bucket_name
 
-    async def parse_args(self, s3_event: dict) -> S3Event:
-        return S3Event.model_validate(s3_event)
-
-    @activity.defn(name="LoadS3FileActivity")
-    async def run(
-        self,
-        s3_event: S3Event,
-    ) -> LoadS3FileOutput:
+    async def run(self, s3_event: S3Event) -> LoadS3FileOutput:
         async with self._aioboto3_session.client("s3") as s3:
             for record in s3_event.records:
                 logger.info(
@@ -105,11 +97,12 @@ class LoadS3FileActivity:
 
                     match file_ext:
                         case ".pdf":
-                            await self._generate_pdf_thumbnail(
-                                project,
-                                temp_file,
-                                file,
-                            )
+                            if os.getenv("POPPLER_INSTALLED", "true") == "true":
+                                await self._generate_pdf_thumbnail(
+                                    project,
+                                    temp_file,
+                                    file,
+                                )
 
                             loader = PyPDFLoader(temp_file.name)
                             docs = await loader.aload()
@@ -156,12 +149,25 @@ class LoadS3FileActivity:
                         case _:
                             raise ValueError(f"Unsupported file extension: {file_ext}")
 
+    def temporal_factory(self) -> Callable:
+        from temporalio import activity
+
+        @activity.defn(name="LoadS3FileActivity")
+        async def _activity(
+            s3_event: S3Event,
+        ) -> LoadS3FileOutput:
+            return await self.run(s3_event)
+
+        return _activity
+
     async def _generate_pdf_thumbnail(
         self,
         project: internal_db_models.ProjectRead,
         temp_file: tempfile.NamedTemporaryFile,
         file: internal_db_models.FileRead,
     ):
+        from pdf2image import convert_from_path
+
         images = convert_from_path(
             temp_file.name,
             first_page=1,

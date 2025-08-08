@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronRight, type LucideIcon } from 'lucide-react';
+import { ChevronRight, LayoutTemplate, SquareTerminal } from 'lucide-react';
 
 import {
   Collapsible,
@@ -17,21 +17,52 @@ import {
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
+import { useAppStore } from '@/store/provider';
 
-export function NavMain({
-  items,
-}: {
-  items: {
-    title: string;
-    url: string;
-    icon?: LucideIcon;
-    isActive?: boolean;
-    items?: {
-      title: string;
-      url: string;
-    }[];
-  }[];
-}) {
+export function NavMain() {
+  const project = useAppStore((state) => state.project);
+
+  const items = project
+    ? [
+        {
+          title: 'Project',
+          url: '#',
+          icon: SquareTerminal,
+          isActive: true,
+          items: [
+            {
+              title: 'Explore',
+              url: `/project/${project?.id}/explore`,
+            },
+            {
+              title: 'Files',
+              url: `/project/${project?.id}/files`,
+            },
+            {
+              title: 'Evaluations',
+              url: `/project/${project?.id}/evaluations`,
+            },
+            {
+              title: 'Results',
+              url: `/project/${project?.id}/results`,
+            },
+          ],
+        },
+        {
+          title: 'Templates',
+          url: '#',
+          icon: LayoutTemplate,
+          isActive: true,
+          items: [
+            {
+              title: 'Evaluations',
+              url: `/project/${project?.id}/templates/evaluations`,
+            },
+          ],
+        },
+      ]
+    : [];
+
   return (
     <SidebarGroup>
       <SidebarMenu>
