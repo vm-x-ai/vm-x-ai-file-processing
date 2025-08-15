@@ -18,7 +18,7 @@ export default [
   ...baseConfig,
   ...nx.configs['flat/react-typescript'],
   {
-    ignores: ['.next/**/*', 'src/file-classifier-api.d.ts'],
+    ignores: ['.next/**/*', 'src/clients/api/**/*'],
   },
   {
     files: ['**/*.json'],

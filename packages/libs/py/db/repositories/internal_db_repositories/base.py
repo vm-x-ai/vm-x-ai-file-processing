@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Generic, Literal, TypeVar, Union, overload
+from typing import Any, Generic, Literal, TypeVar, overload
 
 from internal_db_services.database import Database
 from internal_utils.chunk import chunk
@@ -10,7 +10,7 @@ from sqlmodel import SQLModel, delete, select, update
 TModel = TypeVar("TModel", bound=SQLModel)
 TReadModel = TypeVar("TReadModel", bound=SQLModel)
 TCreateModel = TypeVar("TCreateModel", bound=SQLModel)
-TID = TypeVar("TID", bound=Union[Any, tuple[Any, ...]])
+TID = TypeVar("TID", bound=Any | tuple[Any, ...])
 
 MAX_PG_PARAM_SIZE = 65535
 

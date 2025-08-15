@@ -1,5 +1,6 @@
 import workflow_shared_actitivies
 from dependency_injector import providers
+from internal_aws_shared.containers import AWSContainer
 from internal_db_repositories.containers import RepositoriesContainer
 from internal_services.containers import ServicesContainer
 
@@ -15,7 +16,7 @@ class LambdaContainer(RepositoriesContainer, ServicesContainer):
         file_repository=RepositoriesContainer.file_repository,
         project_repository=RepositoriesContainer.project_repository,
         file_content_repository=RepositoriesContainer.file_content_repository,
-        aioboto3_session=ServicesContainer.aioboto3_session,
+        aioboto3_session=AWSContainer.aioboto3_session,
         thumbnail_s3_bucket_name=settings.provided.thumbnail.s3_bucket_name,
     )
 
@@ -40,6 +41,6 @@ class LambdaContainer(RepositoriesContainer, ServicesContainer):
 
     send_event_activity = providers.Singleton(
         workflow_shared_actitivies.SendEventActivity,
-        aioboto3_session=ServicesContainer.aioboto3_session,
+        aioboto3_session=AWSContainer.aioboto3_session,
         event_bus_name=settings.provided.event_bus_name,
     )

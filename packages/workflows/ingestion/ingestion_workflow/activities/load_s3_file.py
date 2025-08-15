@@ -3,8 +3,8 @@ import mimetypes
 import os
 import tempfile
 import uuid
+from collections.abc import Callable
 from io import BytesIO
-from typing import Callable
 from uuid import UUID
 
 import aioboto3

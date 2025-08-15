@@ -12,6 +12,7 @@ members = [
     "api",
     "evaluation-workflow",
     "nx-workspace",
+    "py-aws-shared",
     "py-aws-sqs-consumer",
     "py-db-models",
     "py-db-repositories",
@@ -21,6 +22,7 @@ members = [
     "py-services",
     "py-temporal-utils",
     "py-utils",
+    "py-vmx-utils",
     "workflow-ingestion",
     "workflow-shared-activities",
     "workflow-worker",
@@ -634,9 +636,11 @@ name = "evaluation-workflow"
 version = "1.0.0"
 source = { editable = "packages/workflows/evaluation" }
 dependencies = [
-    { name = "aioboto3" },
     { name = "dependency-injector" },
+    { name = "py-aws-shared" },
     { name = "py-logger" },
+    { name = "py-schemas" },
+    { name = "py-vmx-utils" },
 ]
 
 [package.optional-dependencies]
@@ -648,7 +652,6 @@ aws-lambda = [
     { name = "py-services" },
     { name = "py-utils" },
     { name = "pydantic-settings" },
-    { name = "vm-x-ai-sdk" },
     { name = "workflow-shared-activities" },
 ]
 temporal = [
@@ -659,19 +662,20 @@ temporal = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aioboto3", specifier = ">=14.3.0" },
     { name = "dependency-injector", specifier = ">=4.46.0" },
     { name = "numpy", marker = "extra == 'aws-lambda'", specifier = "==2.2.5" },
+    { name = "py-aws-shared", editable = "packages/libs/py/aws/shared" },
     { name = "py-aws-sqs-consumer", marker = "extra == 'temporal'", editable = "packages/libs/py/aws/sqs-consumer" },
     { name = "py-db-models", marker = "extra == 'aws-lambda'", editable = "packages/libs/py/db/models" },
     { name = "py-db-repositories", marker = "extra == 'aws-lambda'", editable = "packages/libs/py/db/repositories" },
     { name = "py-db-services", marker = "extra == 'aws-lambda'", editable = "packages/libs/py/db/services" },
     { name = "py-logger", editable = "packages/libs/py/logger" },
+    { name = "py-schemas", editable = "packages/libs/py/schemas" },
     { name = "py-services", marker = "extra == 'aws-lambda'", editable = "packages/libs/py/services" },
     { name = "py-temporal-utils", marker = "extra == 'temporal'", editable = "packages/libs/py/temporal/utils" },
     { name = "py-utils", marker = "extra == 'aws-lambda'", editable = "packages/libs/py/utils" },
+    { name = "py-vmx-utils", editable = "packages/libs/py/vmx/utils" },
     { name = "pydantic-settings", marker = "extra == 'aws-lambda'", specifier = ">=2.9.1" },
-    { name = "vm-x-ai-sdk", marker = "extra == 'aws-lambda'", specifier = ">=1.6.2" },
     { name = "workflow-shared-activities", marker = "extra == 'aws-lambda'", editable = "packages/workflows/shared-activities" },
     { name = "workflow-shared-activities", extras = ["temporal"], marker = "extra == 'temporal'", editable = "packages/workflows/shared-activities" },
 ]
@@ -1434,6 +1438,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "api" },
     { name = "evaluation-workflow" },
+    { name = "py-aws-shared" },
     { name = "py-aws-sqs-consumer" },
     { name = "py-db-models" },
     { name = "py-db-repositories" },
@@ -1443,6 +1448,7 @@ dependencies = [
     { name = "py-services" },
     { name = "py-temporal-utils" },
     { name = "py-utils" },
+    { name = "py-vmx-utils" },
     { name = "workflow-ingestion" },
     { name = "workflow-shared-activities" },
     { name = "workflow-worker" },
@@ -1456,9 +1462,9 @@ dev = [
     { name = "pytest-html" },
     { name = "pytest-sugar" },
     { name = "ruff" },
-    { name = "types-aioboto3", extra = ["events", "s3", "secretsmanager", "ssm"] },
-    { name = "types-aiobotocore", extra = ["events", "s3", "secretsmanager", "ssm"] },
-    { name = "types-boto3", extra = ["events", "s3", "secretsmanager", "ssm"] },
+    { name = "types-aioboto3", extra = ["events", "s3", "secretsmanager", "ssm", "stepfunctions"] },
+    { name = "types-aiobotocore", extra = ["events", "s3", "secretsmanager", "ssm", "stepfunctions"] },
+    { name = "types-boto3", extra = ["events", "s3", "secretsmanager", "ssm", "stepfunctions"] },
     { name = "types-botocore" },
     { name = "watchdog" },
 ]
@@ -1467,6 +1473,7 @@ dev = [
 requires-dist = [
     { name = "api", editable = "packages/apps/api" },
     { name = "evaluation-workflow", editable = "packages/workflows/evaluation" },
+    { name = "py-aws-shared", editable = "packages/libs/py/aws/shared" },
     { name = "py-aws-sqs-consumer", editable = "packages/libs/py/aws/sqs-consumer" },
     { name = "py-db-models", editable = "packages/libs/py/db/models" },
     { name = "py-db-repositories", editable = "packages/libs/py/db/repositories" },
@@ -1476,6 +1483,7 @@ requires-dist = [
     { name = "py-services", editable = "packages/libs/py/services" },
     { name = "py-temporal-utils", editable = "packages/libs/py/temporal/utils" },
     { name = "py-utils", editable = "packages/libs/py/utils" },
+    { name = "py-vmx-utils", editable = "packages/libs/py/vmx/utils" },
     { name = "workflow-ingestion", editable = "packages/workflows/ingestion" },
     { name = "workflow-shared-activities", editable = "packages/workflows/shared-activities" },
     { name = "workflow-worker", editable = "packages/workflows/worker" },
@@ -1489,9 +1497,9 @@ dev = [
     { name = "pytest-html", specifier = ">=4.1.1" },
     { name = "pytest-sugar", specifier = ">=1.0.0" },
     { name = "ruff", specifier = ">=0.8.2" },
-    { name = "types-aioboto3", extras = ["s3", "events", "secretsmanager", "ssm"], specifier = ">=14.3.0" },
-    { name = "types-aiobotocore", extras = ["s3", "events", "secretsmanager", "ssm"], specifier = ">=2.22.0" },
-    { name = "types-boto3", extras = ["s3", "events", "secretsmanager", "ssm"], specifier = ">=1.39.14" },
+    { name = "types-aioboto3", extras = ["s3", "events", "secretsmanager", "ssm", "stepfunctions"], specifier = ">=14.3.0" },
+    { name = "types-aiobotocore", extras = ["s3", "events", "secretsmanager", "ssm", "stepfunctions"], specifier = ">=2.22.0" },
+    { name = "types-boto3", extras = ["s3", "events", "secretsmanager", "ssm", "stepfunctions"], specifier = ">=1.39.14" },
     { name = "types-botocore", specifier = ">=1.0.2" },
     { name = "watchdog", specifier = ">=6.0.0" },
 ]
@@ -1873,18 +1881,29 @@ wheels = [
 ]
 
 [[package]]
+name = "py-aws-shared"
+version = "1.0.0"
+source = { editable = "packages/libs/py/aws/shared" }
+dependencies = [
+    { name = "aioboto3" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "aioboto3", specifier = ">=14.3.0" }]
+
+[[package]]
 name = "py-aws-sqs-consumer"
 version = "1.0.0"
 source = { editable = "packages/libs/py/aws/sqs-consumer" }
 dependencies = [
-    { name = "aioboto3" },
+    { name = "py-aws-shared" },
     { name = "py-utils" },
     { name = "pydantic-settings" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "aioboto3", specifier = ">=14.3.0" },
+    { name = "py-aws-shared", editable = "packages/libs/py/aws/shared" },
     { name = "py-utils", editable = "packages/libs/py/utils" },
     { name = "pydantic-settings", specifier = ">=2.9.1" },
 ]
@@ -1938,7 +1957,6 @@ name = "py-db-services"
 version = "1.0.0"
 source = { editable = "packages/libs/py/db/services" }
 dependencies = [
-    { name = "psycopg", extra = ["binary"] },
     { name = "py-db-models" },
     { name = "sqlalchemy", extra = ["asyncio"] },
     { name = "sqlmodel" },
@@ -1946,7 +1964,6 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "psycopg", extras = ["binary"], specifier = ">=3.2.8" },
     { name = "py-db-models", editable = "packages/libs/py/db/models" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.40" },
     { name = "sqlmodel", specifier = ">=0.0.24" },
@@ -2018,16 +2035,31 @@ name = "py-utils"
 version = "1.0.0"
 source = { editable = "packages/libs/py/utils" }
 dependencies = [
-    { name = "aioboto3" },
     { name = "cachetools" },
     { name = "jinja2" },
+    { name = "py-aws-shared" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "aioboto3", specifier = ">=14.3.0" },
     { name = "cachetools", specifier = ">=5.5.2" },
     { name = "jinja2", specifier = ">=3.1.6" },
+    { name = "py-aws-shared", editable = "packages/libs/py/aws/shared" },
+]
+
+[[package]]
+name = "py-vmx-utils"
+version = "1.0.0"
+source = { editable = "packages/libs/py/vmx/utils" }
+dependencies = [
+    { name = "py-logger" },
+    { name = "vm-x-ai-sdk" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "py-logger", editable = "packages/libs/py/logger" },
+    { name = "vm-x-ai-sdk", specifier = "==1.6.2" },
 ]
 
 [[package]]
@@ -2698,6 +2730,9 @@ secretsmanager = [
 ssm = [
     { name = "types-aiobotocore-ssm" },
 ]
+stepfunctions = [
+    { name = "types-aiobotocore-stepfunctions" },
+]
 
 [[package]]
 name = "types-aiobotocore"
@@ -2724,6 +2759,9 @@ secretsmanager = [
 ]
 ssm = [
     { name = "types-aiobotocore-ssm" },
+]
+stepfunctions = [
+    { name = "types-aiobotocore-stepfunctions" },
 ]
 
 [[package]]
@@ -2775,6 +2813,18 @@ wheels = [
 ]
 
 [[package]]
+name = "types-aiobotocore-stepfunctions"
+version = "2.22.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions", marker = "python_full_version < '3.12'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f0/1b/b7bad3686f4a4b07dfe788f0b6b5996661dc20fc56962a77ea9e109db402/types_aiobotocore_stepfunctions-2.22.0.tar.gz", hash = "sha256:dd32b78865cc11d7c2831e8f6328f431e46af6c88447ed1e16ac4ee423bc8b11", size = 31705, upload-time = "2025-05-02T01:41:56.391Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/15/77/b04f2f3ebd04078f79dcea3cbb1f98801ed23bd02d5df59d8d1115a4c939/types_aiobotocore_stepfunctions-2.22.0-py3-none-any.whl", hash = "sha256:ccd934cde24d20c9dd1ca16752462f3d274392a5f401ffbbd1eb3cbcb62566a4", size = 36334, upload-time = "2025-05-02T01:41:55.108Z" },
+]
+
+[[package]]
 name = "types-awscrt"
 version = "0.27.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2809,6 +2859,9 @@ secretsmanager = [
 ]
 ssm = [
     { name = "types-boto3-ssm" },
+]
+stepfunctions = [
+    { name = "types-boto3-stepfunctions" },
 ]
 
 [[package]]
@@ -2857,6 +2910,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/92/1f/11342626bde1e24e9ac55fc3697502565690a2eab486e3845e5fbd59fede/types_boto3_ssm-1.39.9.tar.gz", hash = "sha256:126b74cee8455208c073cb721ca9be229d48516ca63487f7d57880a6b4ff5b48", size = 94570, upload-time = "2025-07-18T19:29:39.168Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a4/f5/e1d088938364a993e420963ea0fd1b3c0f841d28fb2c1274e06cf945122f/types_boto3_ssm-1.39.9-py3-none-any.whl", hash = "sha256:3ee202ba66dd79625307d6f8afeeb274b9344c6c3bc3c5711aa9cad5b33042f2", size = 96017, upload-time = "2025-07-18T19:29:36.804Z" },
+]
+
+[[package]]
+name = "types-boto3-stepfunctions"
+version = "1.39.8"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions", marker = "python_full_version < '3.12'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/8e/bf/e8fd82c8b65db11150c1f72654d00b6c64516068bf407e86821491b102b0/types_boto3_stepfunctions-1.39.8.tar.gz", hash = "sha256:e6a1a92b0e39b3a726f4409893267c8a687b8782fe438995d36b81be0d7f393b", size = 31256, upload-time = "2025-07-17T19:30:07.388Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/61/41/544919781cd8f3eca7601b0317f6fe38dcbf17f266ad47425878396dcf68/types_boto3_stepfunctions-1.39.8-py3-none-any.whl", hash = "sha256:a1cbaacdf4dca1b604b5a67e959e9d90ff7cc3171adc6b5f77122918e51629fe", size = 35836, upload-time = "2025-07-17T19:30:05.549Z" },
 ]
 
 [[package]]
@@ -3024,12 +3089,12 @@ name = "workflow-ingestion"
 version = "1.0.0"
 source = { editable = "packages/workflows/ingestion" }
 dependencies = [
-    { name = "aioboto3" },
     { name = "dependency-injector" },
     { name = "langchain-community" },
     { name = "langchain-openai" },
     { name = "langchain-text-splitters" },
     { name = "pdf2image" },
+    { name = "py-aws-shared" },
     { name = "py-logger" },
     { name = "py-schemas" },
     { name = "pypdf" },
@@ -3054,12 +3119,12 @@ temporal = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aioboto3", specifier = ">=14.3.0" },
     { name = "dependency-injector", specifier = ">=4.46.0" },
     { name = "langchain-community", specifier = ">=0.3.24" },
     { name = "langchain-openai", specifier = ">=0.3.16" },
     { name = "langchain-text-splitters", specifier = ">=0.3.8" },
     { name = "pdf2image", specifier = ">=1.17.0" },
+    { name = "py-aws-shared", editable = "packages/libs/py/aws/shared" },
     { name = "py-aws-sqs-consumer", marker = "extra == 'temporal'", editable = "packages/libs/py/aws/sqs-consumer" },
     { name = "py-db-models", marker = "extra == 'aws-lambda'", editable = "packages/libs/py/db/models" },
     { name = "py-db-repositories", marker = "extra == 'aws-lambda'", editable = "packages/libs/py/db/repositories" },
@@ -3082,7 +3147,7 @@ name = "workflow-shared-activities"
 version = "1.0.0"
 source = { editable = "packages/workflows/shared-activities" }
 dependencies = [
-    { name = "aioboto3" },
+    { name = "py-aws-shared" },
     { name = "py-db-models" },
     { name = "py-db-repositories" },
     { name = "py-logger" },
@@ -3094,15 +3159,9 @@ temporal = [
     { name = "py-temporal-utils" },
 ]
 
-[package.dev-dependencies]
-dev = [
-    { name = "types-aioboto3", extra = ["events"] },
-    { name = "types-aiobotocore", extra = ["events"] },
-]
-
 [package.metadata]
 requires-dist = [
-    { name = "aioboto3", specifier = ">=14.3.0" },
+    { name = "py-aws-shared", editable = "packages/libs/py/aws/shared" },
     { name = "py-db-models", editable = "packages/libs/py/db/models" },
     { name = "py-db-repositories", editable = "packages/libs/py/db/repositories" },
     { name = "py-logger", editable = "packages/libs/py/logger" },
@@ -3111,24 +3170,18 @@ requires-dist = [
 ]
 provides-extras = ["temporal"]
 
-[package.metadata.requires-dev]
-dev = [
-    { name = "types-aioboto3", extras = ["events"], specifier = ">=14.3.0" },
-    { name = "types-aiobotocore", extras = ["events"], specifier = ">=2.22.0" },
-]
-
 [[package]]
 name = "workflow-worker"
 version = "1.0.0"
 source = { editable = "packages/workflows/worker" }
 dependencies = [
-    { name = "aioboto3" },
     { name = "dependency-injector" },
     { name = "evaluation-workflow" },
     { name = "langchain-community" },
     { name = "langchain-openai" },
     { name = "langchain-text-splitters" },
     { name = "pdf2image" },
+    { name = "py-aws-shared" },
     { name = "py-db-models" },
     { name = "py-db-repositories" },
     { name = "py-db-services" },
@@ -3137,21 +3190,21 @@ dependencies = [
     { name = "py-services", extra = ["temporal"] },
     { name = "py-temporal-utils" },
     { name = "py-utils" },
+    { name = "py-vmx-utils" },
     { name = "pypdf" },
     { name = "tiktoken" },
-    { name = "vm-x-ai-sdk" },
     { name = "workflow-ingestion" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "aioboto3", specifier = ">=14.3.0" },
     { name = "dependency-injector", specifier = ">=4.46.0" },
     { name = "evaluation-workflow", editable = "packages/workflows/evaluation" },
     { name = "langchain-community", specifier = ">=0.3.24" },
     { name = "langchain-openai", specifier = ">=0.3.16" },
     { name = "langchain-text-splitters", specifier = ">=0.3.8" },
     { name = "pdf2image", specifier = ">=1.17.0" },
+    { name = "py-aws-shared", editable = "packages/libs/py/aws/shared" },
     { name = "py-db-models", editable = "packages/libs/py/db/models" },
     { name = "py-db-repositories", editable = "packages/libs/py/db/repositories" },
     { name = "py-db-services", editable = "packages/libs/py/db/services" },
@@ -3160,9 +3213,9 @@ requires-dist = [
     { name = "py-services", extras = ["temporal"], editable = "packages/libs/py/services" },
     { name = "py-temporal-utils", editable = "packages/libs/py/temporal/utils" },
     { name = "py-utils", editable = "packages/libs/py/utils" },
+    { name = "py-vmx-utils", editable = "packages/libs/py/vmx/utils" },
     { name = "pypdf", specifier = ">=5.5.0" },
     { name = "tiktoken", specifier = ">=0.9.0" },
-    { name = "vm-x-ai-sdk", specifier = "==1.6.2" },
     { name = "workflow-ingestion", editable = "packages/workflows/ingestion" },
 ]
 

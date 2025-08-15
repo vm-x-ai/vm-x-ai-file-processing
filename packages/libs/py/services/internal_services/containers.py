@@ -1,5 +1,5 @@
-import aioboto3
-from dependency_injector import containers, providers
+from dependency_injector import providers
+from internal_aws_shared.containers import AWSContainer
 from internal_db_repositories.containers import RepositoriesContainer
 
 from internal_services.openai_key import OpenAIKeyResource
@@ -9,16 +9,12 @@ from .evaluation import EvaluationService
 from .settings import Settings
 
 
-class ServicesContainer(containers.DeclarativeContainer):
+class ServicesContainer(AWSContainer):
     service_settings = providers.Singleton(Settings)
-
-    aioboto3_session = providers.Singleton(
-        aioboto3.Session,
-    )
 
     openai_key = providers.Resource(
         OpenAIKeyResource,
-        aioboto3_session=aioboto3_session,
+        aioboto3_session=AWSContainer.aioboto3_session,
         openai_settings=service_settings.provided.openai,
     )
 
@@ -30,5 +26,6 @@ class ServicesContainer(containers.DeclarativeContainer):
 
     workflow_engine_service = providers.Singleton(
         WorkflowEngineService,
+        aioboto3_session=AWSContainer.aioboto3_session,
         workflow_engine=service_settings.provided.workflow_engine,
     )

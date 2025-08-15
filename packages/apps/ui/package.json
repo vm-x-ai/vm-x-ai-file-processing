@@ -50,7 +50,8 @@
     "tailwind-merge": "^3.3.0",
     "titleize": "^4.0.0",
     "zod": "^3.25.23",
-    "zustand": "^5.0.4"
+    "zustand": "^5.0.4",
+    "@hey-api/openapi-ts": "0.80.5"
   },
   "devDependencies": {
     "@aws-cdk/aws-eks-v2-alpha": "2.200.2-alpha.0",

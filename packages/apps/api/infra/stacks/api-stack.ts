@@ -77,6 +77,20 @@ export class APIStack extends BaseStack {
 
     this.grantApplicationPermissions(functionRole, props);
 
+    functionRole.attachInlinePolicy(
+      new iam.Policy(this, 'StepFunctionsPolicy', {
+        statements: [
+          new iam.PolicyStatement({
+            actions: [
+              'states:SendTaskSuccess',
+              'states:StartExecution'
+            ],
+            resources: ['*'],
+          }),
+        ],
+      })
+    );
+
     let additionalFunctionProps: Partial<lambda.FunctionProps> = {};
 
     if (props.stackMode === 'serverless') {
@@ -135,12 +149,15 @@ export class APIStack extends BaseStack {
       memorySize: 512,
       environment: {
         ENV: props.stage,
+        RESOURCE_PREFIX: this.resourcePrefix,
+        AWS_ACCOUNT_ID: this.account,
         AWS_LWA_INVOKE_MODE: 'response_stream',
         AWS_LAMBDA_EXEC_WRAPPER: '/opt/bootstrap',
         AWS_LWA_PORT: '8000',
         AWS_LWA_ASYNC_INIT: 'true',
         LANDING_S3_BUCKET_NAME: `${this.resourcePrefix}-ingestion-landing-${this.account}-${this.region}-${props.stage}`,
         AWS_LWA_READINESS_CHECK_PATH: '/health',
+        WORKFLOW_ENGINE: 'step_functions',
 
         // Secrets
         DB_SECRET_NAME: `${this.resourcePrefix}-app-database-secret-${props.stage}`,

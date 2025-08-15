@@ -1,6 +1,6 @@
 import logging
 import uuid
-from typing import Callable
+from collections.abc import Callable
 
 import internal_db_models
 from internal_db_repositories.file import FileRepository

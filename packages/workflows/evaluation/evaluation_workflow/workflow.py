@@ -1,7 +1,6 @@
 import asyncio
 import logging
 from datetime import timedelta
-from typing import Optional
 from uuid import UUID
 
 import internal_db_models
@@ -54,15 +53,17 @@ class EvaluationWorkflow:
     async def process_evaluations(
         self,
         file_id: UUID,
-        parent_evaluation_id: Optional[UUID] = None,
-        parent_evaluation_option: Optional[str] = None,
+        parent_evaluation_id: UUID | None = None,
+        parent_evaluation_option: str | None = None,
+        parent_file_content_id: UUID | None = None,
     ):
         logger.info(
             f"Processing evaluations for file {file_id}, "
             f"parent_evaluation_id: {parent_evaluation_id}, "
-            f"parent_evaluation_option: {parent_evaluation_option}"
+            f"parent_evaluation_option: {parent_evaluation_option}, "
+            f"parent_file_content_id: {parent_file_content_id}"
         )
-        evaluations_results: list[tuple[UUID, str]] = []
+        evaluations_results: list[tuple[UUID, UUID, str]] = []
         evaluation_output = await workflow.execute_activity(
             activities.StartEvaluationsActivity.run,
             args=[
@@ -70,6 +71,7 @@ class EvaluationWorkflow:
                 None,
                 parent_evaluation_id,
                 parent_evaluation_option,
+                parent_file_content_id,
             ],
             start_to_close_timeout=DEFAULT_TIMEOUT,
             retry_policy=DEFAULT_RETRY_POLICY,
@@ -90,7 +92,7 @@ class EvaluationWorkflow:
                 retry_policy=DEFAULT_RETRY_POLICY,
             )
 
-            evaluations_results.append((evaluation_id, response_value))
+            evaluations_results.append((evaluation_id, file_content_id, response_value))
 
         workflow.set_signal_handler("evaluate_item", evaluate_item)
 
@@ -99,8 +101,8 @@ class EvaluationWorkflow:
             lambda: len(evaluations_results) == len(evaluation_output.batch_item_ids)
         )
 
-        for evaluation_id, response_value in evaluations_results:
-            evaluation_key = f"{evaluation_id}-{response_value}"
+        for evaluation_id, file_content_id, response_value in evaluations_results:
+            evaluation_key = f"{evaluation_id}-{file_content_id}-{response_value}"
 
             if evaluation_key in self.evaluations_map:
                 continue
@@ -109,6 +111,7 @@ class EvaluationWorkflow:
                 file_id,
                 evaluation_id,
                 response_value,
+                file_content_id,
             )
             self.evaluations_map[evaluation_key] = evaluation_id
 
@@ -159,16 +162,18 @@ class UpdateEvaluationWorkflow:
         self,
         file_id: UUID,
         evaluation_id: UUID,
-        parent_evaluation_id: Optional[UUID] = None,
-        parent_evaluation_option: Optional[str] = None,
+        parent_evaluation_id: UUID | None = None,
+        parent_evaluation_option: str | None = None,
+        parent_file_content_id: UUID | None = None,
     ):
         logger.info(
             f"Processing evaluations for file {file_id}, "
             f"evaluation_id: {evaluation_id}, "
             f"parent_evaluation_id: {parent_evaluation_id}, "
-            f"parent_evaluation_option: {parent_evaluation_option}"
+            f"parent_evaluation_option: {parent_evaluation_option}, "
+            f"parent_file_content_id: {parent_file_content_id}"
         )
-        evaluations_results: list[tuple[UUID, str]] = []
+        evaluations_results: list[tuple[UUID, UUID, str]] = []
         evaluation_output = await workflow.execute_activity(
             activities.StartEvaluationsActivity.run,
             args=[
@@ -176,6 +181,7 @@ class UpdateEvaluationWorkflow:
                 evaluation_id,
                 parent_evaluation_id,
                 parent_evaluation_option,
+                parent_file_content_id,
             ],
             start_to_close_timeout=DEFAULT_TIMEOUT,
             retry_policy=DEFAULT_RETRY_POLICY,
@@ -196,7 +202,7 @@ class UpdateEvaluationWorkflow:
                 retry_policy=DEFAULT_RETRY_POLICY,
             )
 
-            evaluations_results.append((evaluation_id, response_value))
+            evaluations_results.append((evaluation_id, file_content_id, response_value))
 
         workflow.set_signal_handler("evaluate_item", evaluate_item)
 
@@ -205,8 +211,8 @@ class UpdateEvaluationWorkflow:
             lambda: len(evaluations_results) == len(evaluation_output.batch_item_ids)
         )
 
-        for parent_evaluation_id, response_value in evaluations_results:
-            evaluation_key = f"{parent_evaluation_id}-{response_value}"
+        for evaluation_id, file_content_id, response_value in evaluations_results:
+            evaluation_key = f"{evaluation_id}-{file_content_id}-{response_value}"
 
             if evaluation_key in self.evaluations_map:
                 continue
@@ -216,5 +222,6 @@ class UpdateEvaluationWorkflow:
                 evaluation_id,
                 parent_evaluation_id,
                 response_value,
+                file_content_id,
             )
             self.evaluations_map[evaluation_key] = evaluation_id

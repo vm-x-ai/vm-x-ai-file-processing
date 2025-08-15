@@ -2,6 +2,7 @@ import logging
 from abc import ABC, ABCMeta, abstractmethod
 from typing import Literal
 
+import aioboto3
 from pydantic import BaseModel
 from vmxai.types import CompletionBatchItemUpdateCallbackPayload
 
@@ -47,10 +48,15 @@ class BaseWorkflowEngineService(ABC, metaclass=AsyncDelegateMeta):
 class WorkflowEngineService(BaseWorkflowEngineService):
     _engines: dict[Literal["temporal", "step_functions"], BaseWorkflowEngineService]
 
-    def __init__(self, workflow_engine: Literal["temporal", "step_functions"]):
+    def __init__(
+        self,
+        aioboto3_session: aioboto3.Session,
+        workflow_engine: Literal["temporal", "step_functions"],
+    ):
         super().__init__()
         self._engines = {}
         self._workflow_engine = workflow_engine
+        self._aioboto3_session = aioboto3_session
 
     async def _get_delegate_async(self):
         return await self._get_engine(self._workflow_engine)
@@ -76,6 +82,8 @@ class WorkflowEngineService(BaseWorkflowEngineService):
                 StepFunctionsWorkflowService,
             )
 
-            engine = StepFunctionsWorkflowService()
+            engine = StepFunctionsWorkflowService(
+                aioboto3_session=self._aioboto3_session,
+            )
 
         return engine

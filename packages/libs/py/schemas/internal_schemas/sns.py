@@ -1,4 +1,4 @@
-from typing import Literal, Union
+from typing import Literal
 
 from pydantic import BaseModel, Field, RootModel
 
@@ -24,4 +24,4 @@ class NotificationSnsMessage(BaseSnsMessage):
     unsubscribe_url: str = Field(alias="UnsubscribeURL")
 
 
-class SnsMessage(RootModel[Union[SubscriptionSnsMessage, NotificationSnsMessage]]): ...
+class SnsMessage(RootModel[SubscriptionSnsMessage | NotificationSnsMessage]): ...

@@ -23,7 +23,6 @@ requires-python = ">=3.10,<4"
 readme = 'README.md'
 dependencies = [
   "py-db-models",
-  "psycopg[binary]>=3.2.8",
   "sqlalchemy[asyncio]>=2.0.40",
   "sqlmodel>=0.0.24",
 ]

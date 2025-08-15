@@ -1,19 +1,15 @@
-import aioboto3
-from dependency_injector import containers, providers
+from dependency_injector import providers
+from internal_aws_shared.containers import AWSContainer
 from internal_db_models.settings import DatabaseSettings
 
 from internal_db_services import Database
 
 
-class DatabaseContainer(containers.DeclarativeContainer):
+class DatabaseContainer(AWSContainer):
     db_settings = providers.Singleton(DatabaseSettings)
-
-    aioboto3_session = providers.Singleton(
-        aioboto3.Session,
-    )
 
     db = providers.Resource(
         Database,
-        aioboto3_session=aioboto3_session,
+        aioboto3_session=AWSContainer.aioboto3_session,
         db_settings=db_settings,
     )

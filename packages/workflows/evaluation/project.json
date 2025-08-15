@@ -5,7 +5,9 @@
   "sourceRoot": "packages/workflows/evaluation/evaluation_workflow",
   "targets": {
     "cdk-bootstrap": {},
-    "cdk-deploy": {},
+    "cdk-deploy": {
+      "dependsOn": ["lambda-package-dependencies", "lambda-package-project"]
+    },
     "lock": {
       "executor": "@nxlv/python:lock",
       "options": {

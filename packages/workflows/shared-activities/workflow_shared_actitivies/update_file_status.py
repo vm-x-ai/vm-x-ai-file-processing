@@ -1,5 +1,5 @@
 import logging
-from typing import Callable
+from collections.abc import Callable
 from uuid import UUID
 
 import internal_db_models

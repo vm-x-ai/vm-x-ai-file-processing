@@ -1,5 +1,4 @@
 from os import environ
-from typing import Literal
 
 from internal_utils.pydantic_settings_jinja import jinja_template_validator
 from pydantic import Field
@@ -34,4 +33,3 @@ class Settings(BaseSettings):
     )
     temporal_host: str | None = None
     landing: Landing = Landing()
-    stack_mode: Literal["kubernetes", "serverless", "serverless-neon"] = "kubernetes"

@@ -6,6 +6,7 @@ from uuid import UUID
 import internal_db_models
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, Query
+from internal_aws_shared.s3 import generate_download_url
 from internal_db_repositories.evaluation import EvaluationRepository
 from internal_db_repositories.evaluation_category import (
     EvaluationCategoryRepository,
@@ -16,7 +17,6 @@ from internal_schemas.evaluation import (
     HttpEvaluationUpdate,
 )
 from internal_services.workflow.engine import WorkflowEngineService
-from internal_utils.s3 import generate_download_url
 
 from api.containers import Container
 

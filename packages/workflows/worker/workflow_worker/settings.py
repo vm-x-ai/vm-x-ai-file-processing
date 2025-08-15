@@ -1,24 +1,10 @@
 from os import environ
 
 from internal_utils.pydantic_settings_jinja import jinja_template_validator
+from internal_vmx_utils.settings import VMXSettings
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 env_file = f".env.{environ.get('ENV', 'local')}"
-
-
-class VMXSettings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file=env_file,
-        env_file_encoding="utf-8",
-        extra="ignore",
-        env_prefix="VMX_",
-    )
-
-    domain: str
-    api_key: str
-    workspace_id: str
-    environment_id: str
-    resource_id: str
 
 
 class ThumbnailSettings(BaseSettings):

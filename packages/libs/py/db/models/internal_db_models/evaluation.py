@@ -23,19 +23,19 @@ class EvaluationType(str, Enum):
 class EvaluationBase(SQLModel):
     title: str = Field(sa_type=Text, nullable=False)
     description: str = Field(sa_type=Text, nullable=False)
-    system_prompt: Optional[str] = Field(sa_type=Text, nullable=True)
+    system_prompt: str | None = Field(sa_type=Text, nullable=True)
     prompt: str = Field(sa_type=Text, nullable=False)
     project_id: UUID = Field(foreign_key="projects.id")
     evaluation_type: EvaluationType = Field(nullable=False)
-    evaluation_options: Optional[list[str]] = Field(
+    evaluation_options: list[str] | None = Field(
         sa_type=postgresql.JSONB, nullable=True
     )
-    parent_evaluation_id: Optional[UUID] = Field(
+    parent_evaluation_id: UUID | None = Field(
         foreign_key="evaluations.id", nullable=True, ondelete="CASCADE"
     )
-    parent_evaluation_option: Optional[str] = Field(sa_type=Text, nullable=True)
+    parent_evaluation_option: str | None = Field(sa_type=Text, nullable=True)
     category_id: UUID = Field(foreign_key="evaluation_categories.id")
-    template_id: Optional[UUID] = Field(
+    template_id: UUID | None = Field(
         foreign_key="evaluation_templates.id", nullable=True
     )
 

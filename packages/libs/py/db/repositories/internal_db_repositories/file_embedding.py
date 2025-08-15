@@ -1,6 +1,6 @@
 import enum
-from collections.abc import Sequence
-from typing import Any, Callable, cast
+from collections.abc import Callable, Sequence
+from typing import Any, cast
 from uuid import UUID
 
 import internal_db_models

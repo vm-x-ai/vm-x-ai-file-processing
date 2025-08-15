@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import temporalio.api.common.v1
 from pydantic import TypeAdapter
@@ -33,7 +33,7 @@ class PydanticJSONPlainPayloadConverter(EncodingPayloadConverter):
         """See base class."""
         return "json/plain"
 
-    def to_payload(self, value: Any) -> Optional[temporalio.api.common.v1.Payload]:
+    def to_payload(self, value: Any) -> temporalio.api.common.v1.Payload | None:
         """See base class.
 
         Uses ``pydantic_core.to_json`` to serialize ``value`` to JSON.
@@ -49,7 +49,7 @@ class PydanticJSONPlainPayloadConverter(EncodingPayloadConverter):
     def from_payload(
         self,
         payload: temporalio.api.common.v1.Payload,
-        type_hint: Optional[type] = None,
+        type_hint: type | None = None,
     ) -> Any:
         """See base class.
 

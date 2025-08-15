@@ -1,7 +1,7 @@
 import json
 import logging
+from collections.abc import Callable
 from datetime import datetime, timezone
-from typing import Callable
 
 import aioboto3
 

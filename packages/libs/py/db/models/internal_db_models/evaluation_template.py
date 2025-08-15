@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from sqlalchemy import Column, Text, func
@@ -15,7 +15,7 @@ class EvaluationTemplateBase(SQLModel):
     name: str = Field(sa_type=Text, nullable=False)
     description: str = Field(sa_type=Text, nullable=False)
     project_id: UUID = Field(foreign_key="projects.id")
-    system_prompt: Optional[str] = Field(sa_type=Text, nullable=True)
+    system_prompt: str | None = Field(sa_type=Text, nullable=True)
     prompt: str = Field(sa_type=Text, nullable=False)
     category_id: UUID = Field(foreign_key="evaluation_categories.id")
     default: bool = Field(default=False, nullable=False)

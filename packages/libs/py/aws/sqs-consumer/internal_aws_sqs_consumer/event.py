@@ -1,9 +1,10 @@
 import asyncio
 from asyncio import Future
 from collections import defaultdict
+from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from enum import Enum
-from typing import Any, Callable
+from typing import Any
 
 
 class SQSEventType(str, Enum):

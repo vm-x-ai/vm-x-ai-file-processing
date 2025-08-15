@@ -44,7 +44,7 @@
     "@nx/vite": "21.3.11",
     "@nx/web": "21.3.11",
     "@nx/webpack": "21.3.11",
-    "@nxlv/python": "link:../../nx-plugins/dist/packages/nx-python",
+    "@nxlv/python": "21.1.2",
     "@swc-node/register": "~1.9.1",
     "@swc/cli": "~0.6.0",
     "@swc/core": "~1.5.29",

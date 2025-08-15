@@ -1,19 +1,18 @@
 import logging
-from typing import Callable, Optional
+from collections.abc import Callable
 from uuid import UUID
 
 import internal_db_models
 from internal_db_repositories.file import FileRepository
 from internal_db_repositories.file_content import FileContentRepository
 from internal_services.evaluation import EvaluationService
+from internal_vmx_utils.client import VMXClientResource
 from pydantic import BaseModel
-from temporalio import activity
 from vmxai import (
     RequestToolChoiceFunction,
     RequestToolChoiceItem,
     RequestToolFunction,
     RequestTools,
-    VMXClient,
 )
 from vmxai.types import (
     BatchRequestCallbackOptions,
@@ -70,15 +69,14 @@ class StartEvaluationsActivity:
         evaluation_service: EvaluationService,
         file_repository: FileRepository,
         file_content_repository: FileContentRepository,
-        vmx_client: VMXClient,
-        vmx_resource_id: str,
+        vmx_client_resource: VMXClientResource,
         ingestion_callback_url: str,
     ):
         self._evaluation_service = evaluation_service
         self._file_repository = file_repository
         self._file_content_repository = file_content_repository
-        self._vmx_client = vmx_client
-        self._vmx_resource_id = vmx_resource_id
+        self._vmx_client = vmx_client_resource.client
+        self._vmx_resource_id = vmx_client_resource.resource_id
         self._ingestion_callback_url = ingestion_callback_url
 
     def temporal_factory(self) -> Callable:
@@ -87,9 +85,9 @@ class StartEvaluationsActivity:
         @activity.defn(name="StartEvaluationsActivity")
         async def _activity(
             file_id: UUID,
-            evaluation_id: Optional[UUID] = None,
-            parent_evaluation_id: Optional[UUID] = None,
-            parent_evaluation_option: Optional[str] = None,
+            evaluation_id: UUID | None = None,
+            parent_evaluation_id: UUID | None = None,
+            parent_evaluation_option: str | None = None,
         ) -> StartEvaluationOutput:
             return await self.run(
                 file_id, evaluation_id, parent_evaluation_id, parent_evaluation_option
@@ -100,11 +98,57 @@ class StartEvaluationsActivity:
     async def run(
         self,
         file_id: UUID,
-        evaluation_id: Optional[UUID] = None,
-        parent_evaluation_id: Optional[UUID] = None,
-        parent_evaluation_option: Optional[str] = None,
+        evaluation_id: UUID | None = None,
+        parent_evaluation_id: UUID | None = None,
+        parent_evaluation_option: str | None = None,
+        parent_file_content_id: UUID | None = None,
     ) -> StartEvaluationOutput:
+        from temporalio import activity
+
         workflow_id = activity.info().workflow_id
+        requests, evaluations = await self.generate_llm_requests(
+            file_id,
+            workflow_id,
+            evaluation_id,
+            parent_evaluation_id,
+            parent_evaluation_option,
+            parent_file_content_id,
+        )
+
+        if len(requests) == 0:
+            return StartEvaluationOutput(
+                evaluation_ids=[],
+                batch_id=None,
+                batch_item_ids=None,
+            )
+
+        workflow_id = activity.info().workflow_id
+        callback_url = f"{self._ingestion_callback_url}?workflow_id={workflow_id}"
+
+        batch_response = await self._vmx_client.completion_batch_callback(
+            requests=requests,
+            callback_options=BatchRequestCallbackOptions(
+                headers={},
+                url=callback_url,
+                events=["ITEM_UPDATE"],
+            ),
+        )
+
+        return StartEvaluationOutput(
+            evaluation_ids=[evaluation.id for evaluation in evaluations],
+            batch_id=batch_response.batch_id,
+            batch_item_ids=[item.item_id for item in batch_response.items],
+        )
+
+    async def generate_llm_requests(
+        self,
+        file_id: UUID,
+        workflow_id: str,
+        evaluation_id: UUID | None = None,
+        parent_evaluation_id: UUID | None = None,
+        parent_evaluation_option: str | None = None,
+        parent_file_content_id: UUID | None = None,
+    ) -> tuple[list[CompletionRequest], list[internal_db_models.EvaluationRead]]:
         file = await self._file_repository.get(file_id)
         if not file:
             raise ValueError(f"File {file_id} not found")
@@ -129,14 +173,14 @@ class StartEvaluationsActivity:
         )
 
         if not evaluations:
-            return StartEvaluationOutput(
-                evaluation_ids=[],
-                batch_id=None,
-                batch_item_ids=None,
-            )
+            return [], []
 
         requests: list[CompletionRequest] = []
-        file_contents = await self._file_content_repository.get_by_file_id(file_id)
+        file_contents = (
+            [await self._file_content_repository.get(parent_file_content_id)]
+            if parent_file_content_id
+            else await self._file_content_repository.get_by_file_id(file_id)
+        )
 
         for file_content in file_contents:
             for evaluation in evaluations:
@@ -212,19 +256,4 @@ class StartEvaluationsActivity:
 
                 requests.append(request)
 
-        callback_url = f"{self._ingestion_callback_url}?workflow_id={workflow_id}"
-
-        batch_response = await self._vmx_client.completion_batch_callback(
-            requests=requests,
-            callback_options=BatchRequestCallbackOptions(
-                headers={},
-                url=callback_url,
-                events=["ITEM_UPDATE"],
-            ),
-        )
-
-        return StartEvaluationOutput(
-            evaluation_ids=[evaluation.id for evaluation in evaluations],
-            batch_id=batch_response.batch_id,
-            batch_item_ids=[item.item_id for item in batch_response.items],
-        )
+        return requests, evaluations
