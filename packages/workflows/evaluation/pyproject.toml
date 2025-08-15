@@ -25,6 +25,7 @@ dependencies = [
   "py-vmx-utils",
   "dependency-injector>=4.46.0",
   "py-aws-shared",
+  "py-utils",
   "py-schemas",
   "py-logger"
 ]
@@ -41,7 +42,6 @@ aws_lambda = [
   "py-db-repositories",
   "py-db-services",
   "py-services",
-  "py-utils",
   "pydantic-settings>=2.9.1",
   "workflow-shared-activities",
 ]

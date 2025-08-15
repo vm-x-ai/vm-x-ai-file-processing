@@ -6,8 +6,5 @@ export default defineConfig({
     path: 'src/clients/api',
     tsConfigPath: 'tsconfig.json',
   },
-  plugins: [
-    '@hey-api/client-next',
-    '@tanstack/react-query',
-  ],
+  plugins: ['@hey-api/client-next', '@tanstack/react-query'],
 });

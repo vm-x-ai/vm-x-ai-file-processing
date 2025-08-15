@@ -125,7 +125,7 @@
       ]
     }
   },
-  "tags": ["api", "no-deploy:shared"],
+  "tags": ["api", "no-deploy:shared", "support:serverless"],
   "release": {
     "version": {
       "versionActions": "@nxlv/python/src/release/version-actions"

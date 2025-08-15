@@ -25,7 +25,9 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       <Alert variant="destructive">
         <AlertCircleIcon />
         <AlertTitle>Error loading project</AlertTitle>
-        <AlertDescription>{getErrorMessageFromResponse(project.error)}</AlertDescription>
+        <AlertDescription>
+          {getErrorMessageFromResponse(project.error)}
+        </AlertDescription>
       </Alert>
     );
   }

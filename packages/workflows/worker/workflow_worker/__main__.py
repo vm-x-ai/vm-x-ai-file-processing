@@ -23,7 +23,7 @@ async def main():
         client,
         task_queue="temporal-worker",
         workflows=[IngestionWorkflow, EvaluationWorkflow, UpdateEvaluationWorkflow],
-        activities=[activity.temporal_factory() for activity in activities],
+        activities=[activity.run for activity in activities],
     )
 
     await worker.run()

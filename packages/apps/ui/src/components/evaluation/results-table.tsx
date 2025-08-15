@@ -32,7 +32,10 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { EvaluationRead, FileEvaluationReadWithFile } from '@/clients/api/types.gen';
+import {
+  EvaluationRead,
+  FileEvaluationReadWithFile,
+} from '@/clients/api/types.gen';
 
 interface ResultWithEvaluation extends FileEvaluationReadWithFile {
   evaluation: EvaluationRead;

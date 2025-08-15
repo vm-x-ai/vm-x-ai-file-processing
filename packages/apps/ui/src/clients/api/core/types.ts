@@ -9,7 +9,7 @@ export interface Client<
   RequestFn = never,
   Config = unknown,
   MethodFn = never,
-  BuildUrlFn = never,
+  BuildUrlFn = never
 > {
   /**
    * Returns the final request URL.
@@ -106,10 +106,10 @@ export interface Config {
 type IsExactlyNeverOrNeverUndefined<T> = [T] extends [never]
   ? true
   : [T] extends [never | undefined]
-    ? [undefined] extends [T]
-      ? false
-      : true
-    : false;
+  ? [undefined] extends [T]
+    ? false
+    : true
+  : false;
 
 export type OmitNever<T extends Record<string, unknown>> = {
   [K in keyof T as IsExactlyNeverOrNeverUndefined<T[K]> extends true

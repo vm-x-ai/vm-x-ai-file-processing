@@ -48,7 +48,7 @@ type RootLayoutProps = {
 export const dynamic = 'force-dynamic';
 
 export default async function RootLayout({ children }: RootLayoutProps) {
-  ensureServerClientsInitialized()
+  ensureServerClientsInitialized();
 
   return (
     <html lang="en" suppressHydrationWarning className={roboto.variable}>

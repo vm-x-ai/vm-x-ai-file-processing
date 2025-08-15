@@ -1,4 +1,8 @@
-import { FileEvaluationReadWithFile, getFile, getFileEvaluations } from '@/clients/api';
+import {
+  FileEvaluationReadWithFile,
+  getFile,
+  getFileEvaluations,
+} from '@/clients/api';
 import FileEvaluationGraph from '@/components/evaluation/graph';
 import FileCard from '@/components/file-card';
 import {
@@ -60,15 +64,18 @@ export default async function Page({ params }: PageProps) {
     );
   }
 
-  const fileEvaluationsByPage = fileEvaluations.data.reduce((acc, evaluation) => {
-    const pageNumber = evaluation.content.content_number;
-    if (!acc[pageNumber]) {
-      acc[pageNumber] = [];
-    }
-    const item = { ...evaluation, children: [] };
-    acc[pageNumber].push(item);
-    return acc;
-  }, {} as Record<number, FileEvaluationReadWithFile[]>);
+  const fileEvaluationsByPage = fileEvaluations.data.reduce(
+    (acc, evaluation) => {
+      const pageNumber = evaluation.content.content_number;
+      if (!acc[pageNumber]) {
+        acc[pageNumber] = [];
+      }
+      const item = { ...evaluation, children: [] };
+      acc[pageNumber].push(item);
+      return acc;
+    },
+    {} as Record<number, FileEvaluationReadWithFile[]>
+  );
 
   return (
     <div className="grid grid-cols-12 gap-4">

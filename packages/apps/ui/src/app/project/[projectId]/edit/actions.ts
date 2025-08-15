@@ -48,7 +48,9 @@ export async function submitForm(
     return {
       ...prevState,
       success: false,
-      message: getErrorMessageFromResponse(updatedProject.error) ?? 'Failed to update project',
+      message:
+        getErrorMessageFromResponse(updatedProject.error) ??
+        'Failed to update project',
     };
   }
 

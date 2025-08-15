@@ -21,5 +21,9 @@ export default async function Layout({ children, params }: LayoutProps) {
     return <div>File not found</div>;
   }
 
-  return <PartialZustandStoreProvider state={{ file: file.data }}>{children}</PartialZustandStoreProvider>;
+  return (
+    <PartialZustandStoreProvider state={{ file: file.data }}>
+      {children}
+    </PartialZustandStoreProvider>
+  );
 }

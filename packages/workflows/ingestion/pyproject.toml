@@ -30,6 +30,7 @@ dependencies = [
   "pypdf>=5.5.0",
   "tiktoken>=0.9.0",
   "py-aws-shared",
+  "py-utils",
   "py-logger",
   "py-schemas",
 ]
@@ -45,7 +46,6 @@ aws_lambda = [
   "py-db-repositories",
   "py-db-services",
   "py-services",
-  "py-utils",
   "pydantic-settings>=2.9.1",
   "workflow-shared-activities",
 ]

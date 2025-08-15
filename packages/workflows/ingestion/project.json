@@ -116,7 +116,8 @@
     "temporal",
     "python",
     "no-deploy:shared",
-    "local-workflow-infra"
+    "local-workflow-infra",
+    "support:serverless"
   ],
   "release": {
     "version": {

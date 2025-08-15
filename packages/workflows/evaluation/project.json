@@ -111,7 +111,13 @@
     },
     "lambda-package-project": {}
   },
-  "tags": ["workflow", "python", "no-deploy:shared", "local-workflow-infra"],
+  "tags": [
+    "workflow",
+    "python",
+    "no-deploy:shared",
+    "local-workflow-infra",
+    "support:serverless"
+  ],
   "release": {
     "version": {
       "versionActions": "@nxlv/python/src/release/version-actions"

@@ -29,6 +29,10 @@ export class EvaluationWorkflowStack extends BaseStack {
       `${this.resourcePrefix}-event-bus-${props.stage}`
     );
 
+    if (props.stage === 'local') {
+      this.createEvaluationSqsQueue(props);
+    }
+
     if (props.stage !== 'local') {
       if (props.stackMode === 'kubernetes') {
         this.addKubernetesResources(props);
@@ -64,11 +68,14 @@ export class EvaluationWorkflowStack extends BaseStack {
       argoCDApp.node.addDependency(serviceAccount);
     }
 
+    const evaluationQueue = this.createEvaluationSqsQueue(props);
+    evaluationQueue.grantConsumeMessages(serviceAccount.role);
+  }
+
+  private createEvaluationSqsQueue(props: BaseStackProps) {
     const evaluationQueue = new sqs.Queue(this, 'EvaluationWorkflowQueue', {
       queueName: `${this.resourcePrefix}-evaluation-workflow-${this.region}-${props.stage}`,
     });
-
-    evaluationQueue.grantConsumeMessages(serviceAccount.role);
 
     new events.Rule(this, 'EvaluationWorkflowTriggerRule', {
       eventBus: this.eventBus,
@@ -82,6 +89,7 @@ export class EvaluationWorkflowStack extends BaseStack {
         }),
       ],
     });
+    return evaluationQueue;
   }
 
   private addServerlessResources(props: BaseStackProps) {
@@ -340,18 +348,17 @@ export class EvaluationWorkflowStack extends BaseStack {
           file_id: sfn.JsonPath.stringAt('$.file_id'),
           evaluation_id: sfn.JsonPath.DISCARD,
         },
-      })
-        .next(
-          this.generateProcessEvaluationDefinition(
-            'initial-eval',
-            processingBucket,
-            initialEvaluationSetup,
-            generateLlmRequests,
-            sendLlmRequest,
-            activityProxy,
-            processEvaluationResult
-          )
+      }).next(
+        this.generateProcessEvaluationDefinition(
+          'initial-eval',
+          processingBucket,
+          initialEvaluationSetup,
+          generateLlmRequests,
+          sendLlmRequest,
+          activityProxy,
+          processEvaluationResult
         )
+      )
     );
 
     const stateMachineName = `${this.resourcePrefix}-evaluation-workflow-state-machine-${props.stage}`;

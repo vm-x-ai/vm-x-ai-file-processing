@@ -1,6 +1,9 @@
 'use client';
 
-import { EvaluationTemplateRead, EvaluationTree } from '@/clients/api/types.gen';
+import {
+  EvaluationTemplateRead,
+  EvaluationTree,
+} from '@/clients/api/types.gen';
 import {
   Accordion,
   AccordionContent,

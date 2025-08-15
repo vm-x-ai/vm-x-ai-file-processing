@@ -3,7 +3,7 @@
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/apps/ui",
   "projectType": "application",
-  "tags": ["no-deploy:shared", "ui"],
+  "tags": ["no-deploy:shared", "ui", "support:serverless"],
   "// targets": "to see all targets run: nx show project ui --web",
   "targets": {
     "cdk-bootstrap": {},

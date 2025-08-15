@@ -88,7 +88,7 @@ export default async function Page({ params }: PageProps) {
           onDeleteAction={async (evaluation) => {
             'use server';
 
-            ensureServerClientsInitialized()
+            ensureServerClientsInitialized();
 
             await deleteEvaluation({
               path: {

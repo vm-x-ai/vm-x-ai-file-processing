@@ -1,6 +1,5 @@
 import logging
 import uuid
-from collections.abc import Callable
 from uuid import UUID
 
 import internal_db_models
@@ -29,19 +28,6 @@ class ChunkDocumentActivity:
         self._file_repository = file_repository
         self._file_content_repository = file_content_repository
         self._file_embedding_repository = file_embedding_repository
-
-    def temporal_factory(self) -> Callable:
-        from temporalio import activity
-
-        @activity.defn(name="ChunkDocumentActivity")
-        async def _activity(
-            file_id: UUID,
-            project_id: UUID,
-            file_content_id: UUID,
-        ) -> ChunkDocumentOutput:
-            return await self.run(file_id, project_id, file_content_id)
-
-        return _activity
 
     async def run(
         self,

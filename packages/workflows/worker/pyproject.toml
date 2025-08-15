@@ -54,13 +54,6 @@ requires-python = ">=3.10,<4"
 readme = "README.md"
 dependencies = [
  "py-aws-shared",
- "dependency-injector>=4.46.0",
- "langchain-community>=0.3.24",
- "langchain-openai>=0.3.16",
- "langchain-text-splitters>=0.3.8",
- "pdf2image>=1.17.0",
- "pypdf>=5.5.0",
- "tiktoken>=0.9.0",
  "py-utils",
  "py-vmx-utils",
  "py-db-models",
@@ -70,8 +63,8 @@ dependencies = [
  "py-temporal-utils",
  "py-logger",
  "py-schemas",
- "workflow-ingestion",
- "evaluation-workflow",
+ "workflow-ingestion[temporal]",
+ "evaluation-workflow[temporal]",
 ]
 
 [build-system]

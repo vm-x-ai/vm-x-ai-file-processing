@@ -81,10 +81,7 @@ export class APIStack extends BaseStack {
       new iam.Policy(this, 'StepFunctionsPolicy', {
         statements: [
           new iam.PolicyStatement({
-            actions: [
-              'states:SendTaskSuccess',
-              'states:StartExecution'
-            ],
+            actions: ['states:SendTaskSuccess', 'states:StartExecution'],
             resources: ['*'],
           }),
         ],

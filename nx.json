@@ -264,6 +264,19 @@
       "cache": true,
       "dependsOn": ["^build"],
       "inputs": ["production", "^production"]
+    },
+    "@nxlv/python:build": {
+      "options": {
+        "ignorePaths": [
+          ".venv",
+          ".tox",
+          "tests",
+          "cdk.out",
+          "node_modules",
+          ".pytest_cache",
+          ".ruff_cache"
+        ]
+      }
     }
   },
   "generators": {

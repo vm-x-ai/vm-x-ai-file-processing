@@ -1,5 +1,4 @@
 import logging
-from collections.abc import Callable
 from uuid import UUID
 
 import internal_db_models
@@ -11,18 +10,6 @@ logger = logging.getLogger(__name__)
 class UpdateFileStatusActivity:
     def __init__(self, file_repository: FileRepository):
         self._file_repository = file_repository
-
-    def temporal_factory(self) -> Callable:
-        from temporalio import activity
-
-        @activity.defn(name="UpdateFileStatusActivity")
-        async def _activity(file_id: UUID, status: internal_db_models.FileStatus):
-            return await self.run(
-                file_id,
-                status,
-            )
-
-        return _activity
 
     async def run(self, file_id: UUID, status: internal_db_models.FileStatus):
         await self._file_repository.update(file_id, {"status": status})

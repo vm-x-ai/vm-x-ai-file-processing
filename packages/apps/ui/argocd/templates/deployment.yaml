@@ -54,7 +54,7 @@ spec:
               {{- else }}
               value: "http://{{ .Values.ingressGatewayAddress }}/api"
               {{- end }}
-            - name: API_URL
+            - name: INTERNAL_API_URL
               {{- if .Values.minikube }}
               value: "http://{{ .Values.resourcePrefix }}-api.{{ .Values.namespace }}.svc.cluster.local:80/api"
               {{- else }}

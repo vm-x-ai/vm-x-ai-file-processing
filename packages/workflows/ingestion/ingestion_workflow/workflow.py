@@ -9,9 +9,10 @@ from temporalio.common import RetryPolicy
 from temporalio.exceptions import ApplicationError
 
 with workflow.unsafe.imports_passed_through():
-    import workflow_shared_actitivies
+    from workflow_shared_actitivies import temporal as shared_temporal
 
     from . import activities
+    from .activities import temporal
 
 
 logger = logging.getLogger(__name__)
@@ -28,7 +29,7 @@ class IngestionWorkflow:
 
         try:
             load_output = await workflow.execute_activity(
-                activities.LoadS3FileActivity.run,
+                temporal.LoadS3FileActivityTemporal.run,
                 args=[message],
                 start_to_close_timeout=DEFAULT_TIMEOUT,
                 retry_policy=DEFAULT_RETRY_POLICY,
@@ -37,7 +38,7 @@ class IngestionWorkflow:
             file_chunks = await asyncio.gather(
                 *[
                     workflow.execute_activity(
-                        activities.ChunkDocumentActivity.run,
+                        temporal.ChunkDocumentActivityTemporal.run,
                         args=[
                             load_output.file_id,
                             load_output.project_id,
@@ -55,7 +56,7 @@ class IngestionWorkflow:
             await asyncio.gather(
                 *[
                     workflow.execute_activity(
-                        activities.CreateChunkEmbeddingsActivity.run,
+                        temporal.CreateChunkEmbeddingsActivityTemporal.run,
                         args=[
                             load_output.file_id,
                             chunk_id,
@@ -69,7 +70,7 @@ class IngestionWorkflow:
             )
 
             await workflow.execute_activity(
-                workflow_shared_actitivies.UpdateFileStatusActivity.run,
+                shared_temporal.UpdateFileStatusActivityTemporal.run,
                 args=[
                     load_output.file_id,
                     internal_db_models.FileStatus.COMPLETED,
@@ -79,7 +80,7 @@ class IngestionWorkflow:
             )
 
             await workflow.execute_activity(
-                workflow_shared_actitivies.SendEventActivity.run,
+                shared_temporal.SendEventActivityTemporal.run,
                 args=[
                     "ingestion",
                     "file_ingested_successfully",
@@ -93,9 +94,9 @@ class IngestionWorkflow:
         except Exception as e:
             error_msg = f"Error in ingestion workflow: {e}"
             workflow.logger.error(error_msg)
-            if load_output.file_id:
+            if load_output and load_output.file_id:
                 await workflow.execute_activity(
-                    workflow_shared_actitivies.UpdateFileStatusActivity.run,
+                    shared_temporal.UpdateFileStatusActivityTemporal.run,
                     args=[
                         load_output.file_id,
                         internal_db_models.FileStatus.FAILED,
@@ -105,7 +106,7 @@ class IngestionWorkflow:
                 )
 
                 await workflow.execute_activity(
-                    workflow_shared_actitivies.SendEventActivity.run,
+                    shared_temporal.SendEventActivityTemporal.run,
                     args=[
                         "ingestion",
                         "file_ingestion_failed",

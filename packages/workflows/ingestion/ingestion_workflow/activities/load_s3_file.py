@@ -3,7 +3,6 @@ import mimetypes
 import os
 import tempfile
 import uuid
-from collections.abc import Callable
 from io import BytesIO
 from uuid import UUID
 
@@ -148,17 +147,6 @@ class LoadS3FileActivity:
                             )
                         case _:
                             raise ValueError(f"Unsupported file extension: {file_ext}")
-
-    def temporal_factory(self) -> Callable:
-        from temporalio import activity
-
-        @activity.defn(name="LoadS3FileActivity")
-        async def _activity(
-            s3_event: S3Event,
-        ) -> LoadS3FileOutput:
-            return await self.run(s3_event)
-
-        return _activity
 
     async def _generate_pdf_thumbnail(
         self,

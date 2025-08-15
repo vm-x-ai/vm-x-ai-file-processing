@@ -473,7 +473,7 @@ export class IngestionWorkflowStack extends BaseStack {
         bucket: processingBucket,
         key: sfn.JsonPath.stringAt('$.Key'),
       }),
-      resultSelector: {}
+      resultSelector: {},
     });
 
     fileContentChunksMap.itemProcessor(chunkMap);

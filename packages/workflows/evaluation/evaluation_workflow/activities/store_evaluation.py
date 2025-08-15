@@ -1,7 +1,6 @@
 import json
 import logging
 import uuid
-from collections.abc import Callable
 from uuid import UUID
 
 import internal_db_models
@@ -27,20 +26,6 @@ class StoreEvaluationActivity:
         self._file_repository = file_repository
         self._evaluation_repository = evaluation_repository
         self._file_evaluation_repository = file_evaluation_repository
-
-    def temporal_factory(self) -> Callable:
-        from temporalio import activity
-
-        @activity.defn(name="StoreEvaluationActivity")
-        async def _activity(
-            file_id: UUID,
-            evaluation_id: UUID,
-            file_content_id: UUID,
-            result: CompletionBatchItemUpdateCallbackPayload,
-        ):
-            return await self.run(file_id, evaluation_id, file_content_id, result)
-
-        return _activity
 
     async def run(
         self,
