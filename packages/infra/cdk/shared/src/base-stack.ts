@@ -7,6 +7,7 @@ import assert from 'node:assert';
 export interface BaseStackProps extends cdk.StackProps {
   stage: string;
   sharedServicesAccountId: string;
+  stackMode?: 'serverless' | 'serverless-neon' | 'kubernetes';
   gitOps: GitOps & {
     path: string;
   };

@@ -6,17 +6,22 @@ import {
   EvaluationTree,
   EvaluationCategoryRead,
   EvaluationTemplateRead,
-} from '@/file-classifier-api';
+} from '@/clients/api/types.gen';
 import { FormAction, FormSchema } from './schema';
 import { useState, useMemo, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Plus, Check, X } from 'lucide-react';
-import { fileClassifierApi } from '@/api';
 import { shouldShowEmptyCategory } from '@/lib/category-utils';
 import { EditableText } from '../ui/editable-text';
 import { ConfirmationModal } from '../ui/confirmation-modal';
 import { nanoid } from 'nanoid';
+import { useMutation } from '@tanstack/react-query';
+import {
+  createEvaluationCategoryMutation,
+  deleteEvaluationCategoryMutation,
+  updateEvaluationCategoryMutation,
+} from '@/clients/api/@tanstack/react-query.gen';
 
 type EvaluationRootProps = {
   projectId: string;
@@ -49,6 +54,18 @@ export default function EvaluationRoot({
     category: EvaluationCategoryRead | null;
     canDelete: boolean;
   }>({ isOpen: false, category: null, canDelete: false });
+
+  const createEvaluationCategory = useMutation({
+    ...createEvaluationCategoryMutation(),
+  });
+
+  const updateEvaluationCategory = useMutation({
+    ...updateEvaluationCategoryMutation(),
+  });
+
+  const deleteEvaluationCategory = useMutation({
+    ...deleteEvaluationCategoryMutation(),
+  });
 
   useEffect(() => {
     setData(evaluations);
@@ -112,17 +129,17 @@ export default function EvaluationRoot({
     if (!newCategoryName.trim()) return;
 
     try {
-      const response = await fileClassifierApi.createEvaluationCategory(
-        {
+      const response = await createEvaluationCategory.mutateAsync({
+        path: {
           project_id: projectId,
         },
-        {
+        body: {
           name: newCategoryName.trim(),
           description: null,
-        }
-      );
+        },
+      });
 
-      setCategoriesData([...categoriesData, response.data]);
+      setCategoriesData([...categoriesData, response]);
       setNewCategoryName('');
       setIsAddingCategory(false);
     } catch (error) {
@@ -140,21 +157,19 @@ export default function EvaluationRoot({
     newName: string
   ) => {
     try {
-      const response = await fileClassifierApi.updateEvaluationCategory(
-        {
+      const response = await updateEvaluationCategory.mutateAsync({
+        path: {
           project_id: projectId,
           category_id: category.id,
         },
-        {
+        body: {
           name: newName,
           description: category.description,
-        }
-      );
+        },
+      });
 
       setCategoriesData(
-        categoriesData.map((cat) =>
-          cat.id === category.id ? response.data : cat
-        )
+        categoriesData.map((cat) => (cat.id === category.id ? response : cat))
       );
     } catch (error) {
       console.error('Failed to update category:', error);
@@ -178,9 +193,11 @@ export default function EvaluationRoot({
     if (!deleteModal.category || !deleteModal.canDelete) return;
 
     try {
-      await fileClassifierApi.deleteEvaluationCategory({
-        project_id: projectId,
-        category_id: deleteModal.category.id,
+      await deleteEvaluationCategory.mutateAsync({
+        path: {
+          project_id: projectId,
+          category_id: deleteModal.category.id,
+        },
       });
 
       setCategoriesData(

@@ -1,6 +1,6 @@
 'use client';
 
-import { ProjectReadWithStats } from '@/file-classifier-api';
+import { ProjectReadWithStats } from '@/clients/api/types.gen';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Plus, Trash } from 'lucide-react';

@@ -18,11 +18,11 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { ProjectRead } from '@/file-classifier-api';
 import Link from 'next/link';
 import { DeleteProjectDialog } from './project/delete-dialog';
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
+import { ProjectRead } from '@/clients/api';
 
 export type NavProjectsProps = {
   projects: ProjectRead[];

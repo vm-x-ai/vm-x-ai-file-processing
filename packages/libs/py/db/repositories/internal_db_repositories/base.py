@@ -1,17 +1,16 @@
 from abc import ABC, abstractmethod
-from contextlib import AbstractAsyncContextManager
-from typing import Any, Callable, Generic, Literal, TypeVar, Union, overload
+from typing import Any, Generic, Literal, TypeVar, overload
 
+from internal_db_services.database import Database
 from internal_utils.chunk import chunk
 from sqlalchemy import Column, insert, tuple_
 from sqlalchemy.sql import ColumnExpressionArgument
 from sqlmodel import SQLModel, delete, select, update
-from sqlmodel.ext.asyncio.session import AsyncSession
 
 TModel = TypeVar("TModel", bound=SQLModel)
 TReadModel = TypeVar("TReadModel", bound=SQLModel)
 TCreateModel = TypeVar("TCreateModel", bound=SQLModel)
-TID = TypeVar("TID", bound=Union[Any, tuple[Any, ...]])
+TID = TypeVar("TID", bound=Any | tuple[Any, ...])
 
 MAX_PG_PARAM_SIZE = 65535
 
@@ -41,14 +40,13 @@ class BaseRepository(ABC, Generic[TID, TModel, TReadModel, TCreateModel]):
 
     def __init__(
         self,
-        session_factory: Callable[..., AbstractAsyncContextManager[AsyncSession]],
-        write_session_factory: Callable[..., AbstractAsyncContextManager[AsyncSession]],
+        db: Database,
         model: type[TModel],
         read_model: type[TReadModel],
         create_model: type[TCreateModel],
     ):
-        self._session_factory = session_factory
-        self._write_session_factory = write_session_factory
+        self._session_factory = db.session
+        self._write_session_factory = db.writer_session
         self._model = model
         self._read_model = read_model
         self._create_model = create_model

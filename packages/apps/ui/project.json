@@ -3,17 +3,27 @@
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/apps/ui",
   "projectType": "application",
-  "tags": ["no-deploy:shared", "ui"],
+  "tags": ["no-deploy:shared", "ui", "support:serverless"],
   "// targets": "to see all targets run: nx show project ui --web",
   "targets": {
     "cdk-bootstrap": {},
-    "cdk-deploy": {},
+    "cdk-deploy": {
+      "dependsOn": ["lambda-build"]
+    },
     "build": {
       "cache": false,
       "configurations": {
         "dev": {},
         "prd": {}
       }
+    },
+    "lambda-build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cp scripts/lambda_web_adapter.sh .next/standalone/run.sh && cd .next/standalone && zip -r --symlinks ../standalone-server.zip *",
+        "cwd": "{projectRoot}"
+      },
+      "dependsOn": ["build"]
     },
     "dev": {
       "continuous": true,
@@ -53,60 +63,9 @@
         "prd": {}
       }
     },
-    "docker-build": {
-      "options": {
-        "env": {}
-      },
-      "configurations": {
-        "dev": {
-          "env": {
-            "TAG_PREFIX": "dev-"
-          }
-        },
-        "prd": {
-          "env": {
-            "TAG_PREFIX": "prd-"
-          }
-        }
-      }
-    },
-    "docker-push": {
-      "options": {},
-      "configurations": {
-        "dev": {
-          "env": {
-            "TAG_PREFIX": "dev-"
-          }
-        },
-        "prd": {
-          "env": {
-            "TAG_PREFIX": "prd-"
-          }
-        }
-      }
-    },
-    "helm-deploy": {
-      "configurations": {
-        "local": {
-          "env": {
-            "STAGE": "local",
-            "TAG_PREFIX": "dev-"
-          }
-        },
-        "dev": {
-          "env": {
-            "STAGE": "dev",
-            "TAG_PREFIX": "dev-"
-          }
-        },
-        "prd": {
-          "env": {
-            "STAGE": "prd",
-            "TAG_PREFIX": "prd-"
-          }
-        }
-      }
-    },
+    "docker-build": {},
+    "docker-push": {},
+    "helm-deploy": {},
     "update-image-tag": {
       "configurations": {
         "dev": {
@@ -120,7 +79,7 @@
       }
     },
     "openapi-gen": {
-      "command": "pnpm exec openapi typegen http://localhost:8000/openapi.json --client > src/file-classifier-api.d.ts",
+      "command": "npx @hey-api/openapi-ts -f openapi.config.ts -d",
       "options": {
         "cwd": "{projectRoot}"
       }

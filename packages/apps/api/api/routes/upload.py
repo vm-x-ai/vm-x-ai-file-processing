@@ -7,8 +7,8 @@ from uuid import UUID
 import internal_db_models
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends
+from internal_aws_shared.s3 import generate_upload_url
 from internal_db_repositories.file import FileRepository
-from internal_utils.s3 import generate_upload_url
 from pydantic import BaseModel
 
 from api.containers import Container

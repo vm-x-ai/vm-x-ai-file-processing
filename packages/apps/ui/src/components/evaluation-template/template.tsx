@@ -1,6 +1,6 @@
 'use client';
 
-import { EvaluationTemplateRead } from '@/file-classifier-api';
+import { EvaluationTemplateRead } from '@/clients/api/types.gen';
 import {
   AccordionContent,
   AccordionItem,

@@ -19,7 +19,7 @@ addopts = """
 name = "py-db-models"
 version = "1.0.0"
 description = "Python Database Models"
-requires-python = ">=3.9,<4"
+requires-python = ">=3.10,<4"
 readme = 'README.md'
 dependencies = [
  "alembic>=1.15.2",

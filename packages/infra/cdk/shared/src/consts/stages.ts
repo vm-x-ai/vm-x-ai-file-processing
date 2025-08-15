@@ -20,15 +20,13 @@ const gitOps: GitOps = {
   repo: gitRepo,
   repoUrl: `https://github.com/${gitOwner}/${gitRepo}`,
   secretName: 'argocd-github-token',
-  targetRevision: 'temporal-workflow',
+  targetRevision: 'main',
 };
 
 export const stages = [
   {
     accountId: '000000000000',
     stageName: 'local',
-    rootDomainName: 'localhost',
-    apiRootDomainName: 'localhost',
     adminRoleArn:
       'arn:aws:iam::XXXXXXXXXXXX:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AWSAdministratorAccess_xxxxxx',
     region: 'us-east-1',
@@ -40,12 +38,15 @@ export const stages = [
     },
   },
   {
-    accountId: '[YOUR_DEV_ACCOUNT_ID]',
+    accountId: '905418372997', // NOTE: Replace with your dev account ID
     stageName: 'dev',
-    rootDomainName: 'dev.xxxxxx.com',
-    apiRootDomainName: 'api.dev.xxxxxx.com',
+    /**
+     * NOTE: Replace with your Admin role ARN
+     *
+     * This will be granted role to access the EKS cluster.
+     */
     adminRoleArn:
-      'arn:aws:iam::[YOUR_DEV_ACCOUNT_ID]:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AdministratorAccess_xxxxxx',
+      'arn:aws:iam::905418372997:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AWSAdministratorAccess_ee10c8d485cb1dd8',
     region: 'us-east-1',
     isProd: false,
     cidr: '10.0.0.0/16',
@@ -55,7 +56,7 @@ export const stages = [
     },
   },
   {
-    accountId: '[YOUR_SHARED_SERVICES_ACCOUNT_ID]',
+    accountId: '339712832878', // NOTE: Replace with your shared services account ID
     stageName: 'shared',
     region: 'us-east-1',
     isProd: false,

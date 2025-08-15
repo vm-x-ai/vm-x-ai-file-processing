@@ -5,10 +5,10 @@ from uuid import UUID
 import internal_db_models
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, HTTPException, Query
+from internal_aws_shared.s3 import generate_download_url
 from internal_db_repositories.file import FileRepository, FileSearchRequest
 from internal_db_repositories.file_content import FileContentRepository
 from internal_db_repositories.file_evaluation import FileEvaluationRepository
-from internal_utils.s3 import generate_download_url
 
 from api.containers import Container
 

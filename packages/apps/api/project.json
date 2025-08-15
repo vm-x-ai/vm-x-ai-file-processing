@@ -5,7 +5,9 @@
   "sourceRoot": "packages/apps/api/api",
   "targets": {
     "cdk-bootstrap": {},
-    "cdk-deploy": {},
+    "cdk-deploy": {
+      "dependsOn": ["lambda-package-dependencies", "lambda-package-project"]
+    },
     "docker-compose-up": {},
     "lock": {
       "executor": "@nxlv/python:lock",
@@ -36,10 +38,24 @@
         "outputPath": "{projectRoot}/dist",
         "publish": false,
         "lockedVersions": true,
-        "bundleLocalDependencies": true
+        "bundleLocalDependencies": true,
+        "ignorePaths": [
+          "**/__pycache__/**/*",
+          ".*",
+          "dist",
+          "tests",
+          "node_modules",
+          "cdk.out",
+          "infra",
+          "argocd",
+          "*.json",
+          "Dockerfile"
+        ]
       },
       "cache": true
     },
+    "lambda-package-dependencies": {},
+    "lambda-package-project": {},
     "lint": {
       "executor": "@nxlv/python:ruff-check",
       "outputs": [],
@@ -85,20 +101,8 @@
         "cwd": "{projectRoot}"
       }
     },
-    "docker-build": {
-      "options": {
-        "env": {
-          "ECR_REPO_NAME": "api"
-        }
-      }
-    },
-    "docker-push": {
-      "options": {
-        "env": {
-          "ECR_REPO_NAME": "api"
-        }
-      }
-    },
+    "docker-build": {},
+    "docker-push": {},
     "helm-deploy": {},
     "update-image-tag": {},
     "deploy": {
@@ -121,7 +125,7 @@
       ]
     }
   },
-  "tags": ["api", "no-deploy:shared"],
+  "tags": ["api", "no-deploy:shared", "support:serverless"],
   "release": {
     "version": {
       "versionActions": "@nxlv/python/src/release/version-actions"

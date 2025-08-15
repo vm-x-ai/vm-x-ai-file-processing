@@ -11,18 +11,21 @@
       "executor": "@nxlv/python:run-commands",
       "continuous": true,
       "options": {
+        "command": "watchmedo auto-restart --patterns=\"*.py\" --recursive -- python -m workflow_worker",
+        "cwd": "{projectRoot}"
+      }
+    },
+    "start": {
+      "executor": "@nxlv/python:run-commands",
+      "continuous": true,
+      "options": {
         "command": "python -m workflow_worker",
         "cwd": "{projectRoot}"
-      },
-      "configurations": {
-        "watch": {
-          "command": "watchmedo auto-restart --patterns=\"*.py\" --recursive -- python -m workflow_worker"
-        }
       }
     },
     "start-ngrok-tunnel": {
       "continuous": true,
-      "command": "ngrok http --url=$(echo $INGESTION_CALLBACK_URL | sed -E 's#https?://([^/]+).*#\\1#') 8000"
+      "command": "ngrok http --url=$(echo $INGESTION_CALLBACK_URL | sed -E 's#https?://([^/]+).*#\\1#') 8000 --log=stdout --log-format=json"
     },
     "lock": {
       "executor": "@nxlv/python:lock",
@@ -94,20 +97,8 @@
         "debug": false
       }
     },
-    "docker-build": {
-      "options": {
-        "env": {
-          "ECR_REPO_NAME": "temporal-worker"
-        }
-      }
-    },
-    "docker-push": {
-      "options": {
-        "env": {
-          "ECR_REPO_NAME": "temporal-worker"
-        }
-      }
-    },
+    "docker-build": {},
+    "docker-push": {},
     "helm-deploy": {},
     "update-image-tag": {},
     "deploy": {

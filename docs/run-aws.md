@@ -1,6 +1,25 @@
-# Deploy to AWS
+# Deploy to AWS (Kubernetes Version)
 
-You can also deploy this entire stack to your AWS account.
+The Kubernetes version uses the following stack:
+
+- EKS Cluster (Kubernetes)
+- RDS Database (Aurora PostgreSQL)
+- Temporal Workflow Engine (Deployed in the EKS cluster)
+- ArgoCD (GitOps)
+- API (FastAPI Deployed in the EKS cluster)
+- UI (Next.js Deployed in the EKS cluster)
+- SQS Queue
+- S3 Bucket
+- SQS Consumers (Deployed in the EKS cluster)
+  - Workflow Ingestion
+  - Workflow Evaluation
+- Temporal Worker (Deployed in the EKS cluster)
+
+This version is more complex and more expensive than the Serverless version, but it's recommended for the following cases:
+
+- You already use Kubernetes in your organization.
+- The files are big and extracting require more compute and time (+15 minutes).
+- You want to use the Temporal Workflow Engine.
 
 **IMPORTANT:** Be aware that will cost money since it creates, RDS, EKS and EC2 instances.
 
@@ -213,16 +232,6 @@ Update the `SHARED_SERVICES_ACCOUNT_ID` in the `.env` file with your AWS account
 
 ```bash
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin [SHARED_SERVICES_ACCOUNT_ID].dkr.ecr.us-east-1.amazonaws.com
-```
-
-#### UI Build Environment Variables
-
-Since this demo app doesn't have a DNS configured, we need to set the `NEXT_PUBLIC_API_URL` environment variable to the API URL using the Istio Gateway DNS name.
-
-Create the `.env.build.dev` file with the following content:
-
-```
-NEXT_PUBLIC_API_URL=http://[ISTIO_GATEWAY_DNS_NAME]/api
 ```
 
 #### Docker Build and Push

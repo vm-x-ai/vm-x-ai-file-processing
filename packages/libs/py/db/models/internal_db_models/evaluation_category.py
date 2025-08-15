@@ -3,7 +3,9 @@ from uuid import UUID
 
 from sqlalchemy import Column, Text, func
 from sqlalchemy.dialects import postgresql
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
+
+from internal_db_models.evaluation import Evaluation, EvaluationRead
 
 
 class EvaluationCategoryBase(SQLModel):
@@ -36,6 +38,10 @@ class EvaluationCategory(EvaluationCategoryBase, table=True):
         ),
     )
 
+    evaluations: list["Evaluation"] = Relationship(
+        back_populates="category",
+    )
+
 
 class EvaluationCategoryCreate(EvaluationCategoryBase):
     id: UUID
@@ -45,3 +51,7 @@ class EvaluationCategoryRead(EvaluationCategoryBase):
     id: UUID
     created_at: datetime
     updated_at: datetime
+
+
+class EvaluationCategoryWithEvaluations(EvaluationCategoryRead):
+    evaluations: list[EvaluationRead]

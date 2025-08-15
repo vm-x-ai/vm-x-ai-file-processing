@@ -1,5 +1,5 @@
 {
-  "app": "node --loader ts-node/esm src/main.ts",
+  "app": "node --no-warnings --loader ts-node/esm src/main.ts",
   "watch": {
     "include": ["**"],
     "exclude": [

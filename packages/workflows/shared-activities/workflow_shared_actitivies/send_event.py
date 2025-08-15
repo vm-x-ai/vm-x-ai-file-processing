@@ -3,7 +3,6 @@ import logging
 from datetime import datetime, timezone
 
 import aioboto3
-from temporalio import activity
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +16,6 @@ class SendEventActivity:
         self._aioboto3_session = aioboto3_session
         self._event_bus_name = event_bus_name
 
-    @activity.defn(name="SendEventActivity")
     async def run(self, source: str, event_type: str, data: dict):
         async with self._aioboto3_session.client("events") as client:
             logger.info(f"Sending event {event_type} to {self._event_bus_name}")

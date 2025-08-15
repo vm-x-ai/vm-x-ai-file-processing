@@ -19,7 +19,7 @@ import {
   EvaluationRead,
   EvaluationTemplateRead,
   EvaluationType,
-} from '@/file-classifier-api';
+} from '@/clients/api/types.gen';
 import { useTransition } from 'react';
 import { Separator } from '../ui/separator';
 import { PlusIcon, SaveIcon, TrashIcon } from 'lucide-react';

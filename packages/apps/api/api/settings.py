@@ -7,17 +7,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 env_file = f".env.{environ.get('ENV', 'local')}"
 
 
-class OpenAI(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file=env_file,
-        env_file_encoding="utf-8",
-        extra="ignore",
-        env_prefix="OPENAI_",
-    )
-
-    api_key: str
-
-
 class Landing(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=env_file,
@@ -42,6 +31,5 @@ class Settings(BaseSettings):
     fastapi_hot_reload: bool = Field(
         False, description="FastAPI hot reload, only True on local env"
     )
-    temporal_host: str
-    openai: OpenAI = OpenAI()
+    temporal_host: str | None = None
     landing: Landing = Landing()

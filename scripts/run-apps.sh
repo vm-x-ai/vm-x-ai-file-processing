@@ -4,8 +4,12 @@ set -e
 
 # Source shared logging functions
 source "$(dirname "$0")/shared/logging.sh"
+source "$(dirname "$0")/shared/run-docker.sh"
+
+run_docker_services
 
 log_info "Starting Apps..."
+
 log_rocket_bold_inline "Access the **UI** at http://localhost:3002/ui" 
 log_rocket_bold_inline "Access the **OpenAPI Docs** at http://localhost:8000/docs" 
 log_rocket_bold_inline "Access the **Temporal Web UI** at http://localhost:8080" 

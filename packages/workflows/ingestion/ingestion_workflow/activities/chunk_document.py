@@ -9,7 +9,6 @@ from internal_db_repositories.file_embedding import FileEmbeddingRepository
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pydantic import BaseModel
-from temporalio import activity
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +29,6 @@ class ChunkDocumentActivity:
         self._file_content_repository = file_content_repository
         self._file_embedding_repository = file_embedding_repository
 
-    @activity.defn(name="ChunkDocumentActivity")
     async def run(
         self,
         file_id: UUID,

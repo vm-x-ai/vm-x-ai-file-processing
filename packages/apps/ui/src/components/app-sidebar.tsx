@@ -1,7 +1,4 @@
-'use client';
-
 import * as React from 'react';
-import { LayoutTemplate, SquareTerminal } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
 import { NavProjects } from '@/components/nav-projects';
@@ -12,64 +9,15 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar';
-import { ProjectRead } from '@/file-classifier-api';
-import { useStore } from '@/store/store';
+import { deleteProject, getProjects } from '@/clients/api';
+import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
+import { ensureServerClientsInitialized } from '@/clients/server-api-utils';
 
-type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
-  projects: ProjectRead[];
-  onDeleteProjectAction: (
-    projectId: string,
-    isActive: boolean
-  ) => Promise<void>;
-};
+type AppSidebarProps = React.ComponentProps<typeof Sidebar>;
 
-export function AppSidebar({
-  projects,
-  onDeleteProjectAction,
-  ...props
-}: AppSidebarProps) {
-  const { project } = useStore();
-
-  const navMain = project
-    ? [
-        {
-          title: 'Project',
-          url: '#',
-          icon: SquareTerminal,
-          isActive: true,
-          items: [
-            {
-              title: 'Explore',
-              url: `/project/${project?.id}/explore`,
-            },
-            {
-              title: 'Files',
-              url: `/project/${project?.id}/files`,
-            },
-            {
-              title: 'Evaluations',
-              url: `/project/${project?.id}/evaluations`,
-            },
-            {
-              title: 'Results',
-              url: `/project/${project?.id}/results`,
-            },
-          ],
-        },
-        {
-          title: 'Templates',
-          url: '#',
-          icon: LayoutTemplate,
-          isActive: true,
-          items: [
-            {
-              title: 'Evaluations',
-              url: `/project/${project?.id}/templates/evaluations`,
-            },
-          ],
-        },
-      ]
-    : [];
+export async function AppSidebar({ ...props }: AppSidebarProps) {
+  const projects = await getProjects();
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -81,10 +29,27 @@ export function AppSidebar({
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navMain} />
+        <NavMain />
         <NavProjects
-          projects={projects}
-          onDeleteAction={onDeleteProjectAction}
+          projects={projects.data ?? []}
+          onDeleteAction={async (projectId, isActive) => {
+            'use server';
+            ensureServerClientsInitialized();
+
+            await deleteProject({
+              path: {
+                project_id: projectId,
+              },
+            });
+
+            revalidatePath('/');
+            revalidatePath(`/project`);
+            revalidatePath(`/project/${projectId}`);
+
+            if (isActive) {
+              redirect(`/project`);
+            }
+          }}
         />
       </SidebarContent>
       <SidebarFooter></SidebarFooter>

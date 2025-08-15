@@ -5,50 +5,42 @@ import internal_db_repositories
 
 
 class RepositoriesContainer(DatabaseContainer):
-    file_repository = providers.Factory(
+    file_repository = providers.Singleton(
         internal_db_repositories.FileRepository,
-        session_factory=DatabaseContainer.db.provided.session,
-        write_session_factory=DatabaseContainer.db.provided.writer_session,
+        db=DatabaseContainer.db,
     )
 
-    file_embedding_repository = providers.Factory(
+    file_embedding_repository = providers.Singleton(
         internal_db_repositories.FileEmbeddingRepository,
-        session_factory=DatabaseContainer.db.provided.session,
-        write_session_factory=DatabaseContainer.db.provided.writer_session,
+        db=DatabaseContainer.db,
     )
 
-    file_content_repository = providers.Factory(
+    file_content_repository = providers.Singleton(
         internal_db_repositories.FileContentRepository,
-        session_factory=DatabaseContainer.db.provided.session,
-        write_session_factory=DatabaseContainer.db.provided.writer_session,
+        db=DatabaseContainer.db,
     )
 
-    file_evaluation_repository = providers.Factory(
+    file_evaluation_repository = providers.Singleton(
         internal_db_repositories.FileEvaluationRepository,
-        session_factory=DatabaseContainer.db.provided.session,
-        write_session_factory=DatabaseContainer.db.provided.writer_session,
+        db=DatabaseContainer.db,
     )
 
-    project_repository = providers.Factory(
+    project_repository = providers.Singleton(
         internal_db_repositories.ProjectRepository,
-        session_factory=DatabaseContainer.db.provided.session,
-        write_session_factory=DatabaseContainer.db.provided.writer_session,
+        db=DatabaseContainer.db,
     )
 
-    evaluation_repository = providers.Factory(
+    evaluation_repository = providers.Singleton(
         internal_db_repositories.EvaluationRepository,
-        session_factory=DatabaseContainer.db.provided.session,
-        write_session_factory=DatabaseContainer.db.provided.writer_session,
+        db=DatabaseContainer.db,
     )
 
-    evaluation_category_repository = providers.Factory(
+    evaluation_category_repository = providers.Singleton(
         internal_db_repositories.EvaluationCategoryRepository,
-        session_factory=DatabaseContainer.db.provided.session,
-        write_session_factory=DatabaseContainer.db.provided.writer_session,
+        db=DatabaseContainer.db,
     )
 
-    evaluation_template_repository = providers.Factory(
+    evaluation_template_repository = providers.Singleton(
         internal_db_repositories.EvaluationTemplateRepository,
-        session_factory=DatabaseContainer.db.provided.session,
-        write_session_factory=DatabaseContainer.db.provided.writer_session,
+        db=DatabaseContainer.db,
     )

@@ -1,10 +1,10 @@
 import enum
-from collections.abc import Sequence
-from contextlib import AbstractAsyncContextManager
-from typing import Any, Callable, cast
+from collections.abc import Callable, Sequence
+from typing import Any, cast
 from uuid import UUID
 
 import internal_db_models
+from internal_db_services.database import Database
 from pydantic import BaseModel
 from sqlalchemy import (
     Column,
@@ -19,7 +19,6 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import aliased
 from sqlmodel import any_, case, col, select
-from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel.sql.expression import Select, SelectOfScalar
 
 from .base import BaseRepository
@@ -97,12 +96,10 @@ class FileEmbeddingRepository(
 ):
     def __init__(
         self,
-        session_factory: Callable[..., AbstractAsyncContextManager[AsyncSession]],
-        write_session_factory: Callable[..., AbstractAsyncContextManager[AsyncSession]],
+        db: Database,
     ):
         super().__init__(
-            session_factory,
-            write_session_factory,
+            db,
             internal_db_models.FileEmbedding,
             internal_db_models.FileEmbeddingRead,
             internal_db_models.FileEmbeddingCreate,

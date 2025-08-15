@@ -1,6 +1,6 @@
 'use client';
 
-import { ProjectRead } from '@/file-classifier-api';
+import { ProjectRead } from '@/clients/api/types.gen';
 import { Button } from '../ui/button';
 import {
   Dialog,

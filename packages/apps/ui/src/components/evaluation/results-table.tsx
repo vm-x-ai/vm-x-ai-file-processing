@@ -32,10 +32,10 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Components } from '@/file-classifier-api';
-
-type EvaluationRead = Components.Schemas.EvaluationRead;
-type FileEvaluationReadWithFile = Components.Schemas.FileEvaluationReadWithFile;
+import {
+  EvaluationRead,
+  FileEvaluationReadWithFile,
+} from '@/clients/api/types.gen';
 
 interface ResultWithEvaluation extends FileEvaluationReadWithFile {
   evaluation: EvaluationRead;
@@ -129,7 +129,7 @@ export function ResultsTable({ data }: ResultsTableProps) {
       cell: ({ row }) => {
         const pageLabel = row.original.content.content_metadata?.page_label;
         const pageNumber = row.original.content.content_number;
-        return <div>{pageLabel || pageNumber}</div>;
+        return <div>{(pageLabel || pageNumber) as string}</div>;
       },
     },
     {

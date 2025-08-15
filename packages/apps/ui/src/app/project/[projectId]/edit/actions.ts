@@ -1,9 +1,13 @@
 'use server';
 
-import { fileClassifierApi } from '@/api';
 import { FormAction, FormSchema, schema } from '@/components/project/schema';
-import { ProjectCreateRequest } from '@/file-classifier-api';
+import { ProjectUpdateRequest } from '@/clients/api/types.gen';
 import { revalidatePath } from 'next/cache';
+import { ensureServerClientsInitialized } from '@/clients/server-api-utils';
+import { updateProject } from '@/clients/api';
+import { getErrorMessageFromResponse } from '@/clients/api-utils';
+
+ensureServerClientsInitialized();
 
 export async function submitForm(
   prevState: FormAction,
@@ -19,7 +23,7 @@ export async function submitForm(
     };
   }
 
-  const createPayload: ProjectCreateRequest = {
+  const updatePayload: ProjectUpdateRequest = {
     name: data.name,
     description: data.description,
   };
@@ -33,16 +37,26 @@ export async function submitForm(
     };
   }
 
-  const updatedProject = await fileClassifierApi.updateProject(
-    {
+  const updatedProject = await updateProject({
+    path: {
       project_id: data.id,
     },
-    createPayload
-  );
+    body: updatePayload,
+  });
+
+  if (!updatedProject.data) {
+    return {
+      ...prevState,
+      success: false,
+      message:
+        getErrorMessageFromResponse(updatedProject.error) ??
+        'Failed to update project',
+    };
+  }
 
   revalidatePath('/');
   revalidatePath('/project');
-  revalidatePath(`/project/${updatedProject.data.id}`);
+  revalidatePath(`/project/${updatedProject.data?.id}`);
 
   return {
     ...prevState,

@@ -5,15 +5,37 @@ import camelCase from 'lodash.camelcase';
 import { ReadonlyHeaders } from 'next/dist/server/web/spec-extension/adapters/headers';
 import { headers } from 'next/headers';
 import z from 'zod';
-import { fileClassifierApi } from '@/api';
-import { FileRead } from '@/file-classifier-api';
+import { FileRead } from '@/clients/api/types.gen';
+import { createCache } from 'cache-manager';
+import {
+  SecretsManagerClient,
+  GetSecretValueCommand,
+} from '@aws-sdk/client-secrets-manager';
+import { ensureServerClientsInitialized } from '@/clients/server-api-utils';
+import {
+  getEvaluations,
+  getFileContent,
+  getFileEvaluations,
+  getFilesByEvaluation,
+  similaritySearch,
+} from '@/clients/api';
+
+ensureServerClientsInitialized();
+
+const cache = createCache();
 
 export async function POST(request: NextRequest) {
   const { messages, projectId, files } = await request.json();
 
+  await loadSecrets();
+
   const actionHeaders = await headers();
   const headerMetadata: Record<string, JSONValue> = {};
-  const baseURL = `${process.env.VMX_PROTOCOL}://api.${process.env.VMX_DOMAIN}/completion/${process.env.VMX_WORKSPACE_ID}/${process.env.VMX_ENVIRONMENT_ID}/${process.env.VMX_RESOURCE}/openai-adapter`;
+  const baseURL = `${process.env.VMX_PROTOCOL ?? 'https'}://api.${
+    process.env.VMX_DOMAIN
+  }/completion/${process.env.VMX_WORKSPACE_ID}/${
+    process.env.VMX_ENVIRONMENT_ID
+  }/${process.env.VMX_RESOURCE}/openai-adapter`;
   const model = getLanguageModel(baseURL, actionHeaders, headerMetadata);
 
   const result = streamText({
@@ -64,11 +86,11 @@ export async function POST(request: NextRequest) {
         execute: async ({ search, scoreThreshold, fileIds, limit }) => {
           try {
             const score = scoreThreshold === undefined ? 0.3 : scoreThreshold;
-            const response = await fileClassifierApi.similaritySearch(
-              {
+            const response = await similaritySearch({
+              path: {
                 project_id: projectId,
               },
-              {
+              body: {
                 query: search,
                 file_ids: fileIds ?? files.map((file: FileRead) => file.id),
                 when_match_return: 'content',
@@ -77,8 +99,8 @@ export async function POST(request: NextRequest) {
                 score_threshold: score,
                 order_by: score > 0.3 ? 'score' : 'chunk',
                 limit: limit ?? 10,
-              }
-            );
+              },
+            });
 
             return response.data;
           } catch (error) {
@@ -100,11 +122,15 @@ export async function POST(request: NextRequest) {
           toPage: z.number().describe('The page to stop reading at').optional(),
         }),
         execute: async ({ fileId, fromPage, toPage }) => {
-          const response = await fileClassifierApi.getFileContent({
-            project_id: projectId,
-            file_id: fileId,
-            from_page: fromPage,
-            to_page: toPage,
+          const response = await getFileContent({
+            path: {
+              project_id: projectId,
+              file_id: fileId,
+            },
+            query: {
+              from_page: fromPage,
+              to_page: toPage,
+            },
           });
 
           return response.data;
@@ -116,9 +142,11 @@ export async function POST(request: NextRequest) {
           fileId: z.string().describe('The file id to read'),
         }),
         execute: async ({ fileId }) => {
-          const response = await fileClassifierApi.getFileEvaluations({
-            project_id: projectId,
-            file_id: fileId,
+          const response = await getFileEvaluations({
+            path: {
+              project_id: projectId,
+              file_id: fileId,
+            },
           });
 
           return response.data;
@@ -128,8 +156,10 @@ export async function POST(request: NextRequest) {
         description: 'List the evaluations',
         parameters: z.object({}),
         execute: async () => {
-          const response = await fileClassifierApi.getEvaluations({
-            project_id: projectId,
+          const response = await getEvaluations({
+            path: {
+              project_id: projectId,
+            },
           });
 
           return response.data;
@@ -143,9 +173,11 @@ export async function POST(request: NextRequest) {
             .describe('The evaluation id to list the files'),
         }),
         execute: async ({ evaluationId }) => {
-          const response = await fileClassifierApi.getFilesByEvaluation({
-            project_id: projectId,
-            evaluation_id: evaluationId,
+          const response = await getFilesByEvaluation({
+            path: {
+              project_id: projectId,
+              evaluation_id: evaluationId,
+            },
           });
 
           return response.data;
@@ -155,6 +187,42 @@ export async function POST(request: NextRequest) {
   });
 
   return result.toDataStreamResponse();
+}
+
+async function loadSecrets() {
+  if (process.env.VMX_SECRET_NAME && !process.env.VMX_API_KEY) {
+    const secretData = await cache.get<Record<string, string>>(
+      process.env.VMX_SECRET_NAME
+    );
+    if (secretData) {
+      process.env = {
+        ...process.env,
+        ...secretData,
+      };
+    }
+
+    const client = new SecretsManagerClient();
+    const response = await client.send(
+      new GetSecretValueCommand({
+        SecretId: process.env.VMX_SECRET_NAME,
+      })
+    );
+
+    const parsedSecret = JSON.parse(response.SecretString ?? '{}');
+    const secretEnv = {
+      VMX_DOMAIN: parsedSecret.domain,
+      VMX_API_KEY: parsedSecret.api_key,
+      VMX_WORKSPACE_ID: parsedSecret.workspace_id,
+      VMX_ENVIRONMENT_ID: parsedSecret.environment_id,
+      VMX_RESOURCE: parsedSecret.resource_id,
+    };
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    await cache.set(process.env.VMX_SECRET_NAME!, secretEnv);
+    process.env = {
+      ...process.env,
+      ...secretEnv,
+    };
+  }
 }
 
 function getLanguageModel(

@@ -5,7 +5,9 @@
   "sourceRoot": "packages/workflows/evaluation/evaluation_workflow",
   "targets": {
     "cdk-bootstrap": {},
-    "cdk-deploy": {},
+    "cdk-deploy": {
+      "dependsOn": ["lambda-package-dependencies", "lambda-package-project"]
+    },
     "lock": {
       "executor": "@nxlv/python:lock",
       "options": {
@@ -80,24 +82,12 @@
       "continuous": true,
       "executor": "@nxlv/python:run-commands",
       "options": {
-        "command": "python -m evaluation_workflow",
+        "command": "watchmedo auto-restart --patterns=\"*.py\" --recursive -- python -m evaluation_workflow",
         "cwd": "{projectRoot}"
       }
     },
-    "docker-build": {
-      "options": {
-        "env": {
-          "ECR_REPO_NAME": "evaluation-workflow-sqs-consumer"
-        }
-      }
-    },
-    "docker-push": {
-      "options": {
-        "env": {
-          "ECR_REPO_NAME": "evaluation-workflow-sqs-consumer"
-        }
-      }
-    },
+    "docker-build": {},
+    "docker-push": {},
     "helm-deploy": {},
     "update-image-tag": {},
     "deploy": {
@@ -113,9 +103,21 @@
           "params": "forward"
         }
       ]
-    }
+    },
+    "lambda-package-dependencies": {
+      "options": {
+        "extras": ["aws_lambda"]
+      }
+    },
+    "lambda-package-project": {}
   },
-  "tags": ["workflow", "python", "no-deploy:shared", "local-workflow-infra"],
+  "tags": [
+    "workflow",
+    "python",
+    "no-deploy:shared",
+    "local-workflow-infra",
+    "support:serverless"
+  ],
   "release": {
     "version": {
       "versionActions": "@nxlv/python/src/release/version-actions"

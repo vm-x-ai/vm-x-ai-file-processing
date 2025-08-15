@@ -6,6 +6,7 @@
   "dependencies": {
     "aws-cdk-lib": "^2.200.1",
     "constructs": "^10.4.2",
-    "@workspace/infra-cdk-shared": "workspace:*"
+    "@workspace/infra-cdk-shared": "workspace:*",
+    "@aws-cdk/aws-lambda-python-alpha": "2.207.0-alpha.0"
   }
 }

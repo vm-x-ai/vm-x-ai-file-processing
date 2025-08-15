@@ -24,7 +24,7 @@ import { HierarchyPointNode, stratify, tree } from 'd3-hierarchy';
 import '@xyflow/react/dist/style.css';
 import { useCallback, useMemo, useState, useEffect } from 'react';
 import { DataEdge } from '../data-edge';
-import { FileEvaluationReadWithFile } from '@/file-classifier-api';
+import { FileEvaluationReadWithFile } from '@/clients/api/types.gen';
 import { Badge } from '../ui/badge';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';

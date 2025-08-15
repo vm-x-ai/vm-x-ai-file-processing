@@ -1,11 +1,14 @@
 'use client';
 
-import { fileClassifierApi } from '@/api';
-import { use, useEffect, useState } from 'react';
+import { use } from 'react';
 import Dropzone, { DropzoneState } from 'shadcn-dropzone';
 import axios from 'axios';
-import { FileRead } from '@/file-classifier-api';
 import FileCard from '@/components/file-card';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import {
+  getFilesOptions,
+  uploadIntentMutation,
+} from '@/clients/api/@tanstack/react-query.gen';
 
 type PageProps = {
   params: Promise<{
@@ -15,17 +18,17 @@ type PageProps = {
 
 export default function Page({ params }: PageProps) {
   const { projectId } = use(params);
-  const [files, setFiles] = useState<FileRead[]>([]);
-
-  useEffect(() => {
-    fileClassifierApi
-      .getFiles({
+  const files = useQuery({
+    ...getFilesOptions({
+      path: {
         project_id: projectId,
-      })
-      .then(({ data }) => {
-        setFiles(data);
-      });
-  }, [projectId]);
+      },
+    }),
+  });
+
+  const uploadIntent = useMutation({
+    ...uploadIntentMutation(),
+  });
 
   return (
     <div className="grid grid-cols-12 gap-4">
@@ -38,22 +41,21 @@ export default function Page({ params }: PageProps) {
           dropZoneClassName="border-2 border-dashed border-gray-300 rounded-md"
           onDrop={async (acceptedFiles: File[]) => {
             for (const file of acceptedFiles) {
-              const { data: uploadIntent } =
-                await fileClassifierApi.uploadIntent(
-                  {
-                    project_id: projectId,
-                  },
-                  {
-                    file_name: file.name,
-                    file_size: file.size,
-                  }
-                );
-
-              await axios.put(uploadIntent.upload_url, file, {
-                headers: uploadIntent.headers,
+              const data = await uploadIntent.mutateAsync({
+                path: {
+                  project_id: projectId,
+                },
+                body: {
+                  file_name: file.name,
+                  file_size: file.size,
+                },
               });
 
-              setFiles((prev) => [...prev, uploadIntent.file]);
+              await axios.put(data.upload_url, file, {
+                headers: data.headers,
+              });
+
+              files.refetch();
             }
           }}
         >
@@ -73,12 +75,12 @@ export default function Page({ params }: PageProps) {
       </div>
       <div className="col-span-12">
         <div className="grid grid-cols-4 gap-4">
-          {files.map((file) => (
+          {files.data?.map((file) => (
             <FileCard
               key={file.id}
               file={file}
               onDelete={() => {
-                setFiles((prev) => prev.filter((f) => f.id !== file.id));
+                files.refetch();
               }}
             />
           ))}

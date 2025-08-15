@@ -1,5 +1,5 @@
 {
-  "app": "node --loader ts-node/esm infra/main.mts",
+  "app": "node --no-warnings --loader ts-node/esm infra/main.mts",
   "watch": {
     "include": ["**"],
     "exclude": [

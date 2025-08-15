@@ -17,7 +17,7 @@ async def main():
     client: Client = await container.temporal_client()
     logger.info(f"Starting worker for {client.namespace}")
 
-    activities = container.activities()
+    activities = await container.activities()
 
     worker = Worker(
         client,

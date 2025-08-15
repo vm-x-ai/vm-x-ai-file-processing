@@ -8,7 +8,6 @@ from google.protobuf.json_format import MessageToDict
 from internal_db_repositories.evaluation import EvaluationRepository
 from internal_db_repositories.file import FileRepository
 from internal_db_repositories.file_evaluation import FileEvaluationRepository
-from temporalio import activity
 from vmxai.types import (
     CompletionBatchItemUpdateCallbackPayload,
     CompletionBatchRequestStatus,
@@ -28,7 +27,6 @@ class StoreEvaluationActivity:
         self._evaluation_repository = evaluation_repository
         self._file_evaluation_repository = file_evaluation_repository
 
-    @activity.defn(name="StoreEvaluationActivity")
     async def run(
         self,
         file_id: UUID,

@@ -64,3 +64,6 @@ reports/
 .coverage
 
 .env.*.local
+
+# Python Lambda Package
+.aws-lambda-package

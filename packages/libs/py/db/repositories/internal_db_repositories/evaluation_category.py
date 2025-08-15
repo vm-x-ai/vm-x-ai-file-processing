@@ -1,11 +1,11 @@
-from contextlib import AbstractAsyncContextManager
-from typing import Callable, cast
+from typing import cast
 from uuid import UUID, uuid4
 
 import internal_db_models
-from sqlalchemy import Column, ColumnExpressionArgument, select
+from internal_db_services.database import Database
+from sqlalchemy import Column, ColumnExpressionArgument, exists, not_, select
+from sqlalchemy.orm import selectinload
 from sqlmodel import col
-from sqlmodel.ext.asyncio.session import AsyncSession
 
 from .base import BaseRepository
 
@@ -20,12 +20,10 @@ class EvaluationCategoryRepository(
 ):
     def __init__(
         self,
-        session_factory: Callable[..., AbstractAsyncContextManager[AsyncSession]],
-        write_session_factory: Callable[..., AbstractAsyncContextManager[AsyncSession]],
+        db: Database,
     ):
         super().__init__(
-            session_factory,
-            write_session_factory,
+            db,
             internal_db_models.EvaluationCategory,
             internal_db_models.EvaluationCategoryRead,
             internal_db_models.EvaluationCategoryCreate,
@@ -39,18 +37,35 @@ class EvaluationCategoryRepository(
         return col(internal_db_models.EvaluationCategory.id) == id
 
     async def get_by_project_id(
-        self, project_id: UUID
-    ) -> list[internal_db_models.EvaluationCategoryRead]:
+        self, project_id: UUID, has_evaluations: bool | None = None
+    ) -> list[internal_db_models.EvaluationCategoryWithEvaluations]:
         """Get all evaluation categories for a specific project."""
         async with self._session_factory() as session:
             query = (
                 select(internal_db_models.EvaluationCategory)
+                .options(
+                    selectinload(internal_db_models.EvaluationCategory.evaluations)
+                )
                 .where(internal_db_models.EvaluationCategory.project_id == project_id)
                 .order_by(col(internal_db_models.EvaluationCategory.name))
             )
+            if has_evaluations is not None:
+                exists_query = exists(
+                    select(1).where(
+                        internal_db_models.Evaluation.category_id
+                        == internal_db_models.EvaluationCategory.id,
+                        internal_db_models.Evaluation.project_id == project_id,
+                    )
+                )
+
+                query = query.where(
+                    exists_query if has_evaluations else not_(exists_query)
+                )
             result = await session.scalars(query)
             return [
-                internal_db_models.EvaluationCategoryRead.model_validate(category)
+                internal_db_models.EvaluationCategoryWithEvaluations.model_validate(
+                    category
+                )
                 for category in result.all()
             ]
 

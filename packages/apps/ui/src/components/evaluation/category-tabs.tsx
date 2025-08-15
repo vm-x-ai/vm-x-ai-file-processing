@@ -1,12 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { fileClassifierApi } from '@/api';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Components } from '@/file-classifier-api';
-
-type EvaluationCategoryRead = Components.Schemas.EvaluationCategoryRead;
+import { useQuery } from '@tanstack/react-query';
+import { getEvaluationCategoriesOptions } from '@/clients/api/@tanstack/react-query.gen';
 
 interface CategoryTabsProps {
   projectId: string;
@@ -19,58 +16,18 @@ export function CategoryTabs({
   selectedCategoryId,
   onCategoryChange,
 }: CategoryTabsProps) {
-  const [categories, setCategories] = useState<EvaluationCategoryRead[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: categories, isLoading } = useQuery({
+    ...getEvaluationCategoriesOptions({
+      path: {
+        project_id: projectId,
+      },
+      query: {
+        has_evaluations: true,
+      },
+    }),
+  });
 
-  useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const { data } = await fileClassifierApi.getEvaluationCategories({
-          project_id: projectId,
-        });
-
-        // Check which categories have evaluations
-        const categoriesWithEvaluations = await Promise.all(
-          data.map(async (category) => {
-            try {
-              const { data: evaluations } =
-                await fileClassifierApi.getEvaluationsByCategory({
-                  project_id: projectId,
-                  category_id: category.id,
-                });
-              return { category, hasEvaluations: evaluations.length > 0 };
-            } catch (error) {
-              console.error(
-                `Failed to fetch evaluations for category ${category.id}:`,
-                error
-              );
-              return { category, hasEvaluations: false };
-            }
-          })
-        );
-
-        // Filter to only show categories with evaluations
-        const filteredCategories = categoriesWithEvaluations
-          .filter(({ hasEvaluations }) => hasEvaluations)
-          .map(({ category }) => category);
-
-        setCategories(filteredCategories);
-
-        // Auto-select the first category if none is selected
-        if (filteredCategories.length > 0 && !selectedCategoryId) {
-          onCategoryChange(filteredCategories[0].id);
-        }
-      } catch (error) {
-        console.error('Failed to fetch categories:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchCategories();
-  }, [projectId, selectedCategoryId, onCategoryChange]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex gap-0 border-b">
         {[1, 2, 3].map((i) => (
@@ -80,7 +37,7 @@ export function CategoryTabs({
     );
   }
 
-  if (categories.length === 0) {
+  if (!categories?.length) {
     return (
       <div className="text-sm text-muted-foreground">
         No categories available

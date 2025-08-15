@@ -6,6 +6,7 @@ from uuid import UUID
 import internal_db_models
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, Query
+from internal_aws_shared.s3 import generate_download_url
 from internal_db_repositories.evaluation import EvaluationRepository
 from internal_db_repositories.evaluation_category import (
     EvaluationCategoryRepository,
@@ -15,8 +16,7 @@ from internal_schemas.evaluation import (
     HttpEvaluationCreate,
     HttpEvaluationUpdate,
 )
-from internal_utils.s3 import generate_download_url
-from temporalio.client import Client
+from internal_services.workflow.engine import WorkflowEngineService
 
 from api.containers import Container
 
@@ -131,7 +131,9 @@ async def create_evaluation(
     evaluation_category_repository: EvaluationCategoryRepository = Depends(
         Provide[Container.evaluation_category_repository]
     ),
-    temporal_client: Client = Depends(Provide[Container.temporal_client]),
+    workflow_engine_service: WorkflowEngineService = Depends(
+        Provide[Container.workflow_engine_service]
+    ),
 ) -> internal_db_models.EvaluationRead:
     # Handle category creation/assignment
     category_id = payload.category_id
@@ -165,16 +167,13 @@ async def create_evaluation(
         )
     )
 
-    asyncio.ensure_future(
-        temporal_client.start_workflow(
-            "UpdateEvaluationWorkflow",
-            id=f"new-evaluation-workflow-{evaluation.id}",
-            task_queue="temporal-worker",
-            args=[
-                evaluation,
-                None,
-            ],
-        )
+    await workflow_engine_service.start_workflow(
+        workflow_name="UpdateEvaluationWorkflow",
+        id=f"new-evaluation-workflow-{evaluation.id}",
+        payload={
+            "evaluation": evaluation.model_dump(mode="json"),
+            "old_evaluation": None,
+        },
     )
 
     return evaluation
@@ -195,7 +194,9 @@ async def update_evaluation(
     evaluation_repository: EvaluationRepository = Depends(
         Provide[Container.evaluation_repository]
     ),
-    temporal_client: Client = Depends(Provide[Container.temporal_client]),
+    workflow_engine_service: WorkflowEngineService = Depends(
+        Provide[Container.workflow_engine_service]
+    ),
 ) -> internal_db_models.EvaluationRead:
     old_evaluation = await evaluation_repository.get(evaluation_id)
     await evaluation_repository.update(
@@ -206,16 +207,17 @@ async def update_evaluation(
     )
     updated_evaluation = await evaluation_repository.get(evaluation_id)
 
-    asyncio.ensure_future(
-        temporal_client.start_workflow(
-            "UpdateEvaluationWorkflow",
-            id=f"updated-evaluation-workflow-{updated_evaluation.id}",
-            task_queue="temporal-worker",
-            args=[
-                updated_evaluation,
-                old_evaluation,
-            ],
-        )
+    await workflow_engine_service.start_workflow(
+        workflow_name="UpdateEvaluationWorkflow",
+        id=f"updated-evaluation-workflow-{updated_evaluation.id}",
+        payload={
+            "evaluation": updated_evaluation.model_dump(mode="json")
+            if updated_evaluation
+            else None,
+            "old_evaluation": old_evaluation.model_dump(mode="json")
+            if old_evaluation
+            else None,
+        },
     )
 
     return updated_evaluation
@@ -242,18 +244,20 @@ async def delete_evaluation(
     "/projects/{project_id}/evaluation-categories",
     operation_id="getEvaluationCategories",
     description="Get all evaluation categories for a project",
-    response_model=list[internal_db_models.EvaluationCategoryRead],
+    response_model=list[internal_db_models.EvaluationCategoryWithEvaluations],
     tags=["evaluation-categories"],
 )
 @inject
 async def get_evaluation_categories(
     project_id: UUID,
+    has_evaluations: bool | None = Query(default=None),
     evaluation_category_repository: EvaluationCategoryRepository = Depends(
         Provide[Container.evaluation_category_repository]
     ),
-) -> list[internal_db_models.EvaluationCategoryRead]:
+) -> list[internal_db_models.EvaluationCategoryWithEvaluations]:
     return await evaluation_category_repository.get_by_project_id(
         project_id=project_id,
+        has_evaluations=has_evaluations,
     )
 
 

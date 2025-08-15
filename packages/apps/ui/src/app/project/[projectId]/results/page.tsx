@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useEffect, use } from 'react';
-import { fileClassifierApi } from '@/api';
 import { Card, CardContent } from '@/components/ui/card';
 import { CategoryTabs, ResultsTable } from '@/components/evaluation';
-import { Components } from '@/file-classifier-api';
-
-type EvaluationRead = Components.Schemas.EvaluationRead;
-type FileEvaluationReadWithFile = Components.Schemas.FileEvaluationReadWithFile;
+import {
+  EvaluationRead,
+  FileEvaluationReadWithFile,
+  getFilesByEvaluation,
+} from '@/clients/api';
+import { useQuery } from '@tanstack/react-query';
+import { getEvaluationsByCategoryOptions } from '@/clients/api/@tanstack/react-query.gen';
 
 interface ResultWithEvaluation extends FileEvaluationReadWithFile {
   evaluation: EvaluationRead;
@@ -24,8 +26,18 @@ export default function Page({ params }: PageProps) {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null
   );
+
+  const evaluations = useQuery({
+    ...getEvaluationsByCategoryOptions({
+      path: {
+        project_id: projectId,
+        category_id: selectedCategoryId as string,
+      },
+    }),
+  });
+
   const [results, setResults] = useState<ResultWithEvaluation[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // Function to deduplicate results, keeping the most recently updated record
   const deduplicateResults = (
@@ -55,26 +67,22 @@ export default function Page({ params }: PageProps) {
     async function fetchResults() {
       setLoading(true);
       try {
-        // Get evaluations for specific category
-        const { data: evaluations } =
-          await fileClassifierApi.getEvaluationsByCategory({
-            project_id: projectId,
-            category_id: selectedCategoryId as string,
-          });
-
         // Get results for each evaluation
         const allResults = await Promise.all(
-          evaluations.map(async (evaluation) => {
-            const { data: results } =
-              await fileClassifierApi.getFilesByEvaluation({
+          evaluations.data?.map(async (evaluation) => {
+            const { data: results } = await getFilesByEvaluation({
+              path: {
                 project_id: projectId,
                 evaluation_id: evaluation.id,
-              });
-            return results.map((result) => ({
-              ...result,
-              evaluation,
-            }));
-          })
+              },
+            });
+            return (
+              results?.map((result) => ({
+                ...result,
+                evaluation,
+              })) ?? []
+            );
+          }) ?? []
         );
 
         // Flatten the results
@@ -92,7 +100,7 @@ export default function Page({ params }: PageProps) {
     }
 
     fetchResults();
-  }, [projectId, selectedCategoryId]);
+  }, [evaluations.data, projectId, selectedCategoryId]);
 
   if (!projectId) {
     return <div>Loading...</div>;

@@ -1,4 +1,4 @@
-import { EvaluationCategoryRead } from '@/file-classifier-api';
+import { EvaluationCategoryRead } from '@/clients/api/types.gen';
 
 /**
  * Determines if a category should be shown when it's empty.

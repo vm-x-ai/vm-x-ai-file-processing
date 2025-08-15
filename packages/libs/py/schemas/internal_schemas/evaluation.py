@@ -1,4 +1,3 @@
-from typing import Optional
 from uuid import UUID
 
 from internal_db_models.evaluation import EvaluationBase, EvaluationType
@@ -8,29 +7,27 @@ from pydantic import BaseModel, Field, model_validator
 class HttpEvaluationCreate(BaseModel):
     title: str = Field(description="Title of the evaluation")
     description: str = Field(description="Description of the evaluation")
-    system_prompt: Optional[str] = Field(
+    system_prompt: str | None = Field(
         None, description="System prompt for the evaluation"
     )
     prompt: str = Field(description="Prompt for the evaluation")
     evaluation_type: EvaluationType = Field(description="Type of evaluation")
-    evaluation_options: Optional[list[str]] = Field(
+    evaluation_options: list[str] | None = Field(
         None, description="Options for enum_choice evaluations"
     )
-    parent_evaluation_id: Optional[UUID] = Field(
-        None, description="Parent evaluation ID"
-    )
-    parent_evaluation_option: Optional[str] = Field(
+    parent_evaluation_id: UUID | None = Field(None, description="Parent evaluation ID")
+    parent_evaluation_option: str | None = Field(
         None, description="Parent evaluation option"
     )
 
-    template_id: Optional[UUID] = Field(None, description="Template ID")
+    template_id: UUID | None = Field(None, description="Template ID")
 
     # Allow either category_id or category_name, but not both
-    category_id: Optional[UUID] = Field(None, description="ID of existing category")
-    category_name: Optional[str] = Field(
+    category_id: UUID | None = Field(None, description="ID of existing category")
+    category_name: str | None = Field(
         None, description="Name of new category to create"
     )
-    category_description: Optional[str] = Field(
+    category_description: str | None = Field(
         None, description="Description for new category"
     )
 

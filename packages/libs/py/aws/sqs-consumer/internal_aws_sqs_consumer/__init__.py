@@ -1,9 +1,8 @@
 import asyncio
 import logging
 from abc import ABC, abstractmethod
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Callable
 from concurrent.futures import ThreadPoolExecutor
-from typing import Callable
 
 import aioboto3
 

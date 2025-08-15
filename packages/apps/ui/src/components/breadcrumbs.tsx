@@ -5,10 +5,11 @@ import { useCallback } from 'react';
 import NextBreadcrumbs from '@/components/next-breadcrumbs';
 import titleize from 'titleize';
 import { Params } from 'next/dist/server/request/params';
-import { useStore } from '@/store/store';
+import { useAppStore } from '@/store/provider';
 
 export default function Breadcrumbs() {
-  const { project, file } = useStore();
+  const project = useAppStore((state) => state.project);
+  const file = useAppStore((state) => state.file);
   const getDefaultTextGenerator = useCallback((subpath: string) => {
     return titleize(subpath);
   }, []);

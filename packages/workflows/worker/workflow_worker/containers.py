@@ -1,78 +1,67 @@
-import aioboto3
-import evaluation_workflow.activities as evaluation_activities
-import ingestion_workflow.activities as ingestion_activities
-import workflow_shared_actitivies
+import evaluation_workflow.activities.temporal as evaluation_activities
+import ingestion_workflow.activities.temporal as ingestion_activities
+import workflow_shared_actitivies.temporal as workflow_shared_actitivies
 from dependency_injector import providers
+from internal_aws_shared.containers import AWSContainer
 from internal_db_repositories.containers import RepositoriesContainer
 from internal_services.containers import ServicesContainer
 from internal_temporal_utils.containers import TemporalContainer
-from vmxai import VMXClient
+from internal_vmx_utils.containers import VMXContainer
 
 from workflow_worker.settings import Settings
 
 
-class Container(RepositoriesContainer, ServicesContainer, TemporalContainer):
+class Container(
+    RepositoriesContainer, ServicesContainer, TemporalContainer, VMXContainer
+):
     settings = providers.Singleton(Settings)
 
-    aioboto3_session = providers.Singleton(
-        aioboto3.Session,
-    )
-
-    vmx_client = providers.Factory(
-        VMXClient,
-        domain=settings.provided.vmx.domain,
-        api_key=settings.provided.vmx.api_key,
-        workspace_id=settings.provided.vmx.workspace_id,
-        environment_id=settings.provided.vmx.environment_id,
-    )
-
     activities = providers.List(
-        providers.Factory(
-            ingestion_activities.LoadS3FileActivity,
+        providers.Singleton(
+            ingestion_activities.LoadS3FileActivityTemporal,
             file_repository=RepositoriesContainer.file_repository,
             project_repository=RepositoriesContainer.project_repository,
             file_content_repository=RepositoriesContainer.file_content_repository,
-            aioboto3_session=aioboto3_session,
+            aioboto3_session=AWSContainer.aioboto3_session,
             thumbnail_s3_bucket_name=settings.provided.thumbnail.s3_bucket_name,
         ),
-        providers.Factory(
-            ingestion_activities.ChunkDocumentActivity,
+        providers.Singleton(
+            ingestion_activities.ChunkDocumentActivityTemporal,
             file_repository=RepositoriesContainer.file_repository,
             file_content_repository=RepositoriesContainer.file_content_repository,
             file_embedding_repository=RepositoriesContainer.file_embedding_repository,
         ),
-        providers.Factory(
-            ingestion_activities.CreateChunkEmbeddingsActivity,
+        providers.Singleton(
+            ingestion_activities.CreateChunkEmbeddingsActivityTemporal,
             file_embedding_repository=RepositoriesContainer.file_embedding_repository,
             file_repository=RepositoriesContainer.file_repository,
-            openai_api_key=settings.provided.openai.api_key,
+            openai_api_key=ServicesContainer.openai_key,
         ),
-        providers.Factory(
-            evaluation_activities.StartEvaluationsActivity,
+        providers.Singleton(
+            evaluation_activities.StartEvaluationsActivityTemporal,
             evaluation_service=ServicesContainer.evaluation_service,
             file_repository=RepositoriesContainer.file_repository,
             file_content_repository=RepositoriesContainer.file_content_repository,
-            vmx_client=vmx_client,
-            vmx_resource_id=settings.provided.vmx.resource_id,
+            vmx_client_resource=VMXContainer.vmx_client,
             ingestion_callback_url=settings.provided.ingestion_callback.url,
         ),
-        providers.Factory(
-            evaluation_activities.StoreEvaluationActivity,
+        providers.Singleton(
+            evaluation_activities.StoreEvaluationActivityTemporal,
             file_repository=RepositoriesContainer.file_repository,
             evaluation_repository=RepositoriesContainer.evaluation_repository,
             file_evaluation_repository=RepositoriesContainer.file_evaluation_repository,
         ),
-        providers.Factory(
-            workflow_shared_actitivies.UpdateFileStatusActivity,
+        providers.Singleton(
+            workflow_shared_actitivies.UpdateFileStatusActivityTemporal,
             file_repository=RepositoriesContainer.file_repository,
         ),
-        providers.Factory(
-            workflow_shared_actitivies.SendEventActivity,
-            aioboto3_session=aioboto3_session,
+        providers.Singleton(
+            workflow_shared_actitivies.SendEventActivityTemporal,
+            aioboto3_session=AWSContainer.aioboto3_session,
             event_bus_name=settings.provided.event_bus_name,
         ),
-        providers.Factory(
-            evaluation_activities.GetFilesToEvaluateActivity,
+        providers.Singleton(
+            evaluation_activities.GetFilesToEvaluateActivityTemporal,
             file_evaluation_repository=RepositoriesContainer.file_evaluation_repository,
             file_repository=RepositoriesContainer.file_repository,
         ),

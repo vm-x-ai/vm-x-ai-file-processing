@@ -228,6 +228,8 @@ EVENT_BUS_NAME="{{ RESOURCE_PREFIX }}-event-bus-local"
 EOF
 
 cat > $API_ENV <<EOF
+ENV=local
+
 DB_USER=app
 DB_PASSWORD=app
 DB_HOST=localhost
@@ -257,7 +259,7 @@ VMX_WORKSPACE_ID=$VMX_WORKSPACE_ID
 VMX_ENVIRONMENT_ID=$VMX_ENVIRONMENT_ID
 VMX_RESOURCE=$VMX_RESOURCE_ID
 
-NEXT_PUBLIC_API_URL=http://localhost:8000/api
+API_URL=http://localhost:8000/api
 EOF
 
 log_success ".env files generated."

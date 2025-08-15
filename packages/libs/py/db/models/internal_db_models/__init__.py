@@ -11,6 +11,7 @@ from .evaluation_category import (
     EvaluationCategoryBase,
     EvaluationCategoryCreate,
     EvaluationCategoryRead,
+    EvaluationCategoryWithEvaluations,
 )
 from .evaluation_template import (
     EvaluationTemplate,
@@ -89,6 +90,7 @@ __all__ = [
     "EvaluationCategoryBase",
     "EvaluationCategoryCreate",
     "EvaluationCategoryRead",
+    "EvaluationCategoryWithEvaluations",
     "EvaluationTemplate",
     "EvaluationTemplateCreate",
     "EvaluationTemplateRead",

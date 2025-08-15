@@ -15,7 +15,9 @@ dependencies = [
   "workflow-ingestion",
   "evaluation-workflow",
   "workflow-shared-activities",
-  "py-aws-sqs-consumer"
+  "py-aws-sqs-consumer",
+  "py-vmx-utils",
+  "py-aws-shared"
 ]
 
 [tool.uv.workspace]
@@ -33,7 +35,9 @@ members = [
   "packages/workflows/ingestion",
   "packages/workflows/evaluation",
   "packages/workflows/shared-activities",
-  "packages/libs/py/aws/sqs-consumer"
+  "packages/libs/py/aws/sqs-consumer",
+  "packages/libs/py/vmx/utils",
+  "packages/libs/py/aws/shared"
 ]
 
 [tool.uv.sources.workflow-worker]
@@ -78,6 +82,12 @@ workspace = true
 [tool.uv.sources.py-aws-sqs-consumer]
 workspace = true
 
+[tool.uv.sources.py-vmx-utils]
+workspace = true
+
+[tool.uv.sources.py-aws-shared]
+workspace = true
+
 [dependency-groups]
 dev = [
   "autopep8>=2.3.1",
@@ -86,7 +96,9 @@ dev = [
   "pytest-sugar>=1.0.0",
   "pytest-cov>=6.0.0",
   "pytest-html>=4.1.1",
-  "types-aioboto3[s3,events]>=14.3.0",
-  "types-aiobotocore[s3,events]>=2.22.0",
-  "watchdog>=6.0.0"
+  "types-aioboto3[s3,events,secretsmanager,ssm,stepfunctions]>=14.3.0",
+  "types-aiobotocore[s3,events,secretsmanager,ssm,stepfunctions]>=2.22.0",
+  "watchdog>=6.0.0",
+  "types-boto3[s3,events,secretsmanager,ssm,stepfunctions]>=1.39.14",
+  "types-botocore>=1.0.2"
 ]

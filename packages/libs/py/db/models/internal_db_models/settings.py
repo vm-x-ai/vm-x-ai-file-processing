@@ -1,6 +1,6 @@
 from os import environ
 
-from pydantic import Field, PostgresDsn, computed_field
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 env_file = f".env.{environ.get('ENV', 'local')}"
@@ -21,21 +21,6 @@ class BastionSettings(BaseSettings):
     )
 
 
-class RemoteDBSettings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file=env_file,
-        env_file_encoding="utf-8",
-        extra="ignore",
-        env_prefix="REMOTE_DB_",
-    )
-    secret_name: str = Field(
-        default_factory=lambda: (
-            f"{environ.get('RESOURCE_PREFIX')}-app-"
-            f"database-secret-{environ.get('ENV', 'local')}"
-        )
-    )
-
-
 class DatabaseSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=env_file,
@@ -44,40 +29,19 @@ class DatabaseSettings(BaseSettings):
         env_prefix="DB_",
     )
 
+    scheme: str = "postgresql+psycopg"
     user: str | None = None
     password: str | None = None
     host: str | None = None
     ro_host: str | None = None
     port: int | None = None
     name: str | None = None
-
-    @computed_field
-    @property
-    def url(self) -> str:
-        return str(
-            PostgresDsn.build(
-                scheme="postgresql+psycopg",
-                username=self.user,
-                password=self.password,
-                host=self.host,
-                port=self.port,
-                path=self.name,
-            )
+    secret_name: str = Field(
+        default_factory=lambda: (
+            f"{environ.get('RESOURCE_PREFIX')}-app-"
+            f"database-secret-{environ.get('ENV', 'local')}"
         )
-
-    @computed_field
-    @property
-    def ro_url(self) -> str:
-        return str(
-            PostgresDsn.build(
-                scheme="postgresql+psycopg",
-                username=self.user,
-                password=self.password,
-                host=self.ro_host,
-                port=self.port,
-                path=self.name,
-            )
-        )
+    )
 
 
 class Settings(BaseSettings):
@@ -88,4 +52,3 @@ class Settings(BaseSettings):
     env: str = "local"
     db: DatabaseSettings = DatabaseSettings()
     bastion_host: BastionSettings = BastionSettings()
-    remote_db: RemoteDBSettings = RemoteDBSettings()

@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 from uuid import UUID
 
 import internal_db_models
@@ -24,8 +23,8 @@ class EvaluationService:
     async def get_by_project_id_and_parent_evaluation_id(
         self,
         project_id: UUID,
-        parent_evaluation_id: Optional[UUID] = None,
-        parent_evaluation_option: Optional[str] = None,
+        parent_evaluation_id: UUID | None = None,
+        parent_evaluation_option: str | None = None,
     ) -> list[internal_db_models.EvaluationReadWithTemplate]:
         evaluations = await self._repo.get_by_project_id_and_parent_evaluation_id(
             project_id,
@@ -43,7 +42,10 @@ class EvaluationService:
         ]
 
     async def get(self, id: UUID) -> internal_db_models.EvaluationRead:
-        evaluation = await super().get(id)
+        evaluation = await self._repo.get(id)
+        if not evaluation:
+            raise ValueError(f"Evaluation with id {id} not found")
+
         if not evaluation.template_id:
             return evaluation
 
